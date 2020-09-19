@@ -1,0 +1,734 @@
+#pragma once
+
+#include "cmd/main_logic/cmd_make.hpp"
+#include "cmd/groups_logic/cmd_groups_make.hpp"
+
+//#define timers
+#define print_timers false
+#define end_return  { show_tree fmt::print("\n");   return; }
+
+
+#ifdef timers
+#define start_timer(name)   std::chrono::high_resolution_clock::time_point timer_##name = std::chrono::high_resolution_clock::now();
+#define end_timer(name) 	std::chrono::high_resolution_clock::time_point end_##name = std::chrono::high_resolution_clock::now(); std::chrono::duration<double, std::micro> result_##name =  end_##name - timer_##name; if (print_timers) {	print(fg(fmt::color::azure), "\nProcess parse {} end: ", #name); print(fg(fmt::color::coral), "{}", result_##name.count()); 		print(fg(fmt::color::azure), "us\n"); }
+#else
+#define start_timer(name)
+#define end_timer(name)
+#endif
+
+namespace parser
+{
+    namespace executive
+    {
+        struct data_block_t
+        {
+            global_gcmd_t *gcmd      = nullptr;
+            int  current_position    = 0;
+            int  count_not_signature = 0;
+            bool is_status_find      = false;
+        };
+
+        struct base_arg_t
+        {
+            data_block_t* region;
+            words_base_t* element;
+            tree_words_t* word;
+        };
+
+        class base_parser_t
+        {
+           public:
+               block_depth_t<data_block_t> block_depth;
+               base_arg_t                  base_arg;
+               global_gcmd_t               global_gcmd;
+               groups::global_gcmd_group_t global_gcmd_group;
+
+               bool is_render_tree = false;
+
+               base_parser_t() {  }
+
+               void last_group_parrent(groups::gcmd_group_t* command_graph, groups::gcmd_group_t* first_child_graph, groups::gcmd_group_t* last_child_graph, int& status, const pel::groups::group_element_t& element)
+               {
+                   auto cmd         = &command_graph->get_value();
+                   auto parrent_cmd = &command_graph->parent->get_value();
+                   auto root_cmd    = &command_graph->root->get_value();
+
+                   if (cmd->is_or())
+                   {
+                       status_find_t tmp = status_find_t::unknow;
+
+                       for (std::size_t i = 0; i < command_graph->tree.size(); i++)
+                       {
+                           auto current_cmd = &command_graph->tree[i]->get_value();
+
+                           if (current_cmd->status_process.status_find == status_find_t::success)
+                           {
+                               tmp = status_find_t::success;
+                           }
+                       }
+
+                       if (tmp == status_find_t::unknow)
+                       {
+                           tmp = status_find_t::failed;
+                       }
+
+                       cmd->status_process.status_find = tmp;
+                   }
+
+                   // inversion
+                   if (cmd->is_not() && cmd->status_process.status_find != status_find_t::unknow)
+                   {
+                       if (cmd->status_process.status_find == status_find_t::success) {
+                           cmd->status_process.status_find = status_find_t::failed;
+                       }
+                       else
+                       {
+                           if (cmd->status_process.status_find == status_find_t::failed)
+                               cmd->status_process.status_find = status_find_t::success;
+                       }
+
+                   }
+
+                   if (parrent_cmd->is_and() || parrent_cmd->is_empty_operation())
+                      parrent_cmd->status_process = cmd->status_process;
+
+
+
+                   if (command_graph->is_root)
+                   {
+                       if (cmd->status_process.status_find == status_find_t::success)
+                           status = true;
+
+                       if (cmd->status_process.status_find == status_find_t::failed)
+                           status = false;
+
+                       if (cmd->status_process.status_find == status_find_t::unknow)
+                           status = false;
+
+                       // reset
+                       cmd->status_process.status_find = status_find_t::unknow;
+                   }
+               }
+
+               void process_group_signature(groups::gcmd_group_t* command_graph, int& status, const pel::groups::group_element_t& element)
+               {
+                   auto cmd         = &command_graph->get_value();
+                   auto parrent_cmd = &command_graph->parent->get_value();
+                   auto root_cmd    = &command_graph->root->get_value();
+
+                   if (is_render_tree) {
+
+                       if (command_graph->is_root)
+                       {
+                           fmt::print("\n");
+                           fmt::print("Value: {}", (char)element.element);
+                           fmt::print("\n\n");
+                       }
+
+                       if (!cmd->group.name.empty() || cmd->group.size() > 0) {
+
+                           groups::print_space_cmd_group(command_graph->level, command_graph->is_have_sub_elemets(), cmd);
+
+                           if (command_graph->is_root)
+                           {
+                               fmt::print(fg(fmt::color::coral), " {}", cmd->group.name);
+                           }
+                           else
+                           {
+                               if (cmd->is_type())
+                               {
+                                   fmt::print(fg(fmt::color::blanched_almond), " {}", cmd->group.name);
+                               }
+                               else
+                               {
+                                   fmt::print("{}", " {");
+
+                                   for (size_t i = 0; i < cmd->group.get().size() - 1; i++)
+                                   {
+                                       fmt::print(fg(fmt::color::thistle), "'{}'", (char)cmd->group.get()[i].element);
+                                       fmt::print(", ");
+                                   }
+
+                                   fmt::print(fg(fmt::color::thistle), "'{}'", (char)cmd->group.get()[cmd->group.get().size() - 1].element);
+
+                                   fmt::print("{}", "};");
+                               }
+                           }
+
+                           fmt::print(" [");
+                           fmt::print(fg(fmt::color::coral), "{0}", cmd->min_position);
+                           fmt::print("-");
+                           fmt::print(fg(fmt::color::coral), "{0}", cmd->max_position);
+                           fmt::print("]");
+
+                           fmt::print(" pos: {0}", command_graph->position);
+
+                           if (cmd->is_last)
+                           {
+                               fmt::print(fg(fmt::color::orange_red), " <last element>");
+                           }
+                       }
+                   }
+
+                   
+                   if (cmd->is_type()) {
+
+                       cmd->status_process = parrent_cmd->status_process;
+                   }
+
+                   if (cmd->is_value()) {
+
+                       cmd->status_process = parrent_cmd->status_process;
+
+                       bool tmp_status = cmd->group.is_belongs(element);
+              
+                       // inversion
+                       if (cmd->is_not())
+                           tmp_status = !tmp_status;
+
+                       if (tmp_status)
+                            cmd->status_process.status_find = status_find_t::success;
+                        else
+                            cmd->status_process.status_find = status_find_t::failed;
+
+                       if (parrent_cmd->is_and() || parrent_cmd->is_empty_operation())
+                       {                        
+                          if (parrent_cmd->status_process.status_find == status_find_t::unknow || parrent_cmd->status_process.status_find == status_find_t::success)
+                             parrent_cmd->status_process = cmd->status_process; // если это faile, то разрушит состояние success
+                       }
+                       
+                   }
+
+                   end_return;
+               }
+
+               void init_recursive_function()
+               {
+                  // global_graph.process_function["base"] = detail::bind_function(&base_parser_t::process_signature, this, std::placeholders::_1, std::placeholders::_2);
+               }
+
+               void final_signature(gcmd_t* command_graph, base_arg_t* arg, int count_signaturs, bool& is_use)
+               {
+                   cmd_t* cmd         = &command_graph->get_value();
+                   cmd_t* parrent_cmd = &command_graph->parent->get_value();
+                   cmd_t* root_cmd    = &command_graph->root->get_value();
+
+            //	   if (command_graph->get_value().is_last)
+                   {
+                       if (cmd->status_process.status_find == status_find_t::success)
+                       {
+                           show_result fmt::print(fg(fmt::color::lawn_green), "\nLine: {3} - its signature: {0} [count op: {1}, total op: {2}]\n", root_cmd->value.c_str(), root_cmd->count_operation, total_operation, arg->element->number_line);
+                           arg->region->is_status_find = true;
+                       }
+                       else
+                       {
+                           show_result fmt::print(fg(fmt::color::indian_red), "\nLine: {4} - its not signature {0}: {1}[{5}:{6}] [count op: {2}, total op: {3}]\n",
+                               root_cmd->value.c_str(),
+                               arg->element->data,
+                               root_cmd->count_operation,
+                               total_operation,
+                               arg->element->number_line,
+                               arg->element->start_position,
+                               arg->element->end_position
+                           );
+
+                           arg->region->is_status_find = false;
+                       }
+
+                       is_use = false;
+                       command_graph->stop_process();
+                   }
+               }
+
+               void last_signature(gcmd_t* command_graph, base_arg_t* arg, int count_signaturs, bool& is_use)
+               {
+                   cmd_t* cmd         = &command_graph->get_value();
+                   cmd_t* parrent_cmd = &command_graph->parent->get_value();
+                   cmd_t* root_cmd    = &command_graph->root->get_value();
+               }
+
+               void last_parrent(gcmd_t* command_graph, gcmd_t* first_child_graph, gcmd_t* last_child_graph, base_arg_t* arg, int count_signaturs, bool& is_use)
+               {
+                   cmd_t* cmd         = &command_graph->get_value();
+                   cmd_t* parrent_cmd = &command_graph->parent->get_value();
+                   cmd_t* root_cmd    = &command_graph->root->get_value();
+
+                   if (cmd->max_position < arg->region->current_position || cmd->min_position > arg->region->current_position)
+                       return;
+
+                   if (cmd->is_type() && command_graph->is_last() && !parrent_cmd->is_or()) {
+                        parrent_cmd->is_end_find = cmd->is_end_find;
+                   }
+                   /*
+                      Решается ли это без перебора? Это линейно, но меня жутко раздражает, что надо каждую суб-ор вершину опрашивать.
+                      Другого алгоритма я не нашел.
+                   */
+                   if (cmd->is_type() && cmd->is_or() && !cmd->is_finaly_or)
+                   {			  
+                       status_find_t tmp_status_find = status_find_t::failed;
+          
+                       bool is_have_not_checked = false;
+                       bool is_all_status_end_checked = false;
+                       bool is_have_success = false;
+
+                       for (std::size_t i = 0; i < command_graph->tree.size(); i++)
+                       {              
+                               if (command_graph->tree[i]->get_value().is_end_find && command_graph->tree[i]->get_value().status_process.status_find == status_find_t::success)
+                               {                
+                                   is_have_success = true;
+                                   tmp_status_find = command_graph->tree[i]->get_value().status_process.status_find;
+                                   break;
+                               }
+
+                               if (!command_graph->tree[i]->get_value().is_end_find)
+                               {
+                                   is_have_not_checked = true; 
+                               }
+
+                               if (is_have_success)
+                                   break;                   	                                 
+                       }
+
+                       if (!is_have_not_checked || is_have_success)
+                       {
+                           cmd->current_index++;
+
+                           cmd->is_end_find  = true;                  
+                           cmd->is_finaly_or = true;
+
+                           cmd->status_process.status_find = tmp_status_find;
+
+                           if (!parrent_cmd->is_or()) 
+                           {                     
+                               cmd->is_inc_current_index = true;
+                      
+                               if (command_graph->is_last())
+                                parrent_cmd->is_end_find = true;
+                           }
+                       }
+                   }
+
+                   if (cmd->is_type() && cmd->is_or() && parrent_cmd->is_or())
+                   {
+    
+                   }
+
+                   if (cmd->is_type() && cmd->is_or() && !parrent_cmd->is_or())
+                   {
+                       if (parrent_cmd->status_process.status_find != status_find_t::failed)
+                           parrent_cmd->status_process = cmd->status_process;
+                   }
+
+                   if (cmd->is_type() && !cmd->is_or() && !parrent_cmd->is_or())
+                   {
+                       if (parrent_cmd->status_process.status_find != status_find_t::failed)
+                           parrent_cmd->status_process = cmd->status_process;
+
+                       if (cmd->is_end_find)
+                       {
+                           parrent_cmd->current_index++;
+                       }               
+                   }
+
+                   if (command_graph->is_root && cmd->is_end_find)
+                   {
+                       final_signature(command_graph, arg, count_signaturs, is_use);
+                   }
+               }
+
+               int total_operation = 0;
+
+               void process_signature(gcmd_t* command_graph, base_arg_t* arg, int count_signaturs, bool& is_use)
+               {
+                   start_timer(process_signature);
+
+                   cmd_t* cmd         = &command_graph->get_value();
+                   cmd_t* parrent_cmd = &command_graph->parent->get_value();
+                   cmd_t* root_cmd    = &command_graph->root->get_value();
+
+                   words_base_t* element = arg->element;
+
+                   // это просто счетчик операций для статистики
+                   root_cmd->count_operation++;
+                   total_operation++;
+                  
+                   if (command_graph->is_root)
+                   {
+                       show_tree fmt::print("\n");
+
+                       show_logs fmt::print("Value: {}", arg->element->data);
+
+                       show_tree fmt::print(" [");
+                       show_tree fmt::print(fg(fmt::color::coral), "{0}", arg->region->current_position);
+                       show_tree fmt::print("]");
+
+                       show_tree fmt::print("\n\n");
+                   }
+
+                   if (!cmd->value.empty()) {
+
+                       show_tree  print_space_cmd(command_graph->level, command_graph->is_have_sub_elemets(), cmd);
+
+                       if (command_graph->is_root)
+                       {
+                           show_tree fmt::print(fg(fmt::color::coral), " {}", cmd->value);
+                       }
+                       else
+                       {
+                           if (cmd->is_type())
+                           {
+                               show_tree fmt::print(fg(fmt::color::blanched_almond), " {}", cmd->value);
+                           }
+                           else
+                           {
+                               show_tree fmt::print(fg(fmt::color::thistle), " \"{}\"", cmd->value);
+                           }
+                       }
+
+                       show_tree fmt::print(" [");
+                       show_tree fmt::print(fg(fmt::color::coral), "{0}", cmd->min_position);
+                       show_tree fmt::print("-");
+                       show_tree fmt::print(fg(fmt::color::coral), "{0}", cmd->max_position);
+                       show_tree fmt::print("]");
+
+                       show_tree fmt::print(" pos: {0}", command_graph->position);
+
+                       if (cmd->is_last)
+                       {
+                           show_tree fmt::print(fg(fmt::color::orange_red), " <last element>");
+                       }
+                   }
+
+                   if (cmd->is_or() && cmd->is_end_find && cmd->is_inc_current_index)
+                   {
+                       parrent_cmd->current_index++;
+                       cmd->is_inc_current_index = false;
+                   }
+
+                   if (cmd->max_position < arg->region->current_position || cmd->min_position > arg->region->current_position) {
+
+                       if (cmd->max_position < arg->region->current_position)
+                       {
+                           show_tree fmt::print(" [");
+                           show_tree fmt::print(fg(fmt::color::alice_blue), "skip position max {0} < {1}", cmd->max_position, arg->region->current_position);
+                           show_tree fmt::print("]");
+                       }
+
+                       if (cmd->min_position > arg->region->current_position)
+                       {
+                           show_tree fmt::print(" [");
+                           show_tree fmt::print(fg(fmt::color::blanched_almond), "skip position min {0} > {1}", cmd->min_position, arg->region->current_position);
+                           show_tree fmt::print("]");
+                       }
+
+                    
+                       end_timer(process_signature);
+                       end_return;
+                   }
+
+                   if (parrent_cmd->current_index != command_graph->position && !parrent_cmd->is_or()) {
+                       show_tree fmt::print(" [");
+                       show_tree fmt::print(fg(fmt::color::gold), "skip current index {0} graph pos {1}", cmd->current_index, command_graph->position);
+                       show_tree fmt::print("]");
+                       end_return;
+                   }
+
+                   if (cmd->is_check && cmd->is_type()) {
+                       end_timer(process_signature);
+                       end_return;
+                   }
+
+                   if (cmd->is_check) {
+                       end_timer(process_signature);
+                       end_return;
+                   }
+
+                   if (cmd->is_type())
+                   {
+                       if (cmd->is_or())
+                       {
+                           cmd->status_process.status_find = status_find_t::unknow;
+
+                       } else 
+                       {
+                           if (!parrent_cmd->is_or())
+                            cmd->status_process = parrent_cmd->status_process;
+                       }
+
+                       if (parrent_cmd->is_or() && parrent_cmd->status_process.status_find != status_find_t::success)
+                       {
+                           parrent_cmd->status_process.status_find = status_find_t::unknow;
+                         //  cmd->status_process = parrent_cmd->status_process;
+                       }
+                   }
+
+                   if (cmd->is_value())
+                   {	
+                       cmd->status_process = parrent_cmd->status_process;
+
+                       cmd->is_check = true;
+
+                       if (command_graph->is_last())
+                       {
+                           parrent_cmd->is_check = true;
+                       }
+
+                       if (cmd->value == element->data)
+                       {
+                           show_tree fmt::print(fg(fmt::color::green_yellow), " [true]");
+
+                           if (!parrent_cmd->is_or())
+                           {
+                               cmd->status_process.status_find = status_find_t::success;
+
+                               if (parrent_cmd->status_process.status_find != status_find_t::failed)
+                                   parrent_cmd->status_process = cmd->status_process;
+
+                               parrent_cmd->current_index++;
+                           }
+
+                           if (parrent_cmd->is_or())
+                           {
+                               cmd->status_process.status_find = status_find_t::success;
+                               cmd->is_end_find = true;
+
+                            /*   if (parrent_cmd->status_process.status_find == status_find_t::unknow || parrent_cmd->status_process.status_find == status_find_t::failed)
+                               {
+                                   parrent_cmd->status_process.status_find = status_find_t::success;	
+                               }*/
+                           }							   
+                       }
+                       else
+                       {
+                           show_tree fmt::print(fg(fmt::color::pale_violet_red), " [false]");
+
+                           if (!parrent_cmd->is_or())
+                           {
+                               cmd->status_process.status_find = status_find_t::failed;
+
+                               parrent_cmd->status_process = cmd->status_process;
+
+                               parrent_cmd->current_index++;
+                           }
+
+                           if (parrent_cmd->is_or())
+                           {
+                              // parrent_cmd->status_process.status_find = status_find_t::failed;						   
+                               cmd->status_process.status_find = status_find_t::failed;
+                           }
+
+                       }
+
+                       if (command_graph->is_last())
+                       {
+                           cmd->is_end_find = true;	  
+                        
+                           if (!parrent_cmd->is_or()) {
+                         
+                              // parrent_cmd->current_index++;
+                               parrent_cmd->is_end_find = true;
+                           }
+                       }
+                   }	
+
+                   {
+                       end_timer(process_signature);
+                       end_return;
+                   }
+               }
+
+               void reset(int level, base_arg_t* arg)
+               {
+                   global_gcmd_t* gcmd = arg->region->gcmd;
+
+                   for (auto& it : *gcmd)
+                   {
+                       data_block_global_gcmd_t* d = it.block_depth.get_block(level);
+                       d->is_use = true;
+                   }
+
+                   arg->region->current_position = 0;
+               }
+
+               void delete_gcmd()
+               {
+                   for (size_t i = 0; i < block_depth.block.size(); i++)
+                   {
+                       global_gcmd_t* gcmd = block_depth.block[i].gcmd;
+
+                       for (auto &it: *gcmd)
+                       {
+                           it.block_depth.delete_alloc();
+                           it.gcmd->delete_tree();
+                           delete it.gcmd;
+                       }
+
+                       delete block_depth.block[i].gcmd;
+                   }
+
+
+               }
+
+               void delete_global_gcmd()
+               {
+                   for (auto &it : global_gcmd)
+                   {
+                       it.block_depth.delete_alloc();
+                       it.gcmd->delete_tree();
+                       delete it.gcmd;
+                   }
+
+                   std::clear(global_gcmd);
+
+                   for (auto& it : global_gcmd_group)
+                   {
+                     
+                       it.gcmd->delete_tree();
+                       delete it.gcmd;
+                   }
+
+                   std::clear(global_gcmd_group);
+               }
+
+               void process_executive_tree(tree_words_t *word)
+               {
+                   if (!word)
+                       return;
+
+                   start_timer(region);
+
+                   data_block_t* region = block_depth.get_block(word->level);
+
+                   if (!region->gcmd)
+                   {
+                       region->gcmd = new global_gcmd_t;
+                       copy_global_cmd(&global_gcmd, region->gcmd);
+                   }
+
+                   base_arg.region  = region;
+                   base_arg.element = word->get_value();
+                   base_arg.word    = word;
+
+                   end_timer(region);
+               
+                   if (word->get_value()->is_symbol() || word->get_value()->is_word()) {
+
+                       global_gcmd_t* gcmd = base_arg.region->gcmd;
+
+                       int w = 0;
+            
+                       start_timer(iteration_gcmd);
+
+                       for (auto& it : *gcmd)
+                       {
+                           data_block_global_gcmd_t *d = it.block_depth.get_block(word->level);
+                           base_arg.region->is_status_find = false;
+
+                           if (d->is_use)
+                           {
+                               //fmt::print("Graph: %s\n", it.gcmd->root->get_value().value.c_str());
+
+                                it.gcmd->process_function["base"]         = detail::bind_function(&base_parser_t::process_signature, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+                                it.gcmd->process_function["last"]         = detail::bind_function(&base_parser_t::last_signature,    this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+                                it.gcmd->process_function["last_parrent"] = detail::bind_function(&base_parser_t::last_parrent,      this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6);
+
+                                it.gcmd->start_process(base_arg, it.count_signaturs, d->is_use);
+
+                                if (!d->is_use)
+                                {
+                                    region->count_not_signature++;
+                                }
+
+                                if (base_arg.region->is_status_find)
+                                {
+                                    break;
+                                }
+                           }
+
+                       }
+
+                       end_timer(iteration_gcmd);
+
+                       if (region->count_not_signature >= gcmd->size() || base_arg.region->is_status_find)
+                       {		  
+                           //fmt::print("[error 1] No signature for: %s\n", base_arg.element->data.c_str());
+
+                           region->count_not_signature = 0;
+
+                           reset(word->level, &base_arg);                   
+                       }
+                       else
+                       {
+                           if (!base_arg.region->is_status_find)
+                               base_arg.region->current_position++;
+                       }
+                   } 
+               }
+        };
+    }
+}
+
+namespace parser
+{
+    namespace executive
+    {
+        class parser_engine_t : public parser::executive::base_parser_t, public parser::block_parser_t, public parser::words_parser_t
+        {
+        public:
+            std::string               code;
+            words_t                   words;
+            tree_words_t              tree;
+            int32_t                   level = -1;
+
+            // no launch delete_global_gcmd()
+            void delete_alloc()
+            {
+                delete_gcmd();
+                block_depth.delete_alloc();
+                
+                tree.delete_tree();
+                words.delete_alloc();
+            }
+
+            void process_parse()
+            {
+                parser::words_parser_t::process_parse(code, words);
+            }
+
+            void group_init() {
+
+                for (auto& it : global_gcmd_group)
+                {
+                    it.gcmd->process_function["base"] = detail::bind_function(&base_parser_t::process_group_signature, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+                    it.gcmd->process_function["last_parrent"] = detail::bind_function(&base_parser_t::last_group_parrent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+
+                }
+
+            }
+            void group_parse(const pel::groups::group_element_t &element, pel::groups::group_result_t &result) {
+
+                for (auto &it: global_gcmd_group)
+                {
+                    int status = 0;
+
+                    it.gcmd->start_process(status, element);
+
+                    // То граф принадлежит
+                    if (status == 1)
+                    {
+                        result.push_group(&it.gcmd->get_value().group);
+                    }
+                }
+                
+                if (is_render_tree)
+                    fmt::print("\n");        
+            }
+
+            void parse_tree()
+            {
+                tree.process_function["base"] = detail::bind_function(&base_parser_t::process_executive_tree, this, std::placeholders::_1);
+                tree.start_process();
+            }	
+        };
+    }
+}

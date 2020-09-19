@@ -13,10 +13,195 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="pel">
+      <UniqueIdentifier>{92df86d3-2fbe-4f18-9a9a-632187676cfd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pel\code">
+      <UniqueIdentifier>{72fb7efd-9799-461c-a106-f3b8ce02bb3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pel\code\parser">
+      <UniqueIdentifier>{8733a1a7-5119-48bf-9010-14b23cd4d71a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pel\code\parser\executive">
+      <UniqueIdentifier>{458b2dd8-bac5-4a18-97c3-8d9197d7870d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pel\code\parser\executive\cmd">
+      <UniqueIdentifier>{d0354ba6-deaa-4a44-a7c7-16fcc43bdd83}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pel\code\parser\executive\cmd\base">
+      <UniqueIdentifier>{fe470f41-c4f0-4519-bc8f-1ef0fd46345c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pel\code\parser\executive\cmd\groups_logic">
+      <UniqueIdentifier>{705468a0-262f-49ea-938c-0af8e09997a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pel\code\parser\executive\cmd\main_logic">
+      <UniqueIdentifier>{d3d7dbde-ddee-4e98-ba59-b9dfe90d47c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pel\code\parser\pel_parser">
+      <UniqueIdentifier>{40b15cf5-b9f5-4a9e-b046-8498c8b58d60}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pel\code\json">
+      <UniqueIdentifier>{6987b11f-3568-4ebc-8894-e3743771bf3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pel\code\detail">
+      <UniqueIdentifier>{334deb5b-f80b-4887-8859-4795c65a2472}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pel\code\detail\file_watcher">
+      <UniqueIdentifier>{5675e191-b6b6-45e0-925c-3cf44b711539}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pel\code\detail\fmt">
+      <UniqueIdentifier>{2ac60d0e-708e-4f3e-bf4e-3c427b302bf1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pel\code\detail\fmt\fmt">
+      <UniqueIdentifier>{14935f20-ebf5-4400-9c89-dcc07626199f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dev_console.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\include\code\detail\file_watcher\FileWatcher.cpp">
+      <Filter>pel\code\detail\file_watcher</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\code\detail\file_watcher\FileWatcherLinux.cpp">
+      <Filter>pel\code\detail\file_watcher</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\code\detail\file_watcher\FileWatcherOSX.cpp">
+      <Filter>pel\code\detail\file_watcher</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\code\detail\file_watcher\FileWatcherWin32.cpp">
+      <Filter>pel\code\detail\file_watcher</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\code\detail\fmt\format.cc">
+      <Filter>pel\code\detail\fmt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\include\code\detail\fmt\os.cc">
+      <Filter>pel\code\detail\fmt</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\code\detail\file_watcher\FileWatcher.h">
+      <Filter>pel\code\detail\file_watcher</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\file_watcher\FileWatcherImpl.h">
+      <Filter>pel\code\detail\file_watcher</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\file_watcher\FileWatcherLinux.h">
+      <Filter>pel\code\detail\file_watcher</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\file_watcher\FileWatcherOSX.h">
+      <Filter>pel\code\detail\file_watcher</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\file_watcher\FileWatcherWin32.h">
+      <Filter>pel\code\detail\file_watcher</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\fmt\fmt\chrono.h">
+      <Filter>pel\code\detail\fmt\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\fmt\fmt\color.h">
+      <Filter>pel\code\detail\fmt\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\fmt\fmt\compile.h">
+      <Filter>pel\code\detail\fmt\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\fmt\fmt\core.h">
+      <Filter>pel\code\detail\fmt\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\fmt\fmt\format.h">
+      <Filter>pel\code\detail\fmt\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\fmt\fmt\format-inl.h">
+      <Filter>pel\code\detail\fmt\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\fmt\fmt\locale.h">
+      <Filter>pel\code\detail\fmt\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\fmt\fmt\os.h">
+      <Filter>pel\code\detail\fmt\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\fmt\fmt\ostream.h">
+      <Filter>pel\code\detail\fmt\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\fmt\fmt\posix.h">
+      <Filter>pel\code\detail\fmt\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\fmt\fmt\printf.h">
+      <Filter>pel\code\detail\fmt\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\fmt\fmt\ranges.h">
+      <Filter>pel\code\detail\fmt\fmt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\file.hpp">
+      <Filter>pel\code\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\flag.hpp">
+      <Filter>pel\code\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\function_wrapper.hpp">
+      <Filter>pel\code\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\path.hpp">
+      <Filter>pel\code\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\platform.hpp">
+      <Filter>pel\code\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\string_function.hpp">
+      <Filter>pel\code\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\detail\tree.hpp">
+      <Filter>pel\code\detail</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\json\json.hpp">
+      <Filter>pel\code\json</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\parser\executive\cmd\base\cmd_base.hpp">
+      <Filter>pel\code\parser\executive\cmd\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\parser\executive\cmd\groups_logic\cmd_groups.hpp">
+      <Filter>pel\code\parser\executive\cmd\groups_logic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\parser\executive\cmd\groups_logic\cmd_groups_make.hpp">
+      <Filter>pel\code\parser\executive\cmd\groups_logic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\parser\executive\cmd\groups_logic\groups.hpp">
+      <Filter>pel\code\parser\executive\cmd\groups_logic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\cmd.hpp">
+      <Filter>pel\code\parser\executive\cmd\main_logic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\cmd_make.hpp">
+      <Filter>pel\code\parser\executive\cmd\main_logic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\parser\executive\code_render.hpp">
+      <Filter>pel\code\parser\executive</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\parser\executive\error_context.hpp">
+      <Filter>pel\code\parser\executive</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\parser\executive\executive_parser.hpp">
+      <Filter>pel\code\parser\executive</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\parser\pel_parser\pel_parser.hpp">
+      <Filter>pel\code\parser\pel_parser</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\block_parser.hpp">
+      <Filter>pel\code</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\flags_enums.hpp">
+      <Filter>pel\code</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\obj.hpp">
+      <Filter>pel\code</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\words.hpp">
+      <Filter>pel\code</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\words_parser.hpp">
+      <Filter>pel\code</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\pel.hpp">
+      <Filter>pel</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
