@@ -1,5 +1,7 @@
 #pragma once
 
+#pragma warning (disable: 4996)
+
 /*
 	string-cast library
 */
@@ -8,7 +10,6 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <wchar.h>
-
 
 inline std::size_t len(char* str1)			 { return strlen(str1);  }
 inline std::size_t len(const char* str1)     { return strlen(str1);  }

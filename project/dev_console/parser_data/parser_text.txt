@@ -1,0 +1,12 @@
+#module debug
+#module print_group
+#module print_code
+
+group space : { " " } = ex;
+group word : { !space } = ex;
+
+test source_text: { 
+	"text"
+};
+
+run;

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "string_function.hpp"
+#include "platform.hpp"
+
 #include <stdio.h>
 #include <string>
 
