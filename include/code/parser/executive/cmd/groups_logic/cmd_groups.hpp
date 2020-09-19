@@ -15,15 +15,17 @@ namespace parser
 		{	
 			enum class group_flag_t : std::flag32_t
 			{
-				object_value    = 1 << 0,
-				property_ex     = 1 << 1,
-				operation_and   = 1 << 2,
-				operation_or    = 1 << 3,
-				operation_not   = 1 << 4,
-				object_type     = 1 << 5,
-				operation_empty = 1 << 6,
-				property_glue   = 1 << 7,
-				property_split  = 1 << 8
+				object_value      = 1 << 0,
+				property_ex       = 1 << 1,
+				operation_and     = 1 << 2,
+				operation_or      = 1 << 3,
+				operation_not     = 1 << 4,
+				object_type       = 1 << 5,
+				operation_empty   = 1 << 6,
+				property_glue     = 1 << 7,
+				property_split    = 1 << 8,
+				property_ignore   = 1 << 9,
+
 			};
 
 			struct cmd_group_t
@@ -52,6 +54,7 @@ namespace parser
 				inline bool is_type()   { return std::check_flag(flag, group_flag_t::object_type);    }
 				inline bool is_glue()   { return std::check_flag(flag, group_flag_t::property_glue);  }
 				inline bool is_split()  { return std::check_flag(flag, group_flag_t::property_split); }
+				inline bool is_ignore()  { return std::check_flag(flag, group_flag_t::property_ignore); }
 
 				inline bool is_empty_operation() { return std::check_flag(flag, group_flag_t::operation_empty); }
 			};
@@ -147,6 +150,16 @@ namespace parser
 				else
 				{
 					cmd->group.is_split = false;
+				}
+
+				if (obj->is_ignore)
+				{
+					std::add_flag(parent_cmd->flag, group_flag_t::property_ignore);
+					cmd->group.is_ignore = true;
+				}
+				else
+				{
+					cmd->group.is_ignore = false;
 				}
 
 				gcmd->flush_value();

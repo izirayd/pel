@@ -27,8 +27,10 @@ namespace pel
 		bool is_true = false; // lul
 		bool is_false = false;
 		
+		// Group property
 		bool is_glue  = false;
 		bool is_split = false;
+		bool is_ignore = false;
 
 		words_base_t word;
 
@@ -57,6 +59,14 @@ namespace pel
 			is_space = false;
 			is_tab = false;
 			is_new_line = false;
+
+			is_glue = false;
+			is_split = false;
+
+			is_true  = false; // 
+			is_false = false;
+
+			is_ignore = false;
 		}
 	};
 }

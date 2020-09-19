@@ -205,6 +205,53 @@ public:
 		root->is_process = false;
 	}
 
+	template <typename... arguments>
+	void start_process_for(const std::string &base, const std::string& last_parrent, arguments&& ... args)
+	{
+		root->is_process = true;
+
+		int lvl = 0;
+		process(base, last_parrent, this, lvl, (args)...);
+
+		root->is_process = false;
+	}
+
+	template <typename... arguments>
+	void process(const std::string& base, const std::string& last_parrent, tree_t* tree, int lvl, arguments&& ... args)
+	{
+		if (!root->is_process)
+			return;
+
+		if (!tree)
+			return;
+
+		tree->level = lvl;
+
+		if (tree->is_value)
+			process_function.call(base, *tree, (args)...);
+
+		for (size_t i = 0; i < tree->tree.size(); i++)
+		{
+			if (tree->tree[i])
+			{
+				lvl++;
+
+				process(base, last_parrent, tree->tree[i], lvl, (args)...);
+
+				if (tree->is_value)
+				{
+					if (tree->tree[i]->is_last())
+					{
+						process_function.call(last_parrent, *tree, *tree->tree[0], *tree->tree[i], (args)...);
+					}
+				}
+
+				lvl--;
+			}
+		}
+	}
+
+
 	void process_root_enable() {
 		root->is_process = true;
 	}

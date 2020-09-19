@@ -28,10 +28,19 @@ namespace parser
             bool is_status_find      = false;
         };
 
+        enum class format_word_t {
+            one_word, 
+            multi_word
+        };
+
         struct base_arg_t
         {
-            data_block_t* region;
+            format_word_t format_word = format_word_t::one_word;
+
+            pel::groups::position_element_t *multi_words;
+
             words_base_t* element;
+            data_block_t* region;
             tree_words_t* word;
         };
 
@@ -44,6 +53,7 @@ namespace parser
                groups::global_gcmd_group_t global_gcmd_group;
 
                bool is_render_tree = false;
+               bool is_render_group = false;
 
                base_parser_t() {  }
 
@@ -92,8 +102,6 @@ namespace parser
                    if (parrent_cmd->is_and() || parrent_cmd->is_empty_operation())
                       parrent_cmd->status_process = cmd->status_process;
 
-
-
                    if (command_graph->is_root)
                    {
                        if (cmd->status_process.status_find == status_find_t::success)
@@ -116,7 +124,7 @@ namespace parser
                    auto parrent_cmd = &command_graph->parent->get_value();
                    auto root_cmd    = &command_graph->root->get_value();
 
-                   if (is_render_tree) {
+                   if (is_render_tree && is_render_group) {
 
                        if (command_graph->is_root)
                        {
@@ -199,7 +207,8 @@ namespace parser
                        
                    }
 
-                   end_return;
+                   if (is_render_group)
+                     end_return;
                }
 
                void init_recursive_function()
@@ -216,24 +225,48 @@ namespace parser
             //	   if (command_graph->get_value().is_last)
                    {
                        if (cmd->status_process.status_find == status_find_t::success)
-                       {
-                           show_result fmt::print(fg(fmt::color::lawn_green), "\nLine: {3} - its signature: {0} [count op: {1}, total op: {2}]\n", root_cmd->value.c_str(), root_cmd->count_operation, total_operation, arg->element->number_line);
+                       {              
+                           if (arg->format_word == format_word_t::one_word)
+                           {
+                               show_result fmt::print(fg(fmt::color::lawn_green), "\nLine: {3} - its signature: {0} [count op: {1}, total op: {2}]\n", root_cmd->value, root_cmd->count_operation, total_operation, arg->element->number_line);
+
+                           }
+                           else if (arg->format_word == format_word_t::multi_word)
+                           {
+                               show_result fmt::print(fg(fmt::color::lawn_green), "\nIts signature: {0} [count op: {1}, total op: {2}]\n", root_cmd->value, root_cmd->count_operation, total_operation);
+                           
+                           }
+
                            arg->region->is_status_find = true;
                        }
                        else
                        {
-                           show_result fmt::print(fg(fmt::color::indian_red), "\nLine: {4} - its not signature {0}: {1}[{5}:{6}] [count op: {2}, total op: {3}]\n",
-                               root_cmd->value.c_str(),
-                               arg->element->data,
-                               root_cmd->count_operation,
-                               total_operation,
-                               arg->element->number_line,
-                               arg->element->start_position,
-                               arg->element->end_position
-                           );
+                           if (arg->format_word == format_word_t::one_word)
+                           {
+                               show_result fmt::print(fg(fmt::color::indian_red), "\nLine: {4} - its not signature {0}: {1}[{5}:{6}] [count op: {2}, total op: {3}]\n",
+                                   root_cmd->value.c_str(),
+                                   arg->element->data,
+                                   root_cmd->count_operation,
+                                   total_operation,
+                                   arg->element->number_line,
+                                   arg->element->start_position,
+                                   arg->element->end_position
+                               );
+
+                           }
+                           else if (arg->format_word == format_word_t::multi_word)
+                           {
+                               show_result fmt::print(fg(fmt::color::indian_red), "\nIts not signature {0}: {1} total operaion: {2}\n",
+                                   root_cmd->value.c_str(),                       
+                                   root_cmd->count_operation,
+                                   total_operation
+                               );
+                           }
 
                            arg->region->is_status_find = false;
                        }
+
+                    
 
                        is_use = false;
                        command_graph->stop_process();
@@ -346,56 +379,100 @@ namespace parser
                    cmd_t* parrent_cmd = &command_graph->parent->get_value();
                    cmd_t* root_cmd    = &command_graph->root->get_value();
 
+
+                   // can null need use with check  "if (arg->format_word == format_word_t::one_word)"
                    words_base_t* element = arg->element;
 
                    // это просто счетчик операций для статистики
                    root_cmd->count_operation++;
                    total_operation++;
                   
-                   if (command_graph->is_root)
-                   {
-                       show_tree fmt::print("\n");
-
-                       show_logs fmt::print("Value: {}", arg->element->data);
-
-                       show_tree fmt::print(" [");
-                       show_tree fmt::print(fg(fmt::color::coral), "{0}", arg->region->current_position);
-                       show_tree fmt::print("]");
-
-                       show_tree fmt::print("\n\n");
-                   }
-
-                   if (!cmd->value.empty()) {
-
-                       show_tree  print_space_cmd(command_graph->level, command_graph->is_have_sub_elemets(), cmd);
-
+                   if (is_render_tree) {
                        if (command_graph->is_root)
                        {
-                           show_tree fmt::print(fg(fmt::color::coral), " {}", cmd->value);
-                       }
-                       else
-                       {
-                           if (cmd->is_type())
+                           fmt::print("\n");
+
+                           if (arg->format_word == format_word_t::one_word) {
+                               fmt::print("Value: {}", arg->element->data);
+
+                               fmt::print(" [");
+                               fmt::print(fg(fmt::color::coral), "{0}", arg->region->current_position);
+                               fmt::print("]");
+
+                               fmt::print("\n\n");
+                           }
+                           else if (arg->format_word == format_word_t::multi_word)
                            {
-                               show_tree fmt::print(fg(fmt::color::blanched_almond), " {}", cmd->value);
+                               for (auto& sub : arg->multi_words->words)
+                               {
+                                   int count_space = 1;
+
+                                   if (arg->multi_words->position < 1000)
+                                       count_space = 1;
+
+                                   if (arg->multi_words->position < 100)
+                                       count_space = 2;
+
+                                   if (arg->multi_words->position < 10)
+                                       count_space = 3;
+
+                                   fmt::print(fmt::fg(fmt::color::brown), "{}", (char)221);
+
+                                   if (count_space == 3)
+                                       fmt::print(fmt::fg(fmt::color::lime_green), " {} ", arg->multi_words->position);
+
+                                   if (count_space == 2)
+                                       fmt::print(fmt::fg(fmt::color::lime_green), "{} ", arg->multi_words->position);
+
+                                   if (count_space == 1)
+                                       fmt::print(fmt::fg(fmt::color::lime_green), "{} ", arg->multi_words->position);
+
+                                   fmt::print(fmt::fg(fmt::color::thistle), "\"{0}\"", sub.data);
+                                   fmt::print(fmt::fg(fmt::color::red), ": ", sub.data);
+                                   fmt::print(fmt::fg(fmt::color::blanched_almond), "{0}", sub.group->name);
+                                   fmt::print(fmt::fg(fmt::color::white), ";");
+
+                                   fmt::print(" [");
+                                   fmt::print(fg(fmt::color::coral), "{0}", arg->region->current_position);
+                                   fmt::print("]");
+
+                                   fmt::print("\n\n");
+                               }
+                           }
+                       }
+
+                       if (!cmd->value.empty()) {
+
+                            print_space_cmd(command_graph->level, command_graph->is_have_sub_elemets(), cmd);
+
+                           if (command_graph->is_root)
+                           {
+                               fmt::print(fg(fmt::color::coral), " {}", cmd->value);
                            }
                            else
                            {
-                               show_tree fmt::print(fg(fmt::color::thistle), " \"{}\"", cmd->value);
+                               if (cmd->is_type())
+                               {
+                                   fmt::print(fg(fmt::color::blanched_almond), " {}", cmd->value);
+                               }
+                               else
+                               {
+                                   fmt::print(fg(fmt::color::thistle), " \"{}\"", cmd->value);
+                               }
                            }
-                       }
 
-                       show_tree fmt::print(" [");
-                       show_tree fmt::print(fg(fmt::color::coral), "{0}", cmd->min_position);
-                       show_tree fmt::print("-");
-                       show_tree fmt::print(fg(fmt::color::coral), "{0}", cmd->max_position);
-                       show_tree fmt::print("]");
+                           fmt::print(" [");
+                           fmt::print(fg(fmt::color::coral), "{0}", cmd->min_position);
+                           fmt::print("-");
+                           fmt::print(fg(fmt::color::coral), "{0}", cmd->max_position);
+                           fmt::print("]");
 
-                       show_tree fmt::print(" pos: {0}", command_graph->position);
+                           fmt::print(" pos: {0}", command_graph->position);
 
-                       if (cmd->is_last)
-                       {
-                           show_tree fmt::print(fg(fmt::color::orange_red), " <last element>");
+                           if (cmd->is_last)
+                           {
+                               fmt::print(fg(fmt::color::orange_red), " <last element>");
+                           }
                        }
                    }
 
@@ -473,7 +550,34 @@ namespace parser
                            parrent_cmd->is_check = true;
                        }
 
-                       if (cmd->value == element->data)
+                       int status = 0;
+
+                       if (arg->format_word == format_word_t::one_word)
+                       {
+                           if (cmd->value == element->data)
+                           {
+                               status = 1;
+                           }
+                           else
+                           {
+                               status = 0;
+                           }
+                       }
+                       else if (arg->format_word == format_word_t::multi_word)
+                       {
+                           status = 0;
+
+                           for (const auto& sub : arg->multi_words->words)
+                           { 
+                               if (sub.data == cmd->value)
+                               {
+                                   status = 1;
+                                   break;
+                               }
+                           }
+                       }
+
+                       if (status == 1)
                        {
                            show_tree fmt::print(fg(fmt::color::green_yellow), " [true]");
 
@@ -537,12 +641,20 @@ namespace parser
                    }
                }
 
+               void reset_graph(gcmd_t* command_graph)
+               {
+                   command_graph->get_value().reset();
+               }
+
                void reset(int level, base_arg_t* arg)
                {
                    global_gcmd_t* gcmd = arg->region->gcmd;
 
                    for (auto& it : *gcmd)
                    {
+                       it.gcmd->process_function["reset"] = detail::bind_function(&base_parser_t::reset_graph, this, std::placeholders::_1);
+                       it.gcmd->start_process_for("reset", "empty");
+
                        data_block_global_gcmd_t* d = it.block_depth.get_block(level);
                        d->is_use = true;
                    }
@@ -565,8 +677,6 @@ namespace parser
 
                        delete block_depth.block[i].gcmd;
                    }
-
-
                }
 
                void delete_global_gcmd()
@@ -588,6 +698,101 @@ namespace parser
                    }
 
                    std::clear(global_gcmd_group);
+               }
+
+               void process_executive_array_words(pel::groups::array_words_t& array_words, const std::size_t &level)
+               {
+                   if (is_render_group) {
+
+                       fmt::print("\n");
+
+                       for (auto& it : array_words.data)
+                       {
+                           for (auto& sub : it.words)
+                           {
+                               int count_space = 1;
+
+                               if (it.position < 1000)
+                                   count_space = 1;
+
+                               if (it.position < 100)
+                                   count_space = 2;
+
+                               if (it.position < 10)
+                                   count_space = 3;
+
+                               fmt::print(fmt::fg(fmt::color::dark_cyan), "{}", (char)221);
+
+                               if (count_space == 3)
+                                   fmt::print(fmt::fg(fmt::color::lime_green), " {} ", it.position);
+
+                               if (count_space == 2)
+                                   fmt::print(fmt::fg(fmt::color::lime_green), "{} ", it.position);
+
+                               if (count_space == 1)
+                                   fmt::print(fmt::fg(fmt::color::lime_green), "{} ", it.position);
+
+                               fmt::print(fmt::fg(fmt::color::thistle), "\"{0}\"", sub.data);
+                               fmt::print(fmt::fg(fmt::color::red), ": ", sub.data);
+                               fmt::print(fmt::fg(fmt::color::blanched_almond), "{0}", sub.group->name);
+                               fmt::print(fmt::fg(fmt::color::white), ";\n");
+                           }
+                       }
+                   }
+
+                   for (size_t position = 0; position < array_words.count_position; position++)
+                   {
+                       data_block_t* region = block_depth.get_block(level);
+
+                       if (!region->gcmd)
+                       {
+                           region->gcmd = new global_gcmd_t;
+                           copy_global_cmd(&global_gcmd, region->gcmd);
+                       }
+
+                       base_arg.region = region;
+                       base_arg.multi_words = &array_words.data[position];
+                       base_arg.format_word = format_word_t::multi_word;
+
+                       global_gcmd_t* gcmd = base_arg.region->gcmd;
+
+                       for (auto& it : *gcmd)
+                       {
+                           data_block_global_gcmd_t* d = it.block_depth.get_block(level);
+                           base_arg.region->is_status_find = false;
+
+                           if (d->is_use)
+                           {
+                               it.gcmd->process_function["base"]         = detail::bind_function(&base_parser_t::process_signature, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+                               it.gcmd->process_function["last"]         = detail::bind_function(&base_parser_t::last_signature,    this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+                               it.gcmd->process_function["last_parrent"] = detail::bind_function(&base_parser_t::last_parrent,      this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6);
+
+                               it.gcmd->start_process(base_arg, it.count_signaturs, d->is_use);
+
+                               if (!d->is_use)
+                               {
+                                   region->count_not_signature++;
+                               }
+
+                               if (base_arg.region->is_status_find)
+                               {
+                                   break;
+                               }
+                           }
+                       }
+
+                       if (region->count_not_signature >= gcmd->size() || base_arg.region->is_status_find)
+                       {
+                           region->count_not_signature = 0;
+
+                           reset(level, &base_arg);
+                       }
+                       else
+                       {
+                           if (!base_arg.region->is_status_find)
+                               base_arg.region->current_position++;
+                       }
+                   }
                }
 
                void process_executive_tree(tree_words_t *word)
@@ -720,7 +925,7 @@ namespace parser
                     }
                 }
                 
-                if (is_render_tree)
+                if (is_render_tree && is_render_group)
                     fmt::print("\n");        
             }
 

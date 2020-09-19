@@ -39,8 +39,7 @@ namespace pel
 		std::vector<obj_t*>		    all_groups;
 
 		bool is_render_code_in_console  = false;
-		bool is_render_group = false;
-
+	
 		groups::groups_t groups;
 
 		parser::executive::parser_engine_t parser_engine;
@@ -223,9 +222,10 @@ namespace pel
 					it.words.reserve(32);
 				}
 
+
 				bool last_glut = false, last_split = false;
 
-				if (is_render_group)
+				if (parser_engine.is_render_group)
 				{
 					print(fg(fmt::color::green_yellow), "Debug groups to base symbols\n\n");
 				}
@@ -247,7 +247,7 @@ namespace pel
 
 								parser_engine.group_parse(element, group_result);
 
-								if (is_render_group) {
+								if (parser_engine.is_render_group) {
 									print(fg(fmt::color::thistle), "\"{0}\": ", (char)element.element);
 
 									std::size_t k = 0;
@@ -272,9 +272,86 @@ namespace pel
 			
 								if (!group_result.groups.empty())
 								{
-									if (group_result.groups[0]->is_split || group_result.groups[0]->is_ignored)
+									if (group_result.groups[0]->is_split || group_result.groups[0]->is_ignore)
 									{
+										std::size_t level = 0;
+										parser_engine.process_executive_array_words(array_words, level);
+
+										array_words.clear();
+
 										// здесь начать разделение
+										if (group_result.groups[0]->is_ignore)
+										{
+
+
+										}
+
+										if (group_result.groups[0]->is_split)
+										{
+											result.clear();
+
+											for (auto& result_group : group_result.groups)
+											{
+												std::size_t position = result_group->last_position;
+
+												if (array_words.data.size() < position + 1)
+												{
+													array_words.data.push_back({});
+												}
+
+												array_words.data[position].position = position;
+
+												// its so bad T_T
+												is_no_group(array_words.data[position].words, group_result.groups, result);
+
+												bool is_find = false;
+
+												for (auto& current_words : array_words.data[position].words)
+												{
+													if (current_words.group == result_group)
+													{
+														current_words.data += element.element;
+														is_find = true;
+														break;
+													}
+												}
+
+												if (!is_find)
+												{
+													std::size_t new_position = position;
+
+													for (auto& it : result)
+													{
+														new_position = it->last_position + 1;
+														//it->last_position += 1; // +2? 
+													}
+
+													if (array_words.data.size() < new_position + 1)
+													{
+														array_words.data.push_back({});
+													}
+
+													array_words.data[new_position].position = new_position;
+
+													pel::groups::object_t object;
+
+													object.data += element.element;
+													object.group = result_group;
+													result_group->last_position = new_position;
+
+													array_words.count_position++;
+													array_words.data[new_position].words.push_back(object);
+												}
+											}
+
+											for (auto& it : result)
+											{
+												it->last_position += 1;
+											}
+
+											parser_engine.process_executive_array_words(array_words, level);
+											array_words.clear();
+										}
 									}
 									else
 									{								
@@ -329,6 +406,7 @@ namespace pel
 												object.group = result_group;
 												result_group->last_position = new_position;
 
+												array_words.count_position++;
 												array_words.data[new_position].words.push_back(object);
 											}																						
 										}
@@ -340,7 +418,7 @@ namespace pel
 									}
 								}
 															
-								if (is_render_group) {
+								if (parser_engine.is_render_group) {
 
 									if (!group_result.groups.empty())
 									{
@@ -356,6 +434,11 @@ namespace pel
 								group_result.clear();
 							}
 							
+							std::size_t level = 0;
+							parser_engine.process_executive_array_words(array_words, level);
+							array_words.clear();
+
+
 							std::chrono::high_resolution_clock::time_point timer_parse_tree_start = std::chrono::high_resolution_clock::now();
 				
 							std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
@@ -363,43 +446,7 @@ namespace pel
 							std::chrono::duration<double, std::micro> result = end - start;
 							std::chrono::duration<double, std::micro> result_timer_parse_tree = end - timer_parse_tree_start;
 
-							if (is_render_group) {
-
-								print("\n");
-
-								for (auto& it : array_words.data)
-								{
-									for (auto& sub : it.words)
-									{
-										int count_space = 1;
-
-										if (it.position < 1000)
-											count_space = 1;
-
-										if (it.position < 100)
-											count_space = 2;
-
-										if (it.position < 10)
-											count_space = 3;
-
-										print(fg(color::dark_cyan), "{}", (char)221);
-
-										if (count_space == 3)
-											print(fg(color::lime_green), " {} ", it.position);
-
-										if (count_space == 2)
-											print(fg(color::lime_green), "{} ", it.position);
-
-										if (count_space == 1)
-											print(fg(color::lime_green), "{} ", it.position);
-
-										print(fg(fmt::color::thistle), "\"{0}\"", sub.data);
-										print(fg(fmt::color::red), ": ", sub.data);
-										print(fg(fmt::color::blanched_almond), "{0}", sub.group->name);
-										print(fg(fmt::color::white), ";\n");
-									}
-								}
-							}
+						
 
 							print(fg(fmt::color::azure), "\nProcess parse tree end: ");
 							print(fg(fmt::color::coral), "{}", result_timer_parse_tree.count());
@@ -673,7 +720,7 @@ namespace pel
 						{
 							parser_engine.is_render_tree = is_print_tree;
 							is_render_code_in_console = is_module_render_code;
-							is_render_group = is_module_render_group;
+							parser_engine.is_render_group = is_module_render_group;
 						}
 						else
 						{
@@ -936,6 +983,12 @@ namespace pel
 					{
 						if (obj)
 							obj->is_split = true;
+					}
+
+					if (word.data == "ignore")
+					{
+						if (obj)
+							obj->is_ignore = true;
 					}
 
 					if (word.data == "true")
@@ -1454,7 +1507,7 @@ namespace pel
 		
 		if (!pel_lang.error_context.is_error()) {
 			parser::executive::make_commands(global_gcmd, pel_lang.parser_engine.is_render_tree);		
-			parser::executive::groups::make_commands(global_gcmd_group, pel_lang.parser_engine.is_render_tree);
+			parser::executive::groups::make_commands(global_gcmd_group, pel_lang.parser_engine.is_render_tree && pel_lang.parser_engine.is_render_group);
 		}
 	}
 }

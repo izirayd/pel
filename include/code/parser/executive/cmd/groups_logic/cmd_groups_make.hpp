@@ -168,7 +168,10 @@ namespace parser
 					show_tree fmt::print(fg(fmt::color::red), " [glue]");
 
 				if (cmd->is_split())
-					show_tree fmt::print(fg(fmt::color::red), " [split]");
+					show_tree fmt::print(fg(fmt::color::red), " [split]");		
+				
+				if (cmd->is_ignore())
+					show_tree fmt::print(fg(fmt::color::red), " [ignore]");
 
 				show_tree fmt::print(" [");
 				show_tree fmt::print(fg(fmt::color::coral), "{0}", cmd->min_position);
