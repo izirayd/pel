@@ -459,12 +459,12 @@ namespace parser
 			 }
 		}
 
+	//	#define debug_print_global_cmd
+
 		void print_global_cmd(gcmd_t* command_graph, std::size_t& count_base_signature, bool is_render_tree)
 		{
 			cmd_t* cmd		   = &command_graph->get_value();
 			cmd_t* parrent_cmd = &command_graph->parent->get_value();
-
-			show_tree print_space_cmd(command_graph->level, command_graph->is_have_sub_elemets(), cmd);
 
 			bool is_or       = false;
 			bool is_and      = false;
@@ -473,6 +473,11 @@ namespace parser
 			bool is_value    = false;
 			bool is_position = false;
 		
+
+#ifdef debug_print_global_cmd
+
+			show_tree print_space_cmd(command_graph->level, command_graph->is_have_sub_elemets(), cmd);
+
 			if (!cmd->value.empty())
 			{
 				if (command_graph->is_root)
@@ -491,21 +496,27 @@ namespace parser
 					}
 				}
 			}
+#endif // debug_print_global_cmd
+
 
 			if (cmd->is_value())
 			{
 				is_position = true;
 				is_value    = true;
 
+#ifdef debug_print_global_cmd
 				show_tree fmt::print(fg(fmt::color::deep_sky_blue), " [value]");
+#endif // debug_print_global_cmd
+
 			}
 
 			if (cmd->is_or()) {
 
 				is_or = true;
 				is_position = true;
-
+#ifdef debug_print_global_cmd
 				show_tree  fmt::print(" [or]");
+#endif
 			}
 
 			if (cmd->is_and()) {
@@ -513,7 +524,9 @@ namespace parser
 				is_and = true;
 				is_position = true;
 
+#ifdef debug_print_global_cmd
 				show_tree  fmt::print(" [and]");
+#endif
 			}
 
 			if (cmd->is_empty_operation()) {
@@ -521,7 +534,9 @@ namespace parser
 				is_and = true;
 				is_position = true;
 
+#ifdef debug_print_global_cmd
 				show_tree  fmt::print(" [empty_operation]");
+#endif
 			}
 
 			if (cmd->is_xor()) {
@@ -529,26 +544,35 @@ namespace parser
 				is_xor = true;
 				is_position = true;
 
+#ifdef debug_print_global_cmd
 				show_tree  fmt::print(" [xor]");
+#endif
 			}
 
 			if (cmd->is_not()) {
 
+
 				is_not = true;
 				is_position = true;
 
+#ifdef debug_print_global_cmd
 				show_tree  fmt::print(" [not]");
+#endif
 			}
 
 			if (cmd->is_type()) {
 
 				is_position = true;
 
+#ifdef debug_print_global_cmd
 				show_tree fmt::print(fg(fmt::color::aquamarine), " [type]");
+#endif
 			}
 
+#ifdef debug_print_global_cmd
 			if (cmd->is_ex())
 				show_tree fmt::print(fg(fmt::color::red), " [ex]");
+#endif
 
 
 			if (command_graph->is_root)
@@ -566,8 +590,9 @@ namespace parser
 				if (is_result)
 				{
 					std::add_flag(command_graph->get_value().flag, parser_flag_t::parser_tree_or);
-
+#ifdef debug_print_global_cmd
 					show_tree fmt::print(" [parser_tree_or]");
+#endif
 				}
 			}
 	
@@ -588,7 +613,9 @@ namespace parser
 				}
 			}
 
+#ifdef debug_print_global_cmd
 			show_tree fmt::print("\n");
+#endif
 		}
 
 		void print_global_cmd2(gcmd_t* command_graph, std::size_t& count_base_signature, bool is_render_tree)
@@ -793,7 +820,7 @@ namespace parser
 
 			if (command_graph->size() == 0)
 			{
-				show_logs fmt::print("Last element: {}\n", cmd->value);
+				//show_logs fmt::print("Last element: {}\n", cmd->value);
 				cmd->is_last = true;
 				return;
 			}

@@ -1293,13 +1293,84 @@ namespace pel
 		gcmd->flush_value();
 	}
 
+	struct names_list_t
+	{
+		bool is_ex = false;
+		std::string name;
+		std::vector<pel::obj_t*> data;
+	};
+
+
+	struct multinames_list_t
+	{
+		std::vector<names_list_t> data;
+
+		void push(pel::obj_t* obj) {
+
+			bool is_find = false;
+			std::size_t i = 0;
+
+			names_list_t* nl = nullptr;
+
+			for (const auto& it : data)
+			{
+				if (it.name == obj->name)
+				{
+					nl = &data[i];
+					is_find = true;
+					break;
+				}
+
+				i++;
+			}
+
+			if (is_find && nl)
+			{
+				is_find = false;
+
+				for (const auto& it : nl->data)
+				{
+					if (it == obj)
+					{
+						is_find = true;
+						break;
+					}
+				}
+
+				if (!is_find)
+				{
+
+					if (obj->is_ex)
+						nl->is_ex = true;
+
+					nl->data.push_back(obj);
+				}
+			}
+			else
+			{
+				names_list_t new_nl;
+				new_nl.name = obj->name;
+				new_nl.data.push_back(obj);
+
+				if (obj->is_ex)
+					new_nl.is_ex = true;
+
+				data.push_back(new_nl);
+			}
+		}
+	};
+
+	void multi_name(pel::pel_parser_t& pel_lang, names_list_t* names_list, parser::executive::gcmd_t* main, unsigned& counter_tmp_or, multinames_list_t* multinames_list);
+
 	void no_ex(
 		pel::pel_parser_t& pel_lang,
 		parser::executive::gcmd_t* parent,
 		const words_base_t& word,
 		int& level,
 		bool& is_stop,
-		const obj_t &original_obj // это объект очереди и его свойства не копируются
+		const obj_t &original_obj, // это объект очереди и его свойства не копируются
+		multinames_list_t *multinames_list,
+		unsigned& counter_tmp_or
 	)
 	{
 		bool is_find = false;
@@ -1315,7 +1386,50 @@ namespace pel
 			return;
 		}
 
-		for (const auto obj : pel_lang.all_types)
+		for (auto &list_mutinames: multinames_list->data)
+		{
+			if (list_mutinames.name == word.data)
+			{
+				if (list_mutinames.data.size() == 1)
+				{
+					is_find = true;
+					get_property(parent, list_mutinames.data[0]);
+
+					for (const auto& sub_obj : list_mutinames.data[0]->values)
+					{
+						parser::executive::gcmd_t* gcmd = parent->push({});
+
+						if (sub_obj.is_type)
+						{
+							no_ex(pel_lang, gcmd, sub_obj.word, level, is_stop, sub_obj, multinames_list, counter_tmp_or);
+
+							level--;
+						}
+						else
+						{
+							get_property(gcmd, &sub_obj, &original_obj);
+						}
+
+					}
+
+					break;
+				}
+				else
+				{
+					is_find = true;
+					multi_name(pel_lang, &list_mutinames, parent, counter_tmp_or, multinames_list);
+					break;
+				}
+		
+			}
+		}
+
+		if (!is_find)
+		{
+			pel_lang.error_context.push(format("type {} not declared!", word.data), "", word.number_line, word.start_position, word.end_position);
+		}
+
+	/*	for (const auto& obj : pel_lang.all_types)
 		{
 			if (obj->is_type && obj->name == word.data)
 			{
@@ -1329,7 +1443,7 @@ namespace pel
 
 					if (sub_obj.is_type)
 					{
-						no_ex(pel_lang, gcmd, sub_obj.word, level, is_stop, sub_obj);
+						no_ex(pel_lang, gcmd, sub_obj.word, level, is_stop, sub_obj, multinames_list, counter_tmp_or);
 
 						level--;
 					}
@@ -1346,7 +1460,7 @@ namespace pel
 		if (!is_find)
 		{
 			pel_lang.error_context.push(format("type {} not declared!", word.data), "", word.number_line, word.start_position, word.end_position);
-		}
+		}*/
 	}
 
 	void no_ex_groups(
@@ -1400,7 +1514,6 @@ namespace pel
 					
 				}
 
-
 				for (const auto& sub_obj : obj->values)
 				{
 					parser::executive::groups::gcmd_group_t* gcmd = parent->push({});
@@ -1427,32 +1540,98 @@ namespace pel
 		}
 	}
 
+	void multi_name(pel::pel_parser_t& pel_lang, names_list_t* names_list, parser::executive::gcmd_t* main, unsigned &counter_tmp_or, multinames_list_t* multinames_list)
+	{
+		auto cmd_main = &main->get_value();
+
+		cmd_main->value = names_list->name;
+
+		std::add_flag(cmd_main->flag, parser::executive::parser_or);
+		std::add_flag(cmd_main->flag, parser::executive::parser_ex);
+		std::add_flag(cmd_main->flag, parser::executive::parser_type);
+
+		for (auto &it : names_list->data)
+		{
+			parser::executive::gcmd_t* tmp_or = main->push({});
+
+			auto cmd = &tmp_or->get_value();
+
+			get_property(tmp_or, it);
+
+			cmd->value = format("__tmpor{}", counter_tmp_or);
+			counter_tmp_or++;
+
+			for (auto main_cmd : it->values)
+			{
+				parser::executive::gcmd_t* sub_main = tmp_or->push({});
+
+				int  level = 0;
+				bool is_stop = false;
+
+				if (main_cmd.is_type)
+				{
+					no_ex(pel_lang, sub_main, main_cmd.word, level, is_stop, main_cmd, multinames_list, counter_tmp_or);
+				}
+				else
+				{
+					get_property(sub_main, &main_cmd);
+				}
+			}
+		}
+
+		main->flush_value();
+	}
+
+	void multi_names_array(pel::pel_parser_t& pel_lang, parser::executive::global_gcmd_t* global_gcmd, parser::executive::groups::global_gcmd_group_t* global_gcmd_group, multinames_list_t *multinames_list)
+	{
+		for (const auto &obj : pel_lang.all_types)
+		{
+			multinames_list->push(obj);
+
+			for (const auto &it : pel_lang.all_types)
+			{
+				if (it == obj)
+					continue;
+
+				if (obj->name == it->name)
+				{
+					multinames_list->push(it);
+				}
+			}
+		}
+	}
 
 	/*
 	  Не решена проблема наследования свойств у типа!
 	*/
 	void pel_compilation(pel::pel_parser_t& pel_lang, parser::executive::global_gcmd_t* global_gcmd, parser::executive::groups::global_gcmd_group_t *global_gcmd_group)
 	{
-		// find ex
-		for (const auto obj_ex : pel_lang.all_types)
+		multinames_list_t multinames_list;
+		multi_names_array(pel_lang, global_gcmd, global_gcmd_group, &multinames_list);
+
+		unsigned counter_tmp_or = 0;
+
+		for (auto &it : multinames_list.data)
 		{
-			if (obj_ex) {
-				if (obj_ex->is_ex)
+			if (it.data.size() == 1)
+			{
+				// solo type
+				if (it.data[0]->is_ex)
 				{
 					parser::executive::gcmd_t* main = new parser::executive::gcmd_t;
 
-					get_property(main, obj_ex);
+					get_property(main, it.data[0]);
 
-					for (auto main_cmd : obj_ex->values)
+					for (auto main_cmd : it.data[0]->values)
 					{
 						parser::executive::gcmd_t* sub_main = main->push({});
 
-						int  level   = 0;
+						int  level = 0;
 						bool is_stop = false;
 
 						if (main_cmd.is_type)
 						{
-							no_ex(pel_lang, sub_main, main_cmd.word, level, is_stop, main_cmd);
+							no_ex(pel_lang, sub_main, main_cmd.word, level, is_stop, main_cmd, &multinames_list, counter_tmp_or);
 						}
 						else
 						{
@@ -1461,9 +1640,58 @@ namespace pel
 					}
 
 					global_gcmd->push_back(main);
+				}			
+			}
+			else
+			{
+				if (it.is_ex) 
+				{
+					parser::executive::gcmd_t* main = new parser::executive::gcmd_t;
+					multi_name(pel_lang, &it, main, counter_tmp_or, &multinames_list);
+					global_gcmd->push_back(main);
 				}
 			}
+
+
 		}
+
+
+		//unsigned counter_tmp_or = 0;
+
+		//// find ex
+		//for (const auto obj_ex : pel_lang.all_types)
+		//{
+		//	if (obj_ex) 
+		//	{
+		//		if (obj_ex->is_ex)
+		//		{
+		//			parser::executive::gcmd_t* main = new parser::executive::gcmd_t;
+
+		//		//	multi_name(pel_lang, obj_ex, main, counter_tmp_or);
+
+		//			get_property(main, obj_ex);
+
+		//			for (auto main_cmd : obj_ex->values)
+		//			{
+		//				parser::executive::gcmd_t* sub_main = main->push({});
+
+		//				int  level   = 0;
+		//				bool is_stop = false;
+
+		//				if (main_cmd.is_type)
+		//				{
+		//					no_ex(pel_lang, sub_main, main_cmd.word, level, is_stop, main_cmd);
+		//				}
+		//				else
+		//				{
+		//					get_property(sub_main, &main_cmd);
+		//				}
+		//			}
+
+		//			global_gcmd->push_back(main);
+		//		}
+		//	}
+		//}
 
 		for (const auto obj_ex : pel_lang.all_groups)
 		{
