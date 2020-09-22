@@ -539,8 +539,10 @@ namespace parser
                        }
                    }
 
-                   if (cmd->is_value())
-                   {	
+                   int status = 0;
+
+                   if (cmd->is_group() || cmd->is_value()) {
+
                        cmd->status_process = parrent_cmd->status_process;
 
                        cmd->is_check = true;
@@ -549,26 +551,38 @@ namespace parser
                        {
                            parrent_cmd->is_check = true;
                        }
+                   }
 
-                       int status = 0;
+                   if (cmd->is_group())
+                   {
+                       // not support one word, because multi word had group
+                       if (arg->format_word == format_word_t::multi_word && cmd->group)
+                       {
+                           status = 0;
 
+                           for (const auto& sub : arg->multi_words->words)
+                           {
+                               if (sub.group == cmd->group)
+                               {
+                                   status = 1;
+                                   break;
+                               }
+                           }
+                       }
+                   }
+
+                   if (cmd->is_value())
+                   {
                        if (arg->format_word == format_word_t::one_word)
                        {
-                           if (cmd->value == element->data)
-                           {
-                               status = 1;
-                           }
-                           else
-                           {
-                               status = 0;
-                           }
+                           status = cmd->value == element->data;
                        }
                        else if (arg->format_word == format_word_t::multi_word)
                        {
                            status = 0;
 
                            for (const auto& sub : arg->multi_words->words)
-                           { 
+                           {
                                if (sub.data == cmd->value)
                                {
                                    status = 1;
@@ -576,7 +590,10 @@ namespace parser
                                }
                            }
                        }
+                   }
 
+                   if (cmd->is_group() || cmd->is_value())
+                   {	
                        if (status == 1)
                        {
                            show_tree fmt::print(fg(fmt::color::green_yellow), " [true]");
@@ -595,11 +612,6 @@ namespace parser
                            {
                                cmd->status_process.status_find = status_find_t::success;
                                cmd->is_end_find = true;
-
-                            /*   if (parrent_cmd->status_process.status_find == status_find_t::unknow || parrent_cmd->status_process.status_find == status_find_t::failed)
-                               {
-                                   parrent_cmd->status_process.status_find = status_find_t::success;	
-                               }*/
                            }							   
                        }
                        else
@@ -616,8 +628,7 @@ namespace parser
                            }
 
                            if (parrent_cmd->is_or())
-                           {
-                              // parrent_cmd->status_process.status_find = status_find_t::failed;						   
+                           {		   
                                cmd->status_process.status_find = status_find_t::failed;
                            }
 
@@ -629,7 +640,6 @@ namespace parser
                         
                            if (!parrent_cmd->is_or()) {
                          
-                              // parrent_cmd->current_index++;
                                parrent_cmd->is_end_find = true;
                            }
                        }
@@ -740,7 +750,7 @@ namespace parser
                        }
                    }
 
-                   for (size_t position = 0; position < array_words.count_position; position++)
+                   for (size_t position = 0; position < array_words.data.size(); position++)
                    {
                        data_block_t* region = block_depth.get_block(level);
 
@@ -910,6 +920,7 @@ namespace parser
                 }
 
             }
+
             void group_parse(const pel::groups::group_element_t &element, pel::groups::group_result_t &result) {
 
                 for (auto &it: global_gcmd_group)

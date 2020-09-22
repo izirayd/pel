@@ -4,13 +4,11 @@
 
 group space  : { " " } = ex, ignore;
 group symbol : { ";" } = ex, split;
-group word : { !space and !symbol } = ex, glue;
+group number : { "0123456789" } = ex, glue;
+group word : { !space and !symbol and !number } = ex, glue;
 
-type t1 : { "int", ";" } = ex;
-type t1 : { "float", ";" } = ex;
-type t1 : { "str", ";" } = ex;
+type int_decl			 : { "int", word, ";" } = ex;
 
-test source_text : { "str;" };
-
+test source_text : { "int apple;" };
 
 run;

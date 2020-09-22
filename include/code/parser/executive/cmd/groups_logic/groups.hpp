@@ -197,13 +197,11 @@ namespace pel {
 		class array_words_t
 		{
 			public:
-				std::size_t count_position = 0;
-
 				std::vector<position_element_t> data;
 
 				inline void clear() {
 					
-					for (size_t i = 0; i < count_position; i++)
+					for (size_t i = 0; i < data.size(); i++)
 					{
 						for (auto& it : data[i].words)
 						{
@@ -212,7 +210,6 @@ namespace pel {
 					}
 
 					data.clear();
-					count_position = 0;
 				}
 
 				inline void push_group(const position_element_t &group) {

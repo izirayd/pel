@@ -21,8 +21,8 @@ namespace parser {
 			uint32_t number_position = 1;
 			uint32_t start_position  = 1;
 
-			std::size_t it = 0;
-			char next_symbol = 0x00;
+			std::size_t it       = 0;
+			char next_symbol     = 0x00;
 			char previous_symbol = 0x00;
 
 			for (const auto& symbol : code)

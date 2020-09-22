@@ -29,6 +29,7 @@ namespace parser
 			parser_not		= 1 << 13,
 			parser_tree_xor = 1 << 14, // Не актуальна
 			empty_operation = 1 << 15,
+			parser_group	= 1 << 16
 		};
 
 		template<typename block_depth_base_t>
@@ -150,12 +151,16 @@ namespace parser
 			inline bool is_tree_or()  { return std::check_flag(flag, parser_tree_or); }
 			inline bool is_tree_xor() { return std::check_flag(flag, parser_tree_xor); }			
 			inline bool is_ex()		  { return std::check_flag(flag, parser_ex); }
+			inline bool is_group()	  { return std::check_flag(flag, parser_group); }
 
 			inline bool is_empty_operation() { return std::check_flag(flag, empty_operation); }
 
 			std::string   value;  // +44 bytes in debug
+			
 			std::flag32_t flag = 0;		
 			std::string   print;  // +44 bytes in debug
+
+			pel::groups::group_t* group = nullptr;
 
 			std::size_t min_position = SIZE_MAX;
 			std::size_t max_position = 0;

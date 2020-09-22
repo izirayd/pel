@@ -212,17 +212,6 @@ namespace pel
 				array_words.data.reserve(32);
 				result.reserve(32);
 
-				for (size_t i = 0; i < 32; i++)
-				{
-					array_words.data.push_back({});
-				}
-
-				for (auto &it: array_words.data)
-				{
-					it.words.reserve(32);
-				}
-
-
 				bool last_glut = false, last_split = false;
 
 				if (parser_engine.is_render_group)
@@ -282,8 +271,7 @@ namespace pel
 										// здесь начать разделение
 										if (group_result.groups[0]->is_ignore)
 										{
-
-
+											// we ignore
 										}
 
 										if (group_result.groups[0]->is_split)
@@ -323,7 +311,6 @@ namespace pel
 													for (auto& it : result)
 													{
 														new_position = it->last_position + 1;
-														//it->last_position += 1; // +2? 
 													}
 
 													if (array_words.data.size() < new_position + 1)
@@ -339,7 +326,6 @@ namespace pel
 													object.group = result_group;
 													result_group->last_position = new_position;
 
-													array_words.count_position++;
 													array_words.data[new_position].words.push_back(object);
 												}
 											}
@@ -390,7 +376,6 @@ namespace pel
 												for (auto &it : result)
 												{
 													new_position = it->last_position + 1;
-													//it->last_position += 1; // +2? 
 												}
 
 												if (array_words.data.size() < new_position + 1)
@@ -405,8 +390,7 @@ namespace pel
 												object.data += element.element;
 												object.group = result_group;
 												result_group->last_position = new_position;
-
-												array_words.count_position++;
+												
 												array_words.data[new_position].words.push_back(object);
 											}																						
 										}
@@ -443,7 +427,7 @@ namespace pel
 				
 							std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 
-							std::chrono::duration<double, std::micro> result = end - start;
+							std::chrono::duration<double, std::micro> result_timer = end - start;
 							std::chrono::duration<double, std::micro> result_timer_parse_tree = end - timer_parse_tree_start;
 
 						
@@ -453,7 +437,7 @@ namespace pel
 							print(fg(fmt::color::azure), "us\n");
 
 							print(fg(fmt::color::azure), "Process parse all steps end: ");
-							print(fg(fmt::color::coral), "{}", result.count());
+							print(fg(fmt::color::coral), "{}", result_timer.count());
 							print(fg(fmt::color::azure), "us\n");
 
 						
@@ -1009,6 +993,11 @@ namespace pel
 					if (obj) {
 						obj->name = word.data;
 						obj->word = word;
+						
+						if (is_group)
+						{
+							obj->is_group = true;
+						}
 					}
 					if (is_render_code)
 					{
@@ -1247,6 +1236,17 @@ namespace pel
 		if (obj->is_ex)
 			std::add_flag(cmd->flag, parser::executive::parser_ex);
 
+		if (obj->is_group) {
+
+			if (obj->is_type)
+				std::del_flag(cmd->flag, parser::executive::parser_type);
+
+			if (obj->is_ex)
+				std::del_flag(cmd->flag, parser::executive::parser_ex);
+
+			std::add_flag(cmd->flag, parser::executive::parser_group);
+		}
+
 		if (obj->is_not)
 			std::add_flag(cmd->flag, parser::executive::parser_not);
 
@@ -1272,7 +1272,6 @@ namespace pel
 		if ((!cmd->is_or() && !cmd->is_xor() && !cmd->is_and()))
 			std::add_flag(cmd->flag, parser::executive::empty_operation);
 		
-
 		if (obj->is_or) {
 			std::add_flag(parent_cmd->flag, parser::executive::parser_or);
 			std::del_flag(parent_cmd->flag, parser::executive::parser_and);
@@ -1283,13 +1282,6 @@ namespace pel
 			std::del_flag(parent_cmd->flag, parser::executive::parser_and);
 		}
 
-		//if (!obj->is_or && !obj->is_xor)
-		//{
-		//	if (!parent_cmd->is_or() && !parent_cmd->is_xor())
-		//		if (!parent_cmd->is_and())
-		//			std::add_flag(parent_cmd->flag, parser::executive::parser_and);
-		//}
-
 		gcmd->flush_value();
 	}
 
@@ -1299,7 +1291,6 @@ namespace pel
 		std::string name;
 		std::vector<pel::obj_t*> data;
 	};
-
 
 	struct multinames_list_t
 	{
@@ -1339,7 +1330,6 @@ namespace pel
 
 				if (!is_find)
 				{
-
 					if (obj->is_ex)
 						nl->is_ex = true;
 
@@ -1366,7 +1356,7 @@ namespace pel
 		pel::pel_parser_t& pel_lang,
 		parser::executive::gcmd_t* parent,
 		const words_base_t& word,
-		int& level,
+		int&  level,
 		bool& is_stop,
 		const obj_t &original_obj, // это объект очереди и его свойства не копируются
 		multinames_list_t *multinames_list,
@@ -1424,43 +1414,38 @@ namespace pel
 			}
 		}
 
+		// find group
 		if (!is_find)
-		{
-			pel_lang.error_context.push(format("type {} not declared!", word.data), "", word.number_line, word.start_position, word.end_position);
-		}
+		{	
+			is_find = false;
 
-	/*	for (const auto& obj : pel_lang.all_types)
-		{
-			if (obj->is_type && obj->name == word.data)
+			for (auto &it : pel_lang.all_groups)
 			{
-				is_find = true;
-
-				get_property(parent, obj);
-
-				for (const auto &sub_obj : obj->values)
+				if (it->name == word.data)
 				{
-					parser::executive::gcmd_t* gcmd = parent->push({});
-
-					if (sub_obj.is_type)
+					get_property(parent, it);
+						
+					for (size_t i = 0; i < pel_lang.parser_engine.global_gcmd_group.size(); i++)
 					{
-						no_ex(pel_lang, gcmd, sub_obj.word, level, is_stop, sub_obj, multinames_list, counter_tmp_or);
+						if (pel_lang.parser_engine.global_gcmd_group[i].gcmd->get_value().group.name == word.data)
+						{
+							parent->get_value().group = &pel_lang.parser_engine.global_gcmd_group[i].gcmd->get_value().group;
+							is_find = true;
+							break;
+						}
+					}
 
-						level--;
-					}
-					else
-					{
-						get_property(gcmd, &sub_obj, &original_obj);
-					}
+					if (is_find)
+						break;
 				}
-
-				break;
 			}
+			
 		}
 
 		if (!is_find)
 		{
-			pel_lang.error_context.push(format("type {} not declared!", word.data), "", word.number_line, word.start_position, word.end_position);
-		}*/
+			pel_lang.error_context.push(format("type or group {} was not	declared!", word.data), "", word.number_line, word.start_position, word.end_position);
+		}
 	}
 
 	void no_ex_groups(
@@ -1521,7 +1506,6 @@ namespace pel
 					if (sub_obj.is_type)
 					{
 						no_ex_groups(pel_lang, gcmd, sub_obj.word, level, is_stop, sub_obj);
-
 						level--;
 					}
 					else
@@ -1547,7 +1531,7 @@ namespace pel
 		cmd_main->value = names_list->name;
 
 		std::add_flag(cmd_main->flag, parser::executive::parser_or);
-		std::add_flag(cmd_main->flag, parser::executive::parser_ex);
+		//std::add_flag(cmd_main->flag, parser::executive::parser_ex); // ????? TODO:
 		std::add_flag(cmd_main->flag, parser::executive::parser_type);
 
 		for (auto &it : names_list->data)
@@ -1606,6 +1590,37 @@ namespace pel
 	*/
 	void pel_compilation(pel::pel_parser_t& pel_lang, parser::executive::global_gcmd_t* global_gcmd, parser::executive::groups::global_gcmd_group_t *global_gcmd_group)
 	{
+		for (const auto obj_ex : pel_lang.all_groups)
+		{
+			if (obj_ex) {
+				if (obj_ex->is_ex)
+				{
+					auto main = new parser::executive::groups::gcmd_group_t;
+
+					parser::executive::groups::get_property(main, obj_ex);
+
+					for (auto main_cmd : obj_ex->values)
+					{
+						auto sub_main = main->push({});
+
+						int  level = 0;
+						bool is_stop = false;
+
+						if (main_cmd.is_type)
+						{
+							no_ex_groups(pel_lang, sub_main, main_cmd.word, level, is_stop, main_cmd);
+						}
+						else
+						{
+							parser::executive::groups::get_property(sub_main, &main_cmd);
+						}
+					}
+
+					global_gcmd_group->push_back(main);
+				}
+			}
+		}
+
 		multinames_list_t multinames_list;
 		multi_names_array(pel_lang, global_gcmd, global_gcmd_group, &multinames_list);
 
@@ -1651,78 +1666,8 @@ namespace pel
 					global_gcmd->push_back(main);
 				}
 			}
-
-
 		}
 
-
-		//unsigned counter_tmp_or = 0;
-
-		//// find ex
-		//for (const auto obj_ex : pel_lang.all_types)
-		//{
-		//	if (obj_ex) 
-		//	{
-		//		if (obj_ex->is_ex)
-		//		{
-		//			parser::executive::gcmd_t* main = new parser::executive::gcmd_t;
-
-		//		//	multi_name(pel_lang, obj_ex, main, counter_tmp_or);
-
-		//			get_property(main, obj_ex);
-
-		//			for (auto main_cmd : obj_ex->values)
-		//			{
-		//				parser::executive::gcmd_t* sub_main = main->push({});
-
-		//				int  level   = 0;
-		//				bool is_stop = false;
-
-		//				if (main_cmd.is_type)
-		//				{
-		//					no_ex(pel_lang, sub_main, main_cmd.word, level, is_stop, main_cmd);
-		//				}
-		//				else
-		//				{
-		//					get_property(sub_main, &main_cmd);
-		//				}
-		//			}
-
-		//			global_gcmd->push_back(main);
-		//		}
-		//	}
-		//}
-
-		for (const auto obj_ex : pel_lang.all_groups)
-		{
-			if (obj_ex) {
-				if (obj_ex->is_ex)
-				{
-					auto main = new parser::executive::groups::gcmd_group_t;
-
-					parser::executive::groups::get_property(main, obj_ex);
-
-					for (auto main_cmd : obj_ex->values)
-					{
-						auto sub_main = main->push({});
-
-						int  level = 0;
-						bool is_stop = false;
-
-						if (main_cmd.is_type)
-						{
-							no_ex_groups(pel_lang, sub_main, main_cmd.word, level, is_stop, main_cmd);
-						}
-						else		
-						{
-							parser::executive::groups::get_property(sub_main, &main_cmd);
-						}
-					}
-
-					global_gcmd_group->push_back(main);
-				}
-			}
-		}
 
 		if (pel_lang.is_render_code_in_console) {
 			print("\n");

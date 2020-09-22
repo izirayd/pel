@@ -432,10 +432,27 @@ namespace parser
 
 				std::size_t max_position = 0;
 
+				if (cmd->is_or())
+					cmd->min_counter = SIZE_MAX;
+
 				for (std::size_t i = 0; i < command_graph->tree.size(); i++)
 				{
 					if (command_graph->tree[i]->get_value().max_position > max_position)
 						max_position = command_graph->tree[i]->get_value().max_position;
+
+					if (cmd->is_or()) {
+
+						if (command_graph->tree[i]->get_value().min_counter < cmd->min_counter)
+						{
+							cmd->min_counter = command_graph->tree[i]->get_value().min_counter;
+						}
+
+						if (command_graph->tree[i]->get_value().max_counter > cmd->max_counter)
+						{
+							cmd->max_counter = command_graph->tree[i]->get_value().max_counter;
+						}
+
+					}
 				}
 
 				if (max_position > cmd->max_position)
@@ -447,8 +464,11 @@ namespace parser
 				 if (!parrent_cmd->is_or()) {
 
 					 if (cmd->is_or()) {
-						 parrent_cmd->max_counter = cmd->max_position + 1;
-						 parrent_cmd->min_counter = cmd->min_position + 1;
+					//	 parrent_cmd->max_counter = cmd->max_position + 1;
+					//	 parrent_cmd->min_counter = cmd->min_position + 1;
+
+						 parrent_cmd->max_counter = cmd->max_counter;
+						 parrent_cmd->min_counter = cmd->min_counter;
 					 }
 
 					 if (cmd->is_and() || cmd->is_empty_operation()) {			
@@ -459,7 +479,7 @@ namespace parser
 			 }
 		}
 
-	//	#define debug_print_global_cmd
+		//#define debug_print_global_cmd
 
 		void print_global_cmd(gcmd_t* command_graph, std::size_t& count_base_signature, bool is_render_tree)
 		{
@@ -497,6 +517,18 @@ namespace parser
 				}
 			}
 #endif // debug_print_global_cmd
+
+
+			if (cmd->is_group())
+			{
+				is_position = true;
+				is_value    = true;
+
+#ifdef debug_print_global_cmd
+				show_tree fmt::print(fg(fmt::color::deep_sky_blue), " [value]");
+#endif // debug_print_global_cmd
+
+			}
 
 
 			if (cmd->is_value())
@@ -579,8 +611,7 @@ namespace parser
 			{
 				command_graph->get_value().min_position = 0;
 			}
-
-			
+		
 			// TODO: remove?
 			{
 				bool is_result = false;
@@ -651,12 +682,22 @@ namespace parser
 				}
 			}
 
-			if (cmd->is_value())
+			if (cmd->is_group())
 			{
 				is_position = true;
 				is_value = true;
 
-				show_tree fmt::print(fg(fmt::color::deep_sky_blue), " [value]");
+
+				show_tree fmt::print(fg(fmt::color::deep_sky_blue), " [group]");
+
+			}
+
+			if (cmd->is_value())
+			{
+				is_position = true;
+				is_value    = true;
+
+				show_tree fmt::print(fg(fmt::color::deep_sky_blue), " [value]");					
 			}
 
 			if (cmd->is_or()) {

@@ -11,25 +11,26 @@ namespace pel
 		std::string name;
 
 		// TODO: switch in flags?
-		bool is_ex = false;
-		bool is_type = false;
+		bool is_ex    = false;
+		bool is_type  = false;
 		bool is_value = false;
+		bool is_group = false;
 
 		bool is_and = false;
-		bool is_or = false;
+		bool is_or  = false;
 		bool is_xor = false;
 		bool is_not = false;
 
-		bool is_space = false;
-		bool is_tab = false;
+		bool is_space    = false;
+		bool is_tab      = false;
 		bool is_new_line = false;
 
-		bool is_true = false; // lul
+		bool is_true  = false; // lul
 		bool is_false = false;
 		
 		// Group property
-		bool is_glue  = false;
-		bool is_split = false;
+		bool is_glue   = false;
+		bool is_split  = false;
 		bool is_ignore = false;
 
 		words_base_t word;
@@ -47,6 +48,7 @@ namespace pel
 			name.clear();
 			values.clear();
 
+			is_group = false;
 			is_ex = false;
 			is_type = false;
 			is_value = false;
