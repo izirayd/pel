@@ -451,7 +451,6 @@ namespace parser
 						{
 							cmd->max_counter = command_graph->tree[i]->get_value().max_counter;
 						}
-
 					}
 				}
 
@@ -464,8 +463,8 @@ namespace parser
 				 if (!parrent_cmd->is_or()) {
 
 					 if (cmd->is_or()) {
-					//	 parrent_cmd->max_counter = cmd->max_position + 1;
-					//	 parrent_cmd->min_counter = cmd->min_position + 1;
+						 //parrent_cmd->max_counter = cmd->max_position + 1;
+						 //parrent_cmd->min_counter = cmd->min_position + 1;
 
 						 parrent_cmd->max_counter = cmd->max_counter;
 						 parrent_cmd->min_counter = cmd->min_counter;
@@ -641,6 +640,11 @@ namespace parser
 				if (!parrent_cmd->is_or()) {
 					parrent_cmd->min_counter++;
 					parrent_cmd->max_counter++;
+				}
+
+				if (parrent_cmd->is_or()) {
+					cmd->min_counter++;
+					cmd->max_counter++;
 				}
 			}
 

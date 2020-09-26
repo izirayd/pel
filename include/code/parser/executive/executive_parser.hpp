@@ -292,6 +292,9 @@ namespace parser
                    if (cmd->is_type() && command_graph->is_last() && !parrent_cmd->is_or()) {
                         parrent_cmd->is_end_find = cmd->is_end_find;
                    }
+
+                   int64_t delta = 0;
+                   int64_t min_len = 0;
                    /*
                       Решается ли это без перебора? Это линейно, но меня жутко раздражает, что надо каждую суб-ор вершину опрашивать.
                       Другого алгоритма я не нашел.
@@ -304,41 +307,124 @@ namespace parser
                        bool is_all_status_end_checked = false;
                        bool is_have_success = false;
 
+
+                       /*
+                         Крутить в цикле все итерации так, что бы было возможно получить только одну success, тогда остальные false, тогда смещаемся сразу на +1.
+
+                         Для смещения создать переменную новую, которая укажет, что мы заполнились в прошлой итерации. По ней мы укажем, что индекс надо сместить сейчас, иначе в следующую итерацию.
+                       */
+
+                       //for (std::size_t i = 0; i < command_graph->tree.size(); i++)
+                       //{              
+                       //        if (command_graph->tree[i]->get_value().is_end_find && command_graph->tree[i]->get_value().status_process.status_find == status_find_t::success)
+                       //        {                
+                       //            is_have_success = true;
+                       //            tmp_status_find = command_graph->tree[i]->get_value().status_process.status_find;
+
+                       //        }
+
+                       //        if (!command_graph->tree[i]->get_value().is_end_find)
+                       //        {
+                       //            is_have_not_checked = true; 
+                       //        }            	                                 
+                       //}
+
+                       //if (!is_have_not_checked && is_have_success)
+                       //{
+                       //    cmd->current_index++;
+
+                       //    cmd->is_end_find  = true;                  
+                       //    cmd->is_finaly_or = true;
+
+                       //    cmd->status_process.status_find = tmp_status_find;
+
+                       //    if (!parrent_cmd->is_or()) 
+                       //    {                     
+                       //        cmd->is_inc_current_index = true;
+                      
+                       //        if (command_graph->is_last())
+                       //         parrent_cmd->is_end_find = true;
+                       //    }
+                       //}
+
+                       int64_t count_success = 0, count_failed = 0;
+                       std::size_t size_or = command_graph->tree.size();
+                       bool state_move = false;
+
                        for (std::size_t i = 0; i < command_graph->tree.size(); i++)
                        {              
                                if (command_graph->tree[i]->get_value().is_end_find && command_graph->tree[i]->get_value().status_process.status_find == status_find_t::success)
-                               {                
-                                   is_have_success = true;
-                                   tmp_status_find = command_graph->tree[i]->get_value().status_process.status_find;
-                                   break;
+                               {
+                                   count_success++;
+                                   cmd->counter_iteration_offset++;
+                                 
+                                   std::size_t len = (arg->region->current_position + 1) < command_graph->tree[i]->tree.size() ? command_graph->tree[i]->tree.size() - (arg->region->current_position + 1) : (arg->region->current_position + 1) - command_graph->tree[i]->tree.size();
+                                   
+                                   if (len == 0)
+                                   {
+                                       state_move = true;
+                                       tmp_status_find = command_graph->tree[i]->get_value().status_process.status_find;
+                                   }
+
+                                   if (len == 1)
+                                   {
+                                       tmp_status_find = command_graph->tree[i]->get_value().status_process.status_find;
+                                   }
+                               }
+
+                               if (command_graph->tree[i]->get_value().status_process.status_find == status_find_t::failed)
+                               {
+                                   count_failed++;    
                                }
 
                                if (!command_graph->tree[i]->get_value().is_end_find)
                                {
                                    is_have_not_checked = true; 
-                               }
-
-                               if (is_have_success)
-                                   break;                   	                                 
+                               }            	                                 
                        }
 
-                       if (!is_have_not_checked || is_have_success)
+                       if ( 
+                           size_or == (count_failed + count_success)
+                          )
                        {
-                           cmd->current_index++;
 
-                           cmd->is_end_find  = true;                  
+                           if (state_move)
+                           {
+                               cmd->is_inc_current_index = true;
+                           }
+                           else
+                           {
+                               cmd->current_index++;
+                           }
+              
+                           cmd->is_end_find = true;
                            cmd->is_finaly_or = true;
 
                            cmd->status_process.status_find = tmp_status_find;
 
-                           if (!parrent_cmd->is_or()) 
-                           {                     
-                               cmd->is_inc_current_index = true;
-                      
+                           if (!parrent_cmd->is_or())
+                           {
                                if (command_graph->is_last())
-                                parrent_cmd->is_end_find = true;
+                                   parrent_cmd->is_end_find = true;
                            }
+
+                           //cmd->current_index++;
+
+                           //cmd->is_end_find = true;
+                           //cmd->is_finaly_or = true;
+
+                           //cmd->status_process.status_find = tmp_status_find;
+
+                           //if (!parrent_cmd->is_or())
+                           //{
+                           //    cmd->is_inc_current_index = true;
+
+                           //    if (command_graph->is_last())
+                           //        parrent_cmd->is_end_find = true;
+                           //}
                        }
+
+
                    }
 
                    if (cmd->is_type() && cmd->is_or() && parrent_cmd->is_or())
@@ -350,6 +436,12 @@ namespace parser
                    {
                        if (parrent_cmd->status_process.status_find != status_find_t::failed)
                            parrent_cmd->status_process = cmd->status_process;
+
+                       if (cmd->is_end_find)
+                       {
+                           //parrent_cmd->current_index++;
+                           parrent_cmd->current_index = cmd->current_index;
+                       }
                    }
 
                    if (cmd->is_type() && !cmd->is_or() && !parrent_cmd->is_or())

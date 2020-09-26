@@ -7,8 +7,10 @@ group symbol : { ";" } = ex, split;
 group number : { "0123456789" } = ex, glue;
 group word : { !space and !symbol and !number } = ex, glue;
 
-type int_decl			 : { "int", word, ";" } = ex;
+type tmp_int_declaration : { "int", word };
+type tmp_int_declaration : { "int", word, "=", number };
+type int_decl             : { tmp_int_declaration, ";" } = ex;
 
-test source_text : { "int apple;" };
+test source_text : { "int apple = 650;" };
 
 run;

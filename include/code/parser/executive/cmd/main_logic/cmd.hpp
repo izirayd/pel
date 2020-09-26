@@ -172,7 +172,9 @@ namespace parser
 			std::size_t max_counter = 0;
 
 			// Еще один позиционный счетчик
-			std::size_t current_index = 0; 
+			std::size_t current_index = 0;
+
+			int32_t counter_iteration_offset = 0;
 
 			// TODO: delete in release?
 			std::size_t count_operation = 0;
@@ -193,6 +195,8 @@ namespace parser
 				is_inc_current_index = false;
 
 				is_finaly_or = false;
+
+				counter_iteration_offset = 0;
 			}
 
 			// cast in std::flag8_t ?
