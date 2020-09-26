@@ -1,16 +1,12 @@
 #module debug
+#module print_group
 #module print_code
-#module print_tree
 
 group space  : { " " } = ex, ignore;
+group newline : {"a"} = ex, glue;
 group symbol : { ";" } = ex, split;
-group number : { "0123456789" } = ex, glue;
-group word : { !space and !symbol and !number } = ex, glue;
+group word : { !space and !symbol and !newline } = ex, glue;
 
-type tmp_int_declaration : { "int", word };
-type tmp_int_declaration : { "int", word, "=", number };
-type int_decl             : { tmp_int_declaration, ";" } = ex;
-
-test source_text : { "int apple = 650;" };
+test t : { "abab"};
 
 run;

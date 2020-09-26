@@ -118,7 +118,7 @@ namespace pel {
 					cd->console_print(element.number_line, true, element.start_position, element.end_position);
 				}
 			}
-
+ 
 			print("\n");
 		}
 	};

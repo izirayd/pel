@@ -430,16 +430,9 @@ namespace pel
 							std::chrono::duration<double, std::micro> result_timer = end - start;
 							std::chrono::duration<double, std::micro> result_timer_parse_tree = end - timer_parse_tree_start;
 
-						
-
-							print(fg(fmt::color::azure), "\nProcess parse tree end: ");
-							print(fg(fmt::color::coral), "{}", result_timer_parse_tree.count());
-							print(fg(fmt::color::azure), "us\n");
-
 							print(fg(fmt::color::azure), "Process parse all steps end: ");
 							print(fg(fmt::color::coral), "{}", result_timer.count());
 							print(fg(fmt::color::azure), "us\n");
-
 						
 							parser_engine.delete_alloc();
 						}
@@ -1674,9 +1667,11 @@ namespace pel
 			print("\n");
 				pel_lang.code_render.console_print();
 			print("\n");
+
+			pel_lang.error_context.print_console(&pel_lang.code_render);
 		}
 	
-		pel_lang.error_context.print_console(&pel_lang.code_render);
+		
 		
 		if (!pel_lang.error_context.is_error()) {
 			parser::executive::make_commands(global_gcmd, pel_lang.parser_engine.is_render_tree);		

@@ -507,11 +507,17 @@ namespace parser
 				{
 					if (cmd->is_type())
 					{
-						show_tree fmt::print(fg(fmt::color::blanched_almond), " {}", cmd->value);
+						fmt::print(fg(fmt::color::blanched_almond), " {}", cmd->value);
 					}
-					else
+
+					if (cmd->is_value())
 					{
-						show_tree fmt::print(fg(fmt::color::thistle), " \"{}\"", cmd->value);
+						fmt::print(fg(fmt::color::thistle), " \"{}\"", cmd->value);
+					}
+
+					if (cmd->is_group())
+					{
+						fmt::print(fg(fmt::color::khaki), " {}", cmd->value);
 					}
 				}
 			}
@@ -679,9 +685,15 @@ namespace parser
 					{
 						show_tree fmt::print(fg(fmt::color::blanched_almond), " {}", cmd->value);
 					}
-					else
+
+					if (cmd->is_value())
 					{
 						show_tree fmt::print(fg(fmt::color::thistle), " \"{}\"", cmd->value);
+					}
+
+					if (cmd->is_group())
+					{
+						show_tree fmt::print(fg(fmt::color::khaki), " {}", cmd->value);
 					}
 				}
 			}

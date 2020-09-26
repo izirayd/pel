@@ -202,7 +202,7 @@ int main()
 	fmt::print("class size ");
 	fmt::print(fmt::fg(fmt::color::aqua), "cmd_t");
 	fmt::print(": ");
-	fmt::print(fmt::fg(fmt::color::aquamarine), "{}", sizeof(parser::executive::cmd_t));
+	fmt::print(fmt::fg(fmt::color::aquamarine), "{}\n", sizeof(parser::executive::cmd_t));
 
 	start(1);
 

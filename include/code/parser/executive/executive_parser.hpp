@@ -100,7 +100,15 @@ namespace parser
                    }
 
                    if (parrent_cmd->is_and() || parrent_cmd->is_empty_operation())
-                      parrent_cmd->status_process = cmd->status_process;
+                   {
+                       if (
+                           parrent_cmd->status_process.status_find == status_find_t::unknow || 
+                           parrent_cmd->status_process.status_find == status_find_t::success
+                          )
+                       {
+                           parrent_cmd->status_process = cmd->status_process;
+                       }                     
+                   }
 
                    if (command_graph->is_root)
                    {
@@ -547,9 +555,15 @@ namespace parser
                                {
                                    fmt::print(fg(fmt::color::blanched_almond), " {}", cmd->value);
                                }
-                               else
+                               
+                               if (cmd->is_value())
                                {
                                    fmt::print(fg(fmt::color::thistle), " \"{}\"", cmd->value);
+                               }
+
+                               if (cmd->is_group())
+                               {
+                                   fmt::print(fg(fmt::color::khaki), " {}", cmd->value);
                                }
                            }
 
