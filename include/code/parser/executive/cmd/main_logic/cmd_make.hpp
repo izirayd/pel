@@ -424,7 +424,7 @@ namespace parser
 		{
 			cmd_t* cmd		   = &command_graph->get_value();
 			cmd_t* parrent_cmd = &command_graph->parent->get_value();
-
+			 
 			if (cmd->is_type())
 			{
 				if (first_child_graph->get_value().min_position < cmd->min_position)

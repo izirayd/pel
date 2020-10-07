@@ -9,7 +9,7 @@ namespace pel
 	{
 	public:
 		std::string name;
-
+	
 		// TODO: switch in flags?
 		bool is_ex    = false;
 		bool is_type  = false;
@@ -32,6 +32,7 @@ namespace pel
 		bool is_glue   = false;
 		bool is_split  = false;
 		bool is_ignore = false;
+		bool is_autogen_block = false;
 
 		words_base_t word;
 
@@ -49,26 +50,27 @@ namespace pel
 			values.clear();
 
 			is_group = false;
-			is_ex = false;
-			is_type = false;
+			is_ex    = false;
+			is_type  = false;
 			is_value = false;
 
 			is_and = false;
-			is_or = false;
+			is_or  = false;
 			is_xor = false;
 			is_not = false;
 
-			is_space = false;
-			is_tab = false;
+			is_space    = false;
+			is_tab      = false;
 			is_new_line = false;
 
-			is_glue = false;
+			is_glue  = false;
 			is_split = false;
 
 			is_true  = false; // 
 			is_false = false;
 
 			is_ignore = false;
+			is_autogen_block = false;
 		}
 	};
 }

@@ -46,6 +46,8 @@ namespace pel
 
 		std::string version;
 
+		std::size_t counter_autoblock = 0;
+
 		void delete_alloc()
 		{
 			tree.delete_tree();
@@ -441,12 +443,669 @@ namespace pel
 			}
 		}
 
+	
+		struct obj_base_t
+		{
+			bool is_read_string_end = false;
+			bool is_read_property   = false;
+
+			words_base_t  words_base;
+			obj_t		  obj;
+		};
+
+		using tree_obj_base_t = tree_t<obj_base_t*>;
+
+		class spec_obj_base_t
+		{
+		public:
+			std::vector<obj_base_t> words;
+			inline void push(const obj_base_t& data) { words.push_back(data); }
+			inline void clear() { words.clear(); }
+			inline void delete_alloc() { std::clear(words); }
+		};
+
+
+		struct pel_keywords_element_t
+		{
+			std::string name;
+
+			bool is_have_body = false;
+			bool is_have_property = false;
+			bool is_have_name = false;
+			bool is_have_string_value = false;
+			bool is_have_instuction = false;
+			bool is_end_symbol = false;
+			bool is_newline_symbol = false;
+
+			bool is_read_object = false;
+
+			bool is_was_read_body = false;
+			bool is_was_read_property = false;
+			bool is_was_read_name = false;
+			bool is_was_read_string_value = false;
+			bool is_was_read_instuction = false;
+			bool is_was_read_symbol = false;
+			bool is_was_read_newline_symbol = false;
+
+			obj_t obj;
+			obj_base_t tree_obj_base;
+
+			void reset()
+			{
+				is_was_read_body = false;
+				is_was_read_property = false;
+				is_was_read_name = false;
+				is_was_read_string_value = false;
+				is_was_read_instuction = false;
+				is_was_read_symbol = false;
+				is_was_read_newline_symbol = false;
+
+				if (is_read_object)
+					obj.clear();
+
+				tree_obj_base.obj.clear();
+			}
+		};
+
+		using pel_keywords_t = std::vector<pel_keywords_element_t>;
+
+		pel_keywords_t pel_keywords;
+		bool is_have_keyword = false;
+		pel_keywords_element_t* current_keyword = nullptr;
+		bool is_read_string = false;
+
+		void last_process_parse_tree(tree_obj_base_t* tree_words, tree_obj_base_t* first_child_graph, tree_obj_base_t* last_child_graph)
+		{
+			auto word         = tree_words->get_value();
+			auto parrent_word = tree_words->parent->get_value();
+
+			if (word->words_base.data == "\"" || word->words_base.data == "'")
+			{
+				return;
+			}
+
+			if (word->words_base.data == "{" && parrent_word)
+			{
+				for (size_t i = 0; i < tree_words->tree.size(); i++)
+				{
+					auto it_word = tree_words->tree[i]->get_value();
+
+					if ((it_word->words_base.is_new_line() || it_word->words_base.is_space_tab()) && !word->is_read_string_end)
+					{
+						continue;
+					}
+
+					if (it_word->words_base.data == "{")
+					{
+						// TODO: fmt not support UTF-16 and UTF-32 =/
+						it_word->obj.name = fmt::format("__tmpblock{}", counter_autoblock++);
+
+						if (current_keyword->name == "type")
+							it_word->obj.is_type = true;
+
+						if (current_keyword->name == "group")
+							it_word->obj.is_group = true;
+
+						it_word->obj.is_autogen_block = true;
+
+						it_word->obj.word.data = it_word->obj.name;
+
+						word->obj.values.push_back(it_word->obj);
+						continue;
+					}
+
+					if (it_word->words_base.data == "\"" || it_word->words_base.data == "'") {
+
+						word->is_read_string_end = !word->is_read_string_end;
+
+						if (word->is_read_string_end)
+						{
+							for (size_t w = 0; w < tree_words->tree[i]->tree.size(); w++)
+							{
+								auto w_word = tree_words->tree[i]->tree[w]->get_value();
+
+								w_word->obj.is_not = it_word->obj.is_not;
+
+								//word->obj.values.push_back(w_word->obj);
+								word->obj.values.push_back(w_word->obj);
+							}
+						}
+
+						continue;
+					}
+
+					if (
+						it_word->words_base.data != "not"   &&
+						it_word->words_base.data != "!"     &&
+						it_word->words_base.data != "and"   &&
+						it_word->words_base.data != "or"    &&
+						it_word->words_base.data != ","     &&
+						it_word->words_base.data != "="     &&
+						it_word->words_base.data != "ex"    &&
+						it_word->words_base.data != "glue"  &&
+						it_word->words_base.data != "split" &&
+						it_word->words_base.data != "ignore" &&
+						it_word->words_base.data != "{" &&
+						it_word->words_base.data != "}" 
+						) 
+					{
+
+						if (!it_word->words_base.data.empty())
+						{
+							it_word->obj.is_type = true;
+							it_word->obj.name = it_word->words_base.data;
+							it_word->obj.word = it_word->words_base;
+
+							//word->obj.values.push_back(it_word->obj);
+							parrent_word->obj.values.push_back(it_word->obj);
+						}
+					}
+					else
+					{
+					/*	if (it_word->words_base.data == "or") {
+							word->obj.is_or = true;
+						}*/
+					}
+				}
+
+				if (parrent_word->words_base.data == "{")
+				{
+				
+				
+				}
+				else {
+
+				
+					// copy values in parrent obj
+					for (auto& it : word->obj.values)
+					{
+						parrent_word->obj.values.push_back(it);
+					}
+
+					if (word->obj.is_or)
+					{
+						parrent_word->obj.is_or  = word->obj.is_or;
+					} else
+
+					if (word->obj.is_and)
+					{
+						parrent_word->obj.is_and = word->obj.is_and;
+					}			
+				}
+			}
+		}
+
+		void get_next_with_ignore_space_tab_newline(tree_obj_base_t* tree_words, tree_obj_base_t* &next_tree_words) {
+
+			if (!tree_words) {
+				next_tree_words = nullptr;
+				return;
+			}
+
+			auto word = tree_words->get_value();
+
+			if (word)
+			{
+				if (word->words_base.is_new_line() || word->words_base.is_space_tab())
+				{
+					get_next_with_ignore_space_tab_newline(tree_words->next, next_tree_words);
+				}
+				else
+				{
+					next_tree_words = tree_words;
+				}	
+			}
+		}
+
+		void process_parse_tree(tree_obj_base_t* tree_words)
+		{
+			auto word = tree_words->get_value();
+			auto parrent_word = tree_words->parent->get_value();
+
+			if (!word)
+				return;
+
+			//print("level: {} : {}\n", tree_words->level, word->words_base.data);
+
+			if (word->words_base.data == "\"" || word->words_base.data == "'")
+			{
+				is_read_string = !is_read_string;
+				return;
+			}
+
+			if ((word->words_base.is_new_line() || word->words_base.is_space_tab()) && !is_read_string)
+				return;
+
+			if (parrent_word) {
+
+				if (is_read_string)
+				{
+					if (parrent_word->words_base.data == "\"" || parrent_word->words_base.data == "'")
+					{
+						word->obj.is_value = true;
+
+						word->obj.name = word->words_base.data;
+						word->obj.word = word->words_base;
+					}
+				}
+				else
+				{
+					if (parrent_word->is_read_property)
+					{
+						if (word->words_base.data == "ex")
+						{
+							parrent_word->obj.is_ex = true;
+						}
+
+						if (word->words_base.data == "glue")
+						{
+							parrent_word->obj.is_glue = true;
+						}
+
+						if (word->words_base.data == "split")
+						{
+							parrent_word->obj.is_split = true;
+						}
+
+						if (word->words_base.data == "ignore")
+						{
+							parrent_word->obj.is_ignore = true;
+						}
+					}
+
+					if (word->words_base.data == "=")
+					{
+						parrent_word->is_read_property = true;
+					}
+
+					if (word->words_base.data == "and" || word->words_base.data == ",")
+						parrent_word->obj.is_and = true;
+
+					if (word->words_base.data == "or")
+						parrent_word->obj.is_or = true;
+
+					if (word->words_base.data == "not" || word->words_base.data == "!")
+					{
+						tree_obj_base_t* next_tree = nullptr;
+						get_next_with_ignore_space_tab_newline(tree_words->next, next_tree);
+
+						if (next_tree)
+						{
+							auto next_word = next_tree->get_value();
+
+							if (next_word)
+							{
+								next_word->obj.is_not = true;
+							}
+						}
+					}
+				}		
+			}
+
+			if (!is_read_string) {
+
+				if (is_have_keyword && current_keyword) {
+
+					if (current_keyword->is_have_name && !current_keyword->is_was_read_name)
+					{
+						current_keyword->is_was_read_name = true;
+
+						if (current_keyword->is_read_object)
+						{
+							current_keyword->tree_obj_base.obj.name = word->words_base.data;
+							current_keyword->tree_obj_base.obj.word = word->words_base;
+						}
+					}
+
+					if (word->words_base.data == ";")
+					{
+						auto obj = new obj_t;
+
+						*obj = current_keyword->tree_obj_base.obj;
+
+						if (parrent_word)
+							parrent_word->is_read_property = false;
+
+						if (current_keyword->name == "type")
+						{
+							obj->is_type = true;
+							all_types.push_back(obj);
+						}
+
+						if (current_keyword->name == "group") {
+							obj->is_type = true;
+							obj->is_group = true;
+							all_groups.push_back(obj);
+						}
+
+						if (current_keyword->name == "test") {
+							all_tests.push_back(obj);
+						}
+
+						current_keyword = nullptr;
+						is_have_keyword = false;
+					}
+				}
+				else {
+
+					bool is_found = false;
+					std::size_t i = 0;
+					for (auto& pel_keyword : pel_keywords)
+					{
+						if (pel_keyword.name == word->words_base.data)
+						{
+							is_have_keyword = true;
+							current_keyword = &pel_keywords[i];
+							current_keyword->reset();
+
+							tree_words->root->set_value(&current_keyword->tree_obj_base);
+
+							is_found = true;
+							break;
+						}
+
+						i++;
+					}
+
+					if (!is_found)
+					{
+						print("Error! What it is {} ?\n", word->words_base.data);
+					}
+
+				}
+			}
+		}
+
+		/*
+			This algorithm is not entirely correct, it ignores recursion if there is a range between two characters. 
+			The full implementation looks more intimidating, but I just don't need it, because its need only for pel
+	
+			if array_symbols first: " and second: " then everything inside is ignored
+		*/
+		bool block_parse_obj(
+			tree_obj_base_t*  mother_tree,
+			std::size_t       position_start,
+			std::size_t       position_end,
+			std::intptr_t&    change_position,
+			const std::vector<std::pair<std::string, std::string>>& array_symbols,
+			spec_obj_base_t* base_words
+		)
+		{
+			if (!mother_tree || !base_words)
+				return false;
+
+			std::size_t max_size_words = position_end;// lol base_words->words.size();
+
+			bool is_last_word = false;
+			obj_base_t* next_word = nullptr;
+			bool is_comment_line = false;
+			bool is_global_comments = false;
+			bool is_ignore_next = false;
+
+			bool is_no_recursion = false;
+			std::string no_recursion_str = "";
+			tree_obj_base_t* range_tree = nullptr;
+
+			bool is_skip = false;
+
+			for (std::size_t i = position_start; i < position_end; i++)
+			{
+				is_skip = false;
+
+				if (max_size_words == (i + 1))
+					is_last_word = true;
+
+				if (!is_last_word)
+					next_word = &base_words->words[i + 1];
+				else next_word = nullptr;
+
+				if (max_size_words <= i)
+					return true;
+
+				if (base_words->words[i].words_base.data == "/" && next_word && !is_comment_line && !is_global_comments)
+				{
+					if (next_word->words_base.data == "/")
+					{
+						is_comment_line = true;
+					}
+				}
+
+				if (base_words->words[i].words_base.data == "/" && next_word && !is_comment_line && !is_global_comments)
+				{
+					if (next_word->words_base.data == "*")
+					{
+						is_global_comments = true;
+					}
+				}
+
+				/* stop range */
+				if (is_no_recursion && no_recursion_str == base_words->words[i].words_base.data)
+				{
+					is_no_recursion = false;
+					no_recursion_str.clear();
+
+					mother_tree->push(&base_words->words[i]);
+
+					range_tree = nullptr;
+
+					continue;
+				}
+
+				if (is_no_recursion)
+				{
+					range_tree->push(&base_words->words[i]);
+				}
+				else
+				{
+					if (!is_comment_line && !is_global_comments)
+						if (!is_ignore_next)
+							if (base_words->words[i].words_base.is_symbol() && !base_words->words[i].words_base.is_group_symbol())
+							{
+								for (std::size_t k = 0; k < array_symbols.size(); k++)
+								{
+									if (base_words->words[i].words_base.data == array_symbols[k].first)
+									{
+										if (array_symbols[k].first == array_symbols[k].second)
+										{
+											is_no_recursion  = true;
+											no_recursion_str = array_symbols[k].first;
+
+											range_tree =  mother_tree->push(&base_words->words[i]);
+
+											is_skip = true; /* skip */
+											break;
+										}
+
+										if (is_no_recursion)
+										{
+
+										}
+										else {
+
+											tree_obj_base_t* new_tree = new tree_obj_base_t;
+
+											mother_tree->sync(new_tree);
+
+											std::intptr_t new_position = -1;
+
+											base_words->words[i].words_base.start_index = i;
+											base_words->words[i].words_base.index_pair = k;
+
+											new_tree->set_value(&base_words->words[i]);
+
+											if (block_parse_obj(new_tree, i + 1, position_end, new_position, array_symbols, base_words))
+											{
+												if (new_position > -1) {
+													i = new_position;
+													k = 0;
+												}
+
+											}
+											else break;//return false;
+										}
+									}
+
+									if (max_size_words <= i)
+										return true;
+
+									if (mother_tree->parent && mother_tree->get_value())
+									{
+										if ((mother_tree->get_value()->words_base.data == "<" && base_words->words[i].words_base.data == ";"))
+										{
+											delete mother_tree;
+
+											change_position = i + 1;
+											return false;
+										}
+
+										if ((base_words->words[i].words_base.data == array_symbols[k].second))
+										{
+											if (array_symbols[mother_tree->get_value()->words_base.index_pair].second == base_words->words[i].words_base.data) {
+
+												tree_obj_base_t* new_tree = new tree_obj_base_t;
+
+												mother_tree->sync(new_tree);
+
+												base_words->words[i].words_base.start_index = mother_tree->get_value()->words_base.start_index;
+												base_words->words[i].words_base.end_index = i;
+
+												new_tree->set_value(&base_words->words[i]);
+
+												mother_tree->get_value()->words_base.end_index = i;
+
+												mother_tree->parent->push(mother_tree);
+												mother_tree->parent->push(new_tree);
+
+												change_position = i + 1;
+												return true;
+
+											}
+
+										}
+									}
+
+								}
+							}
+
+					if (is_skip)
+						continue;
+
+					if (is_ignore_next)
+					{
+						is_ignore_next = false;
+					}
+
+					if (base_words->words[i].words_base.is_new_line() && is_comment_line) {
+						is_comment_line = false;
+						//is_ignore_next  = true;
+					}
+
+					if (base_words->words[i].words_base.data == "*" && next_word && is_global_comments)
+					{
+						if (next_word->words_base.data == "/")
+						{
+							is_global_comments = false;
+							is_ignore_next = true;
+						}
+					}
+
+					mother_tree->push(&base_words->words[i]);
+				}			
+			}
+
+			return true;
+		}
+
+		// cpp prototype version 2
+		void parse_pel(bool is_render_code = false, bool is_render_line_number = false)
+		{
+			tree_obj_base_t *tree_words = new tree_obj_base_t;
+			spec_obj_base_t spec_words;
+
+			for (size_t i = 0; i < words.words.size(); i++)
+			{
+				obj_base_t base;
+				base.words_base = words.words[i];
+				spec_words.push(base);				
+			}
+
+			std::intptr_t new_position = -1;
+			std::vector<std::pair<std::string, std::string>> array_symbols;
+
+			array_symbols.push_back({ "{", "}" });
+			array_symbols.push_back({ "\"", "\"" });
+			array_symbols.push_back({ "(", ")" });
+			
+			block_parse_obj(tree_words, 0, spec_words.words.size(), new_position, array_symbols, &spec_words);
+			
+			pel_keywords_element_t type_keyword;
+
+			type_keyword.name = "type";
+
+			type_keyword.is_end_symbol        = true;
+			type_keyword.is_have_body         = true;
+			type_keyword.is_have_instuction   = true;
+			type_keyword.is_have_property     = true;
+			type_keyword.is_have_name         = true;
+			type_keyword.is_have_string_value = true;
+			type_keyword.is_newline_symbol    = false;
+			type_keyword.is_read_object       = true;
+
+			pel_keywords.push_back(type_keyword);
+
+			type_keyword.name = "group";
+
+			type_keyword.is_end_symbol		  = true;
+			type_keyword.is_have_body		  = true;
+			type_keyword.is_have_instuction   = true;
+			type_keyword.is_have_property     = true;
+			type_keyword.is_have_name		  = true;
+			type_keyword.is_have_string_value = true;
+			type_keyword.is_newline_symbol    = false;
+			type_keyword.is_read_object       = true;
+
+			pel_keywords.push_back(type_keyword);
+
+			type_keyword.name = "test";
+
+			type_keyword.is_end_symbol		  = true;
+			type_keyword.is_have_body		  = true;
+			type_keyword.is_have_instuction   = true;
+			type_keyword.is_have_property	  = true;
+			type_keyword.is_have_name		  = true;
+			type_keyword.is_have_string_value = true;
+			type_keyword.is_newline_symbol	  = false;
+			type_keyword.is_read_object       = true;
+
+			pel_keywords.push_back(type_keyword);
+
+			tree_words->process_function["base"]         = detail::bind_function(&pel_parser_t::process_parse_tree, this, std::placeholders::_1);
+			tree_words->process_function["last_parrent"] = detail::bind_function(&pel_parser_t::last_process_parse_tree, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+
+			tree_words->start_process();
+
+			parser_engine.is_render_tree  = true;
+			parser_engine.is_render_group = true;
+
+			run();
+
+			pel_keywords.clear();
+			spec_words.clear();
+
+			tree_words->delete_tree();
+			delete tree_words;
+			tree_words = nullptr;
+		}
+
 		// cpp prototype version
 		void parse_words(bool is_render_code = false, bool is_render_line_number = false)
 		{
 			bool is_read_type_name = false;
 			bool is_read_type_body = false;
 			bool is_read_type_property = false;
+
+			bool is_read_repeat_body = false;
+			bool is_blocking_read = false;
 
 			obj_t *obj = nullptr;
 			obj_t body_obj;
@@ -481,6 +1140,8 @@ namespace pel
 			bool is_module_render_group = false;
 
 			bool is_ignore_next_iteration = false;
+
+			int lvl = 0;
 
 			std::size_t i = 0;
 
@@ -547,7 +1208,7 @@ namespace pel
 						bool is_find = false;
 
 						string_word = word;
-						real_word = word;
+						real_word   = word;
 
 						if (word.data == "\\" && words.words.size() != (i + 1))
 						{
@@ -999,7 +1660,27 @@ namespace pel
 					}
 				}
 
+				if (word.data == "(")
+				{
+					is_blocking_read = true;
+					continue_with_inc;
+				}
+
+				if (word.data == ")")
+				{
+					is_blocking_read = false;
+					continue_with_inc;
+				}
+
 				if (is_read_type_body && !is_read_type_property)
+				{
+					if (word.data == "repeat")
+					{
+						is_read_repeat_body = true;
+					}
+				}
+
+				if (is_read_type_body && !is_read_type_property && !is_read_repeat_body)
 				{
 					bool is_bin_logic = false;
 
@@ -1020,7 +1701,7 @@ namespace pel
 					if (word.data == "xor" || word.data == "^") {
 						is_xor = true;
 						is_and = false;
-						is_or = false;
+						is_or  = false;
 
 						is_iter_word_bin = true;
 					}
@@ -1208,17 +1889,18 @@ namespace pel
 
 		bool is_or = false, is_xor = false, is_and = false;
 
-		for (auto &it: obj->values)
-		{	
-			if (it.is_or)
-				is_or = true;
+		// Old specification
+		//for (auto &it: obj->values)
+		//{	
+		//	if (it.is_or)
+		//		is_or = true;
 
-			if (it.is_xor)
-				is_xor = true;
+		//	if (it.is_xor)
+		//		is_xor = true;
 
-			if (it.is_and)
-				is_and = true;
-		}
+		//	if (it.is_and)
+		//		is_and = true;
+		//}
 
 		if (obj->is_type)
 			std::add_flag(cmd->flag, parser::executive::parser_type);
@@ -1243,7 +1925,8 @@ namespace pel
 		if (obj->is_not)
 			std::add_flag(cmd->flag, parser::executive::parser_not);
 
-		if (is_or)
+		// Old specification
+	/*	if (is_or)
 		{
 			std::add_flag(cmd->flag, parser::executive::parser_or);
 			std::del_flag(cmd->flag, parser::executive::parser_and);
@@ -1260,20 +1943,48 @@ namespace pel
 			std::add_flag(cmd->flag, parser::executive::parser_and);
 			std::del_flag(cmd->flag, parser::executive::parser_or);
 			std::del_flag(cmd->flag, parser::executive::parser_xor);
+		}*/
+
+		
+		//if (obj->is_or) {
+		//	std::add_flag(parent_cmd->flag, parser::executive::parser_or);
+		//	std::del_flag(parent_cmd->flag, parser::executive::parser_and);
+		//	std::del_flag(parent_cmd->flag, parser::executive::parser_xor);
+		//}
+
+		//if (obj->is_xor) {
+		//	std::add_flag(parent_cmd->flag, parser::executive::parser_xor);
+		//	std::del_flag(parent_cmd->flag, parser::executive::parser_and);
+		//	std::del_flag(parent_cmd->flag, parser::executive::parser_or);
+		//}
+
+		//if (obj->is_and) {
+		//	std::add_flag(parent_cmd->flag, parser::executive::parser_and);
+		//	std::del_flag(parent_cmd->flag, parser::executive::parser_or);
+		//	std::del_flag(parent_cmd->flag, parser::executive::parser_xor);
+		//}
+
+
+		if (obj->is_or) {
+			std::add_flag(cmd->flag, parser::executive::parser_or);
+			std::del_flag(cmd->flag, parser::executive::parser_and);
+			std::del_flag(cmd->flag, parser::executive::parser_xor);
+		}
+
+		if (obj->is_xor) {
+			std::add_flag(cmd->flag, parser::executive::parser_xor);
+			std::del_flag(cmd->flag, parser::executive::parser_and);
+			std::del_flag(cmd->flag, parser::executive::parser_or);
+		}
+
+		if (obj->is_and) {
+			std::add_flag(cmd->flag, parser::executive::parser_and);
+			std::del_flag(cmd->flag, parser::executive::parser_or);
+			std::del_flag(cmd->flag, parser::executive::parser_xor);
 		}
 
 		if ((!cmd->is_or() && !cmd->is_xor() && !cmd->is_and()))
 			std::add_flag(cmd->flag, parser::executive::empty_operation);
-		
-		if (obj->is_or) {
-			std::add_flag(parent_cmd->flag, parser::executive::parser_or);
-			std::del_flag(parent_cmd->flag, parser::executive::parser_and);
-		}
-
-		if (obj->is_xor) {
-			std::add_flag(parent_cmd->flag, parser::executive::parser_xor);
-			std::del_flag(parent_cmd->flag, parser::executive::parser_and);
-		}
 
 		gcmd->flush_value();
 	}
@@ -1369,41 +2080,66 @@ namespace pel
 			return;
 		}
 
-		for (auto &list_mutinames: multinames_list->data)
+		if (original_obj.is_autogen_block)
 		{
-			if (list_mutinames.name == word.data)
+			is_find = true;
+			get_property(parent, &original_obj);
+
+			for (const auto& sub_obj : original_obj.values)
 			{
-				if (list_mutinames.data.size() == 1)
+				parser::executive::gcmd_t* gcmd = parent->push({});
+
+				if (sub_obj.is_type)
 				{
-					is_find = true;
-					get_property(parent, list_mutinames.data[0]);
+					no_ex(pel_lang, gcmd, sub_obj.word, level, is_stop, sub_obj, multinames_list, counter_tmp_or);
 
-					for (const auto& sub_obj : list_mutinames.data[0]->values)
-					{
-						parser::executive::gcmd_t* gcmd = parent->push({});
-
-						if (sub_obj.is_type)
-						{
-							no_ex(pel_lang, gcmd, sub_obj.word, level, is_stop, sub_obj, multinames_list, counter_tmp_or);
-
-							level--;
-						}
-						else
-						{
-							get_property(gcmd, &sub_obj, &original_obj);
-						}
-
-					}
-
-					break;
+					level--;
 				}
 				else
 				{
-					is_find = true;
-					multi_name(pel_lang, &list_mutinames, parent, counter_tmp_or, multinames_list);
-					break;
+					get_property(gcmd, &sub_obj, &original_obj);
 				}
-		
+
+			}
+		}
+		else
+		{
+			for (auto& list_mutinames : multinames_list->data)
+			{
+				if (list_mutinames.name == word.data)
+				{
+					if (list_mutinames.data.size() == 1)
+					{
+						is_find = true;
+						get_property(parent, list_mutinames.data[0]);
+
+						for (const auto& sub_obj : list_mutinames.data[0]->values)
+						{
+							parser::executive::gcmd_t* gcmd = parent->push({});
+
+							if (sub_obj.is_type)
+							{
+								no_ex(pel_lang, gcmd, sub_obj.word, level, is_stop, sub_obj, multinames_list, counter_tmp_or);
+
+								level--;
+							}
+							else
+							{
+								get_property(gcmd, &sub_obj, &original_obj);
+							}
+
+						}
+
+						break;
+					}
+					else
+					{
+						is_find = true;
+						multi_name(pel_lang, &list_mutinames, parent, counter_tmp_or, multinames_list);
+						break;
+					}
+
+				}
 			}
 		}
 
@@ -1647,6 +2383,7 @@ namespace pel
 						}
 					}
 
+					// TODO: check status error
 					global_gcmd->push_back(main);
 				}			
 			}

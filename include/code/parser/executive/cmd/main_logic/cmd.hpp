@@ -29,7 +29,8 @@ namespace parser
 			parser_not		= 1 << 13,
 			parser_tree_xor = 1 << 14, // Не актуальна
 			empty_operation = 1 << 15,
-			parser_group	= 1 << 16
+			parser_group	= 1 << 16,
+			parser_repeat	= 1 << 17
 		};
 
 		template<typename block_depth_base_t>
@@ -82,6 +83,13 @@ namespace parser
 			int  current_position = 0;
 		};
 
+		struct cmd_t;
+
+		struct repeat_t
+		{
+			cmd_t* body;
+			cmd_t* exit_condition;
+		};
 	
 		struct cmd_t
 		{
@@ -142,16 +150,17 @@ namespace parser
 					std::add_flag(flag, parser_print);
 			}
 
-			inline bool is_or()       { return std::check_flag(flag, parser_or); }
-			inline bool is_and()      { return std::check_flag(flag, parser_and); }
-			inline bool is_xor()      { return std::check_flag(flag, parser_xor); }
-			inline bool is_not()      { return std::check_flag(flag, parser_not); }
-			inline bool is_value()    { return std::check_flag(flag, parser_value); }
-			inline bool is_type()     { return std::check_flag(flag, parser_type); }
-			inline bool is_tree_or()  { return std::check_flag(flag, parser_tree_or); }
+			inline bool is_or()       { return std::check_flag(flag, parser_or);       }
+			inline bool is_and()      { return std::check_flag(flag, parser_and);      }
+			inline bool is_xor()      { return std::check_flag(flag, parser_xor);      }
+			inline bool is_not()      { return std::check_flag(flag, parser_not);      }
+			inline bool is_value()    { return std::check_flag(flag, parser_value);    }
+			inline bool is_type()     { return std::check_flag(flag, parser_type);     }
+			inline bool is_tree_or()  { return std::check_flag(flag, parser_tree_or);  }
 			inline bool is_tree_xor() { return std::check_flag(flag, parser_tree_xor); }			
-			inline bool is_ex()		  { return std::check_flag(flag, parser_ex); }
-			inline bool is_group()	  { return std::check_flag(flag, parser_group); }
+			inline bool is_ex()		  { return std::check_flag(flag, parser_ex);       }
+			inline bool is_group()	  { return std::check_flag(flag, parser_group);    }
+			inline bool is_repeat()	  { return std::check_flag(flag, parser_repeat);   }
 
 			inline bool is_empty_operation() { return std::check_flag(flag, empty_operation); }
 
@@ -160,7 +169,8 @@ namespace parser
 			std::flag32_t flag = 0;		
 			std::string   print;  // +44 bytes in debug
 
-			pel::groups::group_t* group = nullptr;
+			pel::groups::group_t* group  = nullptr;
+			repeat_t*			  repeat = nullptr;
 
 			std::size_t min_position = SIZE_MAX;
 			std::size_t max_position = 0;
@@ -173,8 +183,6 @@ namespace parser
 
 			// Еще один позиционный счетчик
 			std::size_t current_index = 0;
-
-			int32_t counter_iteration_offset = 0;
 
 			// TODO: delete in release?
 			std::size_t count_operation = 0;
@@ -195,8 +203,6 @@ namespace parser
 				is_inc_current_index = false;
 
 				is_finaly_or = false;
-
-				counter_iteration_offset = 0;
 			}
 
 			// cast in std::flag8_t ?

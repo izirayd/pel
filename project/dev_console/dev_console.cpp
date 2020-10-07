@@ -94,7 +94,8 @@ int process(int64_t& last_mem, const std::string& code)
 	if (!code.empty()) {
 		pel_parser.code = code;
 		pel_parser.process_parse();
-		pel_parser.parse_words(true, true);
+	//	pel_parser.parse_words(true, true);
+		pel_parser.parse_pel(true, true);
 	}
 	else
 	{
@@ -197,12 +198,34 @@ int main()
 {
 	std::system("title PEL DEV: Parser Engine Lang Dev console");
 
+#ifdef PLATFORM_WINDOWS
+	// for color FMT
+	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	if (hOut == INVALID_HANDLE_VALUE)
+	{
+		return GetLastError();
+	}
+
+	DWORD dwMode = 0;
+	if (!GetConsoleMode(hOut, &dwMode))
+	{
+		return GetLastError();
+	}
+
+	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	if (!SetConsoleMode(hOut, dwMode))
+	{
+		return GetLastError();
+	}
+
+#endif // PLATFORM_WINDOWS
+
 	fmt::print(fmt::fg(fmt::color::coral), "Dev version with render code pel, with tree code. v{0}.{1}\n\n",  PEL_VERSION_MAJOR, PEL_VERSION_MINOR);
 
 	fmt::print("class size ");
 	fmt::print(fmt::fg(fmt::color::aqua), "cmd_t");
 	fmt::print(": ");
-	fmt::print(fmt::fg(fmt::color::aquamarine), "{}\n", sizeof(parser::executive::cmd_t));
+	fmt::print(fmt::fg(fmt::color::aquamarine), "{}\n", sizeof(tree_t<pel::pel_parser_t::obj_base_t>));
 
 	start(1);
 

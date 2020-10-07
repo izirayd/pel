@@ -77,6 +77,8 @@ private:
 		this->tree.push_back(tree);
 		tree->position = this->tree.size() - 1;
 
+		tree->calculate_previous_next();
+
 		return tree;
 	}
 
@@ -111,8 +113,11 @@ public:
 	}
 
 
-	tree_t<data_value_t>* parent = nullptr; // родитель
-	tree_t<data_value_t>* root   = nullptr;
+	tree_t<data_value_t>* parent   = nullptr; // родитель
+	tree_t<data_value_t>* root     = nullptr;
+
+	tree_t<data_value_t>* previous = nullptr;
+	tree_t<data_value_t>* next	   = nullptr;
 
 	bool    is_root    = true;
 
@@ -126,21 +131,45 @@ public:
 	// index position in list in parent for check last element in graph
 	std::size_t position = 0;
 
+	void calculate_previous_next() {
+
+		if (position == 0) 
+		{
+			previous = nullptr;
+
+			if ((position + 1) < parent->size())
+			{
+				next = parent->tree[position];
+			}
+		}
+		else if (position > 0)
+		{
+			previous = parent->tree[position - 1];
+
+			previous->next = this;
+
+			if ((position + 1) < parent->size())
+			{
+				next = parent->tree[position];
+			}
+		}
+	}
+
 	tree_t() {
 		root   = this; 
 		parent = root;
 	}
 
 	tree_t(const data_value_t& data) {
-		value = data;
+		value    = data;
 		is_value = true;
-		root = this;
-		parent = root;
+		root     = this;
+		parent   = root;
 	}
 
 	tree_t(const std::initializer_list<data_value_t>& v)
 	{
-		root = this;
+		root   = this;
 		parent = root;
 
 		for (const auto& itm : v)

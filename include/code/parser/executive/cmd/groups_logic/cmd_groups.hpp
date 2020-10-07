@@ -46,15 +46,15 @@ namespace parser
 
 				status_process_t status_process;
 
-				inline bool is_or()     { return std::check_flag(flag, group_flag_t::operation_or);   }
-				inline bool is_and()    { return std::check_flag(flag, group_flag_t::operation_and);  }
-				inline bool is_ex()     { return std::check_flag(flag, group_flag_t::property_ex);    }
-				inline bool is_not()    { return std::check_flag(flag, group_flag_t::operation_not);  }
-				inline bool is_value()  { return std::check_flag(flag, group_flag_t::object_value);   }
-				inline bool is_type()   { return std::check_flag(flag, group_flag_t::object_type);    }
-				inline bool is_glue()   { return std::check_flag(flag, group_flag_t::property_glue);  }
-				inline bool is_split()  { return std::check_flag(flag, group_flag_t::property_split); }
-				inline bool is_ignore()  { return std::check_flag(flag, group_flag_t::property_ignore); }
+				inline bool is_or()     { return std::check_flag(flag, group_flag_t::operation_or);    }
+				inline bool is_and()    { return std::check_flag(flag, group_flag_t::operation_and);   }
+				inline bool is_ex()     { return std::check_flag(flag, group_flag_t::property_ex);     }
+				inline bool is_not()    { return std::check_flag(flag, group_flag_t::operation_not);   }
+				inline bool is_value()  { return std::check_flag(flag, group_flag_t::object_value);    }
+				inline bool is_type()   { return std::check_flag(flag, group_flag_t::object_type);     }
+				inline bool is_glue()   { return std::check_flag(flag, group_flag_t::property_glue);   }
+				inline bool is_split()  { return std::check_flag(flag, group_flag_t::property_split);  }
+				inline bool is_ignore() { return std::check_flag(flag, group_flag_t::property_ignore); }
 
 				inline bool is_empty_operation() { return std::check_flag(flag, group_flag_t::operation_empty); }
 			};

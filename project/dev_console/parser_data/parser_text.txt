@@ -1,12 +1,7 @@
-#module debug
-#module print_group
-#module print_code
+group space   : { " " }  = ex, ignore;
+group symbol  : { ";" }  = ex, split;
+group word    : { !space and !symbol } = ex, glue;
 
-group space  : { " " } = ex, ignore;
-group newline : {"a"} = ex, glue;
-group symbol : { ";" } = ex, split;
-group word : { !space and !symbol and !newline } = ex, glue;
+type textes : { { "text1" or "text2" } or { "text3" or "text4" } } = ex;
 
-test t : { "abab"};
-
-run;
+test t1: { "text1" };

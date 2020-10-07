@@ -96,7 +96,6 @@ namespace parser
                            if (cmd->status_process.status_find == status_find_t::failed)
                                cmd->status_process.status_find = status_find_t::success;
                        }
-
                    }
 
                    if (parrent_cmd->is_and() || parrent_cmd->is_empty_operation())
@@ -186,9 +185,7 @@ namespace parser
                        }
                    }
 
-                   
                    if (cmd->is_type()) {
-
                        cmd->status_process = parrent_cmd->status_process;
                    }
 
@@ -274,8 +271,6 @@ namespace parser
                            arg->region->is_status_find = false;
                        }
 
-                    
-
                        is_use = false;
                        command_graph->stop_process();
                    }
@@ -301,8 +296,6 @@ namespace parser
                         parrent_cmd->is_end_find = cmd->is_end_find;
                    }
 
-                   int64_t delta = 0;
-                   int64_t min_len = 0;
                    /*
                       Решается ли это без перебора? Это линейно, но меня жутко раздражает, что надо каждую суб-ор вершину опрашивать.
                       Другого алгоритма я не нашел.
@@ -311,10 +304,9 @@ namespace parser
                    {			  
                        status_find_t tmp_status_find = status_find_t::failed;
           
-                       bool is_have_not_checked = false;
+                       bool is_have_not_checked       = false;
                        bool is_all_status_end_checked = false;
-                       bool is_have_success = false;
-
+                       bool is_have_success           = false;
 
                        /*
                          Крутить в цикле все итерации так, что бы было возможно получить только одну success, тогда остальные false, тогда смещаемся сразу на +1.
@@ -364,8 +356,7 @@ namespace parser
                                if (command_graph->tree[i]->get_value().is_end_find && command_graph->tree[i]->get_value().status_process.status_find == status_find_t::success)
                                {
                                    count_success++;
-                                   cmd->counter_iteration_offset++;
-                                 
+
                                    std::size_t len = (arg->region->current_position + 1) < command_graph->tree[i]->tree.size() ? command_graph->tree[i]->tree.size() - (arg->region->current_position + 1) : (arg->region->current_position + 1) - command_graph->tree[i]->tree.size();
                                    
                                    if (len == 0)
@@ -391,11 +382,10 @@ namespace parser
                                }            	                                 
                        }
 
-                       if ( 
+                       if (
                            size_or == (count_failed + count_success)
                           )
                        {
-
                            if (state_move)
                            {
                                cmd->is_inc_current_index = true;
@@ -405,7 +395,7 @@ namespace parser
                                cmd->current_index++;
                            }
               
-                           cmd->is_end_find = true;
+                           cmd->is_end_find  = true;
                            cmd->is_finaly_or = true;
 
                            cmd->status_process.status_find = tmp_status_find;
@@ -965,7 +955,6 @@ namespace parser
                                     break;
                                 }
                            }
-
                        }
 
                        end_timer(iteration_gcmd);
@@ -1022,7 +1011,6 @@ namespace parser
                 {
                     it.gcmd->process_function["base"] = detail::bind_function(&base_parser_t::process_group_signature, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
                     it.gcmd->process_function["last_parrent"] = detail::bind_function(&base_parser_t::last_group_parrent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
-
                 }
 
             }
