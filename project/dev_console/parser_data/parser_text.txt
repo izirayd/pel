@@ -1,7 +1,3 @@
-group space   : { " " }  = ex, ignore;
-group symbol  : { ";" }  = ex, split;
-group word    : { !space and !symbol } = ex, glue;
+# {tree};
 
-type textes : { { "text1" or "text2" } or { "text3" or "text4" } } = ex;
-
-test t1: { "text1" };
+type t1 : { not "a1" = maybe, "text" } = ex;

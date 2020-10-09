@@ -34,6 +34,10 @@ namespace pel
 		bool is_ignore = false;
 		bool is_autogen_block = false;
 
+		bool is_maybe = false;
+		bool is_return = false;
+		bool is_exit = false;
+
 		words_base_t word;
 
 		std::vector<obj_t> values;
@@ -71,6 +75,10 @@ namespace pel
 
 			is_ignore = false;
 			is_autogen_block = false;
+
+			is_maybe = false;
+			is_return = false;
+			is_exit = false;
 		}
 	};
 }

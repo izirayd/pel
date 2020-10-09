@@ -28,7 +28,7 @@ uint32_t file_hash(const std::wstring& file_name)
 	{
 		int size_file = cpp_file.GetSizeFile();
 
-		char* buffer_code = new char[size_file + 1];
+		char* buffer_code = new char[size_file + sizeof(void*)];
 
 		cpp_file.FullReadFile(buffer_code, 1);
 		buffer_code[size_file] = 0x00;
@@ -64,7 +64,7 @@ void read_code(std::string& result_code)
 	{
 		int size_file = cpp_file.GetSizeFile();
 
-		char* buffer_code = new char[size_file + 4];
+		char* buffer_code = new char[size_file + sizeof(void *)];
 
 		cpp_file.FullReadFile(buffer_code, 1);
 		buffer_code[size_file] = 0x00;
@@ -87,15 +87,13 @@ void read_code(std::string& result_code)
 	}
 }
 
-int process(int64_t& last_mem, const std::string& code)
+int process(const std::string& code)
 {
 	pel::pel_parser_t pel_parser;
 
 	if (!code.empty()) {
 		pel_parser.code = code;
-		pel_parser.process_parse();
-	//	pel_parser.parse_words(true, true);
-		pel_parser.parse_pel(true, true);
+		pel_parser.compilation();
 	}
 	else
 	{
@@ -109,12 +107,12 @@ int process(int64_t& last_mem, const std::string& code)
 }
 
 
-void process_code(int64_t& last_mem)
+void process_code()
 {
 	std::string code;
 
 	read_code(code);
-	process(last_mem, code);
+	process(code);
 }
 
 
@@ -134,7 +132,6 @@ public:
 
 				std::string cfilename = CName;
 
-
 				std::wstring full_name;
 
 				full_name += dir;
@@ -146,12 +143,10 @@ public:
 				{
 					last_hash = hash;
 
-					int64_t last_mem = 0;
-
 					// TODO: only windows?!
 					std::system("cls");
 
-					process_code(last_mem);
+					process_code();
 				}
 			}
 		}
@@ -160,9 +155,7 @@ public:
 
 void main_thread()
 {
-	int64_t last_mem = 0;
-
-	process_code(last_mem);
+	process_code();
 
 	path_t cpp_path;
 
@@ -222,10 +215,10 @@ int main()
 
 	fmt::print(fmt::fg(fmt::color::coral), "Dev version with render code pel, with tree code. v{0}.{1}\n\n",  PEL_VERSION_MAJOR, PEL_VERSION_MINOR);
 
-	fmt::print("class size ");
-	fmt::print(fmt::fg(fmt::color::aqua), "cmd_t");
-	fmt::print(": ");
-	fmt::print(fmt::fg(fmt::color::aquamarine), "{}\n", sizeof(tree_t<pel::pel_parser_t::obj_base_t>));
+	//fmt::print("class size ");
+	//fmt::print(fmt::fg(fmt::color::aqua), "cmd_t");
+	//fmt::print(": ");
+	//fmt::print(fmt::fg(fmt::color::aquamarine), "{}\n", sizeof(tree_t<pel::pel_parser_t::obj_base_t>));
 
 	start(1);
 

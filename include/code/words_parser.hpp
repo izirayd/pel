@@ -6,7 +6,7 @@ namespace parser {
 	class words_parser_t
 	{
 	public:
-		void process_parse(const std::string &code, words_t &words)
+		void process_parse_pel_to_words(const std::string &code, words_t &words)
 		{
 			std::flag16_t    parse_flag;
 			std::flag16_t    parse_event_change_state;  // В случае изменения, получи флаг, который был изменен, что бы обработчик мог его обработать

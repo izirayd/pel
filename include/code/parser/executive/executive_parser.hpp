@@ -233,12 +233,12 @@ namespace parser
                        {              
                            if (arg->format_word == format_word_t::one_word)
                            {
-                               show_result fmt::print(fg(fmt::color::lawn_green), "\nLine: {3} - its signature: {0} [count op: {1}, total op: {2}]\n", root_cmd->value, root_cmd->count_operation, total_operation, arg->element->number_line);
+                               fmt::print(fg(fmt::color::lawn_green), "\nLine: {3} - its signature: {0} [count op: {1}, total op: {2}]\n", root_cmd->value, root_cmd->count_operation, total_operation, arg->element->number_line);
 
                            }
                            else if (arg->format_word == format_word_t::multi_word)
                            {
-                               show_result fmt::print(fg(fmt::color::lawn_green), "\nIts signature: {0} [count op: {1}, total op: {2}]\n", root_cmd->value, root_cmd->count_operation, total_operation);
+                               fmt::print(fg(fmt::color::lawn_green), "\nIts signature: {0} [count op: {1}, total op: {2}]\n", root_cmd->value, root_cmd->count_operation, total_operation);
                            
                            }
 
@@ -248,7 +248,7 @@ namespace parser
                        {
                            if (arg->format_word == format_word_t::one_word)
                            {
-                               show_result fmt::print(fg(fmt::color::indian_red), "\nLine: {4} - its not signature {0}: {1}[{5}:{6}] [count op: {2}, total op: {3}]\n",
+                               fmt::print(fg(fmt::color::indian_red), "\nLine: {4} - its not signature {0}: {1}[{5}:{6}] [count op: {2}, total op: {3}]\n",
                                    root_cmd->value.c_str(),
                                    arg->element->data,
                                    root_cmd->count_operation,
@@ -261,7 +261,7 @@ namespace parser
                            }
                            else if (arg->format_word == format_word_t::multi_word)
                            {
-                               show_result fmt::print(fg(fmt::color::indian_red), "\nIts not signature {0}: {1} total operaion: {2}\n",
+                               fmt::print(fg(fmt::color::indian_red), "\nIts not signature {0}: {1} total operaion: {2}\n",
                                    root_cmd->value.c_str(),                       
                                    root_cmd->count_operation,
                                    total_operation
@@ -468,7 +468,6 @@ namespace parser
                    cmd_t* cmd         = &command_graph->get_value();
                    cmd_t* parrent_cmd = &command_graph->parent->get_value();
                    cmd_t* root_cmd    = &command_graph->root->get_value();
-
 
                    // can null need use with check  "if (arg->format_word == format_word_t::one_word)"
                    words_base_t* element = arg->element;
@@ -867,7 +866,7 @@ namespace parser
                            data_block_global_gcmd_t* d = it.block_depth.get_block(level);
                            base_arg.region->is_status_find = false;
 
-                           if (d->is_use)
+                           //if (d->is_use)
                            {
                                it.gcmd->process_function["base"]         = detail::bind_function(&base_parser_t::process_signature, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
                                it.gcmd->process_function["last"]         = detail::bind_function(&base_parser_t::last_signature,    this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
@@ -882,7 +881,7 @@ namespace parser
 
                                if (base_arg.region->is_status_find)
                                {
-                                   break;
+                             //      break;
                                }
                            }
                        }
@@ -1000,9 +999,9 @@ namespace parser
                 words.delete_alloc();
             }
 
-            void process_parse()
+            void process_parse_pel_to_words()
             {
-                parser::words_parser_t::process_parse(code, words);
+                parser::words_parser_t::process_parse_pel_to_words(code, words);
             }
 
             void group_init() {
@@ -1012,7 +1011,6 @@ namespace parser
                     it.gcmd->process_function["base"] = detail::bind_function(&base_parser_t::process_group_signature, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
                     it.gcmd->process_function["last_parrent"] = detail::bind_function(&base_parser_t::last_group_parrent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
                 }
-
             }
 
             void group_parse(const pel::groups::group_element_t &element, pel::groups::group_result_t &result) {

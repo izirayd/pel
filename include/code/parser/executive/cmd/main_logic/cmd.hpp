@@ -30,7 +30,10 @@ namespace parser
 			parser_tree_xor = 1 << 14, // Не актуальна
 			empty_operation = 1 << 15,
 			parser_group	= 1 << 16,
-			parser_repeat	= 1 << 17
+			parser_repeat	= 1 << 17,
+			parser_maybe	= 1 << 18,
+			parser_return	= 1 << 19,
+			parser_exit		= 1 << 20,
 		};
 
 		template<typename block_depth_base_t>
@@ -161,6 +164,10 @@ namespace parser
 			inline bool is_ex()		  { return std::check_flag(flag, parser_ex);       }
 			inline bool is_group()	  { return std::check_flag(flag, parser_group);    }
 			inline bool is_repeat()	  { return std::check_flag(flag, parser_repeat);   }
+
+			inline bool is_maybe()	  { return std::check_flag(flag, parser_maybe);    }
+			inline bool is_return()	  { return std::check_flag(flag, parser_return);   }
+			inline bool is_exit()	  { return std::check_flag(flag, parser_exit);     }
 
 			inline bool is_empty_operation() { return std::check_flag(flag, empty_operation); }
 

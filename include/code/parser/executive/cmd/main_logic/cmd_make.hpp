@@ -576,6 +576,27 @@ namespace parser
 #endif
 			}
 
+			if (cmd->is_maybe()) {
+
+#ifdef debug_print_global_cmd
+				show_tree  fmt::print(fg(fmt::color::bisque), " [maybe]");
+#endif
+			}
+
+			if (cmd->is_exit()) {
+
+#ifdef debug_print_global_cmd
+				show_tree  fmt::print(fg(fmt::color::bisque), " [exit]");
+#endif
+			}
+
+			if (cmd->is_return()) {
+
+#ifdef debug_print_global_cmd
+				show_tree  fmt::print(fg(fmt::color::bisque), " [return]");
+#endif
+			}
+
 			if (cmd->is_xor()) {
 
 				is_xor = true;
@@ -635,8 +656,16 @@ namespace parser
 			if (cmd->is_type())
 			{
 				cmd->min_counter = parrent_cmd->min_counter;
-				cmd->max_counter = parrent_cmd->max_counter;	
-			}
+				cmd->max_counter = parrent_cmd->max_counter;
+
+				// empty vertex graph
+				if (command_graph->size() == 0)
+				{
+					// for render graph
+					cmd->min_position = parrent_cmd->min_counter;
+					cmd->max_position = parrent_cmd->max_counter;
+				}
+			} 
 
 			if (is_value)
 			{
@@ -738,6 +767,21 @@ namespace parser
 				is_position = true;
 
 				show_tree  fmt::print(" [empty_operation]");
+			}
+
+			if (cmd->is_maybe()) {
+
+				show_tree  fmt::print(fg(fmt::color::bisque), " [maybe]");
+			}
+
+			if (cmd->is_exit()) {
+
+				show_tree  fmt::print(fg(fmt::color::bisque), " [exit]");
+			}
+
+			if (cmd->is_return()) {
+
+				show_tree  fmt::print(fg(fmt::color::bisque), " [return]");
 			}
 
 			if (cmd->is_xor()) {
