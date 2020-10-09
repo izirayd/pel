@@ -598,7 +598,7 @@ namespace pel
 						it_word->words_base.data != "or"     &&
 						it_word->words_base.data != ","      &&
 						it_word->words_base.data != "="      &&
-						it_word->words_base.data != "ex"     &&
+						it_word->words_base.data != "execute"     &&
 						it_word->words_base.data != "glue"   &&
 						it_word->words_base.data != "split"  &&
 						it_word->words_base.data != "ignore" &&
@@ -770,9 +770,9 @@ namespace pel
 
 							auto word_object_for_property = object_for_property->get_value();
 
-							if (word->words_base.data == "ex")
+							if (word->words_base.data == "execute")
 							{
-								word_object_for_property->obj.is_ex = true;
+								word_object_for_property->obj.is_execute = true;
 							} else
 							if (word->words_base.data == "glue")
 							{
@@ -1739,7 +1739,7 @@ namespace pel
 					if (word.data == "ex")
 					{		
 						if (obj)
-							obj->is_ex = true;
+							obj->is_execute = true;
 					}
 
 					if (word.data == "glue")
@@ -2039,16 +2039,16 @@ namespace pel
 		if (obj->is_value)
 			std::add_flag(cmd->flag, parser::executive::parser_value);
 
-		if (obj->is_ex)
-			std::add_flag(cmd->flag, parser::executive::parser_ex);
+		if (obj->is_execute)
+			std::add_flag(cmd->flag, parser::executive::parser_execute);
 
 		if (obj->is_group) {
 
 			if (obj->is_type)
 				std::del_flag(cmd->flag, parser::executive::parser_type);
 
-			if (obj->is_ex)
-				std::del_flag(cmd->flag, parser::executive::parser_ex);
+			if (obj->is_execute)
+				std::del_flag(cmd->flag, parser::executive::parser_execute);
 
 			std::add_flag(cmd->flag, parser::executive::parser_group);
 		}
@@ -2175,7 +2175,7 @@ namespace pel
 
 				if (!is_find)
 				{
-					if (obj->is_ex)
+					if (obj->is_execute)
 						nl->is_ex = true;
 
 					nl->data.push_back(obj);
@@ -2187,7 +2187,7 @@ namespace pel
 				new_nl.name = obj->name;
 				new_nl.data.push_back(obj);
 
-				if (obj->is_ex)
+				if (obj->is_execute)
 					new_nl.is_ex = true;
 
 				data.push_back(new_nl);
@@ -2463,7 +2463,7 @@ namespace pel
 		for (const auto obj_ex : pel_lang.all_groups)
 		{
 			if (obj_ex) {
-				if (obj_ex->is_ex)
+				if (obj_ex->is_execute)
 				{
 					auto main = new parser::executive::groups::gcmd_group_t;
 
@@ -2501,7 +2501,7 @@ namespace pel
 			if (it.data.size() == 1)
 			{
 				// solo type
-				if (it.data[0]->is_ex)
+				if (it.data[0]->is_execute)
 				{
 					parser::executive::gcmd_t* main = new parser::executive::gcmd_t;
 

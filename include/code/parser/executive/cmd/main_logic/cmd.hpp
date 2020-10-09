@@ -17,7 +17,7 @@ namespace parser
 			parser_open		= 1 << 4,
 			parser_close	= 1 << 5, 
 			parser_type		= 1 << 6,
-			parser_ex		= 1 << 7,
+			parser_execute  = 1 << 7,
 			parser_block_type = 1 << 8,
 			// Это инструкция сообщает, что дальше по стеку, где-то использоволся or, 
 			// требуется для оптимизиации, учавствует в отмене парсинга
@@ -161,7 +161,7 @@ namespace parser
 			inline bool is_type()     { return std::check_flag(flag, parser_type);     }
 			inline bool is_tree_or()  { return std::check_flag(flag, parser_tree_or);  }
 			inline bool is_tree_xor() { return std::check_flag(flag, parser_tree_xor); }			
-			inline bool is_ex()		  { return std::check_flag(flag, parser_ex);       }
+			inline bool is_execute()  { return std::check_flag(flag, parser_execute);       }
 			inline bool is_group()	  { return std::check_flag(flag, parser_group);    }
 			inline bool is_repeat()	  { return std::check_flag(flag, parser_repeat);   }
 

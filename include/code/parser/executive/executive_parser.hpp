@@ -308,45 +308,6 @@ namespace parser
                        bool is_all_status_end_checked = false;
                        bool is_have_success           = false;
 
-                       /*
-                         Крутить в цикле все итерации так, что бы было возможно получить только одну success, тогда остальные false, тогда смещаемся сразу на +1.
-
-                         Для смещения создать переменную новую, которая укажет, что мы заполнились в прошлой итерации. По ней мы укажем, что индекс надо сместить сейчас, иначе в следующую итерацию.
-                       */
-
-                       //for (std::size_t i = 0; i < command_graph->tree.size(); i++)
-                       //{              
-                       //        if (command_graph->tree[i]->get_value().is_end_find && command_graph->tree[i]->get_value().status_process.status_find == status_find_t::success)
-                       //        {                
-                       //            is_have_success = true;
-                       //            tmp_status_find = command_graph->tree[i]->get_value().status_process.status_find;
-
-                       //        }
-
-                       //        if (!command_graph->tree[i]->get_value().is_end_find)
-                       //        {
-                       //            is_have_not_checked = true; 
-                       //        }            	                                 
-                       //}
-
-                       //if (!is_have_not_checked && is_have_success)
-                       //{
-                       //    cmd->current_index++;
-
-                       //    cmd->is_end_find  = true;                  
-                       //    cmd->is_finaly_or = true;
-
-                       //    cmd->status_process.status_find = tmp_status_find;
-
-                       //    if (!parrent_cmd->is_or()) 
-                       //    {                     
-                       //        cmd->is_inc_current_index = true;
-                      
-                       //        if (command_graph->is_last())
-                       //         parrent_cmd->is_end_find = true;
-                       //    }
-                       //}
-
                        int64_t count_success = 0, count_failed = 0;
                        std::size_t size_or = command_graph->tree.size();
                        bool state_move = false;
@@ -423,6 +384,18 @@ namespace parser
                        }
 
 
+                   }
+                   // inversion
+                   if (cmd->is_not() && cmd->status_process.status_find != status_find_t::unknow)
+                   {
+                       if (cmd->status_process.status_find == status_find_t::success) {
+                           cmd->status_process.status_find = status_find_t::failed;
+                       }
+                       else
+                       {
+                           if (cmd->status_process.status_find == status_find_t::failed)
+                               cmd->status_process.status_find = status_find_t::success;
+                       }
                    }
 
                    if (cmd->is_type() && cmd->is_or() && parrent_cmd->is_or())
@@ -686,6 +659,13 @@ namespace parser
                            }
                        }
                    }
+                   
+                   // inversion
+                   if (cmd->is_not())
+                       status = !status;
+
+                   if (cmd->is_maybe())
+                       status = 1;
 
                    if (cmd->is_group() || cmd->is_value())
                    {	

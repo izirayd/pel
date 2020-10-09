@@ -11,7 +11,7 @@ namespace pel
 		std::string name;
 	
 		// TODO: switch in flags?
-		bool is_ex    = false;
+		bool is_execute = false;
 		bool is_type  = false;
 		bool is_value = false;
 		bool is_group = false;
@@ -54,7 +54,7 @@ namespace pel
 			values.clear();
 
 			is_group = false;
-			is_ex    = false;
+			is_execute = false;
 			is_type  = false;
 			is_value = false;
 

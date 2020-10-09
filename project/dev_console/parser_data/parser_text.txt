@@ -1,3 +1,9 @@
 # {tree};
 
-type t1 : { not "a1" = maybe, "text" } = ex;
+
+group space   : { " " }  = execute, ignore;
+group symbol  : { ";" }  = execute, split;
+group word    : { !space and !symbol } = execute, glue;
+
+type is_cat : { not { "1", "2" } } = execute;
+test box : { "1 2" };

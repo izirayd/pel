@@ -16,7 +16,7 @@ namespace parser
 			enum class group_flag_t : std::flag32_t
 			{
 				object_value      = 1 << 0,
-				property_ex       = 1 << 1,
+				property_execute  = 1 << 1,
 				operation_and     = 1 << 2,
 				operation_or      = 1 << 3,
 				operation_not     = 1 << 4,
@@ -48,7 +48,7 @@ namespace parser
 
 				inline bool is_or()     { return std::check_flag(flag, group_flag_t::operation_or);    }
 				inline bool is_and()    { return std::check_flag(flag, group_flag_t::operation_and);   }
-				inline bool is_ex()     { return std::check_flag(flag, group_flag_t::property_ex);     }
+				inline bool is_execute(){ return std::check_flag(flag, group_flag_t::property_execute);     }
 				inline bool is_not()    { return std::check_flag(flag, group_flag_t::operation_not);   }
 				inline bool is_value()  { return std::check_flag(flag, group_flag_t::object_value);    }
 				inline bool is_type()   { return std::check_flag(flag, group_flag_t::object_type);     }
@@ -104,8 +104,8 @@ namespace parser
 				if (obj->is_value)
 					std::add_flag(cmd->flag, group_flag_t::object_value);
 
-				if (obj->is_ex)
-					std::add_flag(cmd->flag, group_flag_t::property_ex);
+				if (obj->is_execute)
+					std::add_flag(cmd->flag, group_flag_t::property_execute);
 
 				if (obj->is_not)
 					std::add_flag(cmd->flag, group_flag_t::operation_not);

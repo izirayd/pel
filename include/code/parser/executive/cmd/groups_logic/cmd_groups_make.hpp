@@ -161,8 +161,8 @@ namespace parser
 					show_tree fmt::print(fg(fmt::color::gold), " [group]");
 				}
 
-				if (cmd->is_ex())
-					show_tree fmt::print(fg(fmt::color::red), " [ex]");
+				if (cmd->is_execute())
+					show_tree fmt::print(fg(fmt::color::red), " [execute]");
 
 				if (cmd->is_glue())
 					show_tree fmt::print(fg(fmt::color::red), " [glue]");
