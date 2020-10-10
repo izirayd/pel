@@ -382,9 +382,8 @@ namespace parser
                            //        parrent_cmd->is_end_find = true;
                            //}
                        }
-
-
                    }
+
                    // inversion
                    if (cmd->is_not() && cmd->status_process.status_find != status_find_t::unknow)
                    {
@@ -396,6 +395,11 @@ namespace parser
                            if (cmd->status_process.status_find == status_find_t::failed)
                                cmd->status_process.status_find = status_find_t::success;
                        }
+                   }
+
+                   if (cmd->is_maybe() && cmd->status_process.status_find != status_find_t::unknow)
+                   {
+                       cmd->status_process.status_find == status_find_t::success;
                    }
 
                    if (cmd->is_type() && cmd->is_or() && parrent_cmd->is_or())

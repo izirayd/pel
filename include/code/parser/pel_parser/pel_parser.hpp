@@ -452,6 +452,8 @@ namespace pel
 
 			words_base_t  words_base;
 			obj_t		  obj;
+
+			tree_t<obj_base_t*>* my_pair = nullptr;
 		};
 
 		using tree_obj_base_t = tree_t<obj_base_t*>;
@@ -525,7 +527,7 @@ namespace pel
 				return;
 			}
 
-			if (word->words_base.data == "{" && parrent_word)
+			if (word->words_base.data == "{")
 			{
 				for (size_t i = 0; i < tree_words->tree.size(); i++)
 				{
@@ -620,37 +622,7 @@ namespace pel
 							word->obj.values.push_back(it_word->obj);
 						}
 					}
-					else
-					{
-					/*	if (it_word->words_base.data == "or") {
-							word->obj.is_or = true;
-						}*/
-					}
-				}
 
-				if (parrent_word->words_base.data == "{")
-				{
-				
-				
-				}
-				else {
-
-				
-					// copy values in parrent obj
-					for (auto& it : word->obj.values)
-					{
-						parrent_word->obj.values.push_back(it);
-					}
-
-					if (word->obj.is_or)
-					{
-						parrent_word->obj.is_or  = word->obj.is_or;
-					} else
-
-					if (word->obj.is_and)
-					{
-						parrent_word->obj.is_and = word->obj.is_and;
-					}			
 				}
 			}
 		}
@@ -697,13 +669,18 @@ namespace pel
 					return;
 				}
 
-				result = tree_words->previous;
+				result = tree_words;
 
 				if (result)
 				{
-					if (result->get_value()->words_base.data == "{")
+					if (result->get_value()->words_base.data == "}")
 					{
-						result = result->parent;
+						result = result->get_value()->my_pair;
+					}
+
+					if (result->get_value()->words_base.data == "\"" || result->get_value()->words_base.data == "'")
+					{
+						result = result->get_value()->my_pair;
 					}
 				}
 				
@@ -726,6 +703,8 @@ namespace pel
 			return get_left_propery_block(tree_words->previous, result, is_next_read);
 		}
 
+		std::size_t last_position = 0;
+
 		void process_parse_tree(tree_obj_base_t* tree_words)
 		{
 			auto word = tree_words->get_value();
@@ -734,7 +713,7 @@ namespace pel
 			if (!word)
 				return;
 
-			print("level: {} : {}\n", tree_words->level, word->words_base.data);
+			//print("level: {} : {}\n", tree_words->level, word->words_base.data);
 
 			if (word->words_base.data == "\"" || word->words_base.data == "'")
 			{
@@ -861,7 +840,23 @@ namespace pel
 					{
 						auto obj = new obj_t;
 
-						*obj = current_keyword->tree_obj_base.obj;
+						for (size_t i = last_position; i < tree_words->position; i++)
+						{
+							if (tree_words->parent->tree[i]->get_value()->words_base.data == "{")
+							{
+								*obj = tree_words->parent->tree[i]->get_value()->obj;
+
+							/*	for (auto &it : tree_words->parent->tree[i]->get_value()->obj.values)
+								{					
+									obj->values.push_back(it);
+								}			*/				
+							}
+						}
+
+						last_position = tree_words->position;
+
+						obj->name = current_keyword->tree_obj_base.obj.name;
+						obj->word = current_keyword->tree_obj_base.obj.word;
 
 						if (parrent_word)
 							parrent_word->is_read_property = false;
@@ -899,6 +894,7 @@ namespace pel
 
 							delete obj;
 						}
+
 
 						current_keyword = nullptr;
 						is_have_keyword = false;
@@ -1004,8 +1000,16 @@ namespace pel
 
 					mother_tree->push(&base_words->words[i]);
 
-					range_tree = nullptr;
+					std::size_t mother_tree_size = mother_tree->size();
 
+					if (mother_tree_size > 1)
+					{
+						mother_tree->tree[mother_tree_size - 2]->get_value()->my_pair = mother_tree->tree[mother_tree_size - 1];
+						mother_tree->tree[mother_tree_size - 1]->get_value()->my_pair = mother_tree->tree[mother_tree_size - 2];
+					}
+
+					range_tree = nullptr;
+				
 					continue;
 				}
 
@@ -1090,6 +1094,9 @@ namespace pel
 												new_tree->set_value(&base_words->words[i]);
 
 												mother_tree->get_value()->words_base.end_index = i;
+
+												new_tree->get_value()->my_pair    = mother_tree;
+												mother_tree->get_value()->my_pair = new_tree;
 
 												mother_tree->parent->push(mother_tree);
 												mother_tree->parent->push(new_tree);
@@ -1212,10 +1219,11 @@ namespace pel
 			type_keyword.is_read_object       = true;
 
 			pel_keywords.push_back(type_keyword);
-
+			
 			tree_words->process_function["base"]         = detail::bind_function(&pel_parser_t::process_parse_tree, this, std::placeholders::_1);
 			tree_words->process_function["last_parrent"] = detail::bind_function(&pel_parser_t::last_process_parse_tree, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
+			last_position = 0;
 			tree_words->start_process();
 
 			run();
@@ -2011,7 +2019,7 @@ namespace pel
 		}
 	};
 
-	void get_property(parser::executive::gcmd_t* gcmd, const pel::obj_t* obj, const pel::obj_t *original_obj = nullptr)
+	void get_property(parser::executive::gcmd_t* gcmd, const pel::obj_t* obj, const pel::obj_t *original_obj = nullptr, bool is_in_chain = false)
 	{
 		parser::executive::cmd_t* cmd		 = &gcmd->get_value();
 		parser::executive::cmd_t* parent_cmd = &gcmd->parent->get_value();
@@ -2065,47 +2073,6 @@ namespace pel
 		if (obj->is_return)
 			std::add_flag(cmd->flag, parser::executive::parser_return);
 
-
-		// Old specification
-	/*	if (is_or)
-		{
-			std::add_flag(cmd->flag, parser::executive::parser_or);
-			std::del_flag(cmd->flag, parser::executive::parser_and);
-		}
-
-		if (is_xor)
-		{
-			std::add_flag(cmd->flag, parser::executive::parser_xor);
-			std::del_flag(cmd->flag, parser::executive::parser_and);
-		}
-
-		if (is_and)
-		{
-			std::add_flag(cmd->flag, parser::executive::parser_and);
-			std::del_flag(cmd->flag, parser::executive::parser_or);
-			std::del_flag(cmd->flag, parser::executive::parser_xor);
-		}*/
-
-		
-		//if (obj->is_or) {
-		//	std::add_flag(parent_cmd->flag, parser::executive::parser_or);
-		//	std::del_flag(parent_cmd->flag, parser::executive::parser_and);
-		//	std::del_flag(parent_cmd->flag, parser::executive::parser_xor);
-		//}
-
-		//if (obj->is_xor) {
-		//	std::add_flag(parent_cmd->flag, parser::executive::parser_xor);
-		//	std::del_flag(parent_cmd->flag, parser::executive::parser_and);
-		//	std::del_flag(parent_cmd->flag, parser::executive::parser_or);
-		//}
-
-		//if (obj->is_and) {
-		//	std::add_flag(parent_cmd->flag, parser::executive::parser_and);
-		//	std::del_flag(parent_cmd->flag, parser::executive::parser_or);
-		//	std::del_flag(parent_cmd->flag, parser::executive::parser_xor);
-		//}
-
-
 		if (obj->is_or) {
 			std::add_flag(cmd->flag, parser::executive::parser_or);
 			std::del_flag(cmd->flag, parser::executive::parser_and);
@@ -2126,6 +2093,19 @@ namespace pel
 
 		if ((!cmd->is_or() && !cmd->is_xor() && !cmd->is_and()))
 			std::add_flag(cmd->flag, parser::executive::empty_operation);
+
+
+		if (is_in_chain && original_obj)
+		{
+			if (original_obj->is_maybe)
+				std::add_flag(cmd->flag, parser::executive::parser_maybe);
+
+			if (original_obj->is_exit)
+				std::add_flag(cmd->flag, parser::executive::parser_exit);
+
+			if (original_obj->is_return)
+				std::add_flag(cmd->flag, parser::executive::parser_return);
+		}
 
 		gcmd->flush_value();
 	}
@@ -2252,8 +2232,16 @@ namespace pel
 					if (list_mutinames.data.size() == 1)
 					{
 						is_find = true;
-						get_property(parent, list_mutinames.data[0]);
 
+						if (original_obj.name == word.data)
+						{
+							get_property(parent, list_mutinames.data[0], &original_obj, true);
+						}
+						else
+						{
+							get_property(parent, list_mutinames.data[0]);
+						}
+					
 						for (const auto& sub_obj : list_mutinames.data[0]->values)
 						{
 							parser::executive::gcmd_t* gcmd = parent->push({});
@@ -2545,12 +2533,11 @@ namespace pel
 			print("\n");
 				pel_lang.code_render.console_print();
 			print("\n");
-
-			pel_lang.error_context.print_console(&pel_lang.code_render);
+	
 		}
 	
-		
-		
+		pel_lang.error_context.print_console(&pel_lang.code_render);
+			
 		if (!pel_lang.error_context.is_error()) {
 			parser::executive::make_commands(global_gcmd, pel_lang.parser_engine.is_render_tree);		
 			parser::executive::groups::make_commands(global_gcmd_group, pel_lang.parser_engine.is_render_tree && pel_lang.parser_engine.is_render_group);

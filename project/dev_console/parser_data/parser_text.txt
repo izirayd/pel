@@ -1,9 +1,10 @@
-# {tree};
-
+#module {tree};
 
 group space   : { " " }  = execute, ignore;
 group symbol  : { ";" }  = execute, split;
 group word    : { !space and !symbol } = execute, glue;
 
-type is_cat : { not { "1", "2" } } = execute;
-test box : { "1 2" };
+
+type t1 { "a" = exit, ";" } = execute;
+
+test test1 { "a;" };
