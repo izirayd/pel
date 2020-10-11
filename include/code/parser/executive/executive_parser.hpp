@@ -233,22 +233,22 @@ namespace parser
                        {              
                            if (arg->format_word == format_word_t::one_word)
                            {
-                               fmt::print(fg(fmt::color::lawn_green), "\nLine: {3} - its signature: {0} [count op: {1}, total op: {2}]\n", root_cmd->value, root_cmd->count_operation, total_operation, arg->element->number_line);
+                               fmt::print(fg(fmt::color::lawn_green), "\nLine: {3} - its signature: {0} [count op: {1}, total op: {2}]", root_cmd->value, root_cmd->count_operation, total_operation, arg->element->number_line);
+                              
 
                            }
                            else if (arg->format_word == format_word_t::multi_word)
                            {
-                               fmt::print(fg(fmt::color::lawn_green), "\nIts signature: {0} [count op: {1}, total op: {2}]\n", root_cmd->value, root_cmd->count_operation, total_operation);
-                           
+                               fmt::print(fg(fmt::color::lawn_green), "\nIts signature: {0} [count op: {1}, total op: {2}]", root_cmd->value, root_cmd->count_operation, total_operation);                        
                            }
 
                            arg->region->is_status_find = true;
                        }
-                       else
+                       else if (cmd->status_process.status_find == status_find_t::failed)
                        {
                            if (arg->format_word == format_word_t::one_word)
                            {
-                               fmt::print(fg(fmt::color::indian_red), "\nLine: {4} - its not signature {0}: {1}[{5}:{6}] [count op: {2}, total op: {3}]\n",
+                               fmt::print(fg(fmt::color::indian_red), "\nLine: {4} - its not signature {0}: {1}[{5}:{6}] [count op: {2}, total op: {3}",
                                    root_cmd->value.c_str(),
                                    arg->element->data,
                                    root_cmd->count_operation,
@@ -261,15 +261,29 @@ namespace parser
                            }
                            else if (arg->format_word == format_word_t::multi_word)
                            {
-                               fmt::print(fg(fmt::color::indian_red), "\nIts not signature {0}: {1} total operaion: {2}\n",
+                               fmt::print(fg(fmt::color::indian_red), "\nIts not signature {0}: {1} total operaion: {2}",
                                    root_cmd->value.c_str(),                       
+                                   root_cmd->count_operation,
+                                   total_operation
+                               );
+                           } 
+                   
+                           arg->region->is_status_find = false;
+                       }
+                       else
+                           if (cmd->status_process.status_find == status_find_t::unknow)
+                           {
+                               fmt::print(fg(fmt::color::burly_wood), "\nIts maybe signature {0}: {1} total operaion: {2}",
+                                   root_cmd->value.c_str(),
                                    root_cmd->count_operation,
                                    total_operation
                                );
                            }
 
-                           arg->region->is_status_find = false;
-                       }
+                       if (command_graph->get_value().status_process.is_status_exit)
+                           fmt::print(fg(fmt::color::gold), " [chain reached exit]");
+
+                       fmt::print("\n");
 
                        is_use = false;
                        command_graph->stop_process();
@@ -365,22 +379,7 @@ namespace parser
                            {
                                if (command_graph->is_last())
                                    parrent_cmd->is_end_find = true;
-                           }
-
-                           //cmd->current_index++;
-
-                           //cmd->is_end_find = true;
-                           //cmd->is_finaly_or = true;
-
-                           //cmd->status_process.status_find = tmp_status_find;
-
-                           //if (!parrent_cmd->is_or())
-                           //{
-                           //    cmd->is_inc_current_index = true;
-
-                           //    if (command_graph->is_last())
-                           //        parrent_cmd->is_end_find = true;
-                           //}
+                           }     
                        }
                    }
 
@@ -430,7 +429,7 @@ namespace parser
                        }               
                    }
 
-                   if (command_graph->is_root && cmd->is_end_find)
+                   if ((command_graph->is_root && cmd->is_end_find) || (command_graph->is_root && cmd->status_process.is_status_exit))
                    {
                        final_signature(command_graph, arg, count_signaturs, is_use);
                    }
@@ -548,11 +547,22 @@ namespace parser
                        }
                    }
 
+                   if (cmd->status_process.is_status_exit || parrent_cmd->status_process.is_status_exit)
+                   {
+                       show_tree fmt::print(" [");
+                       show_tree fmt::print(fg(fmt::color::alice_blue), "status exit");
+                       show_tree fmt::print("]");
+
+                       end_return;
+                   }
+
+
                    if (cmd->is_or() && cmd->is_end_find && cmd->is_inc_current_index)
                    {
                        parrent_cmd->current_index++;
                        cmd->is_inc_current_index = false;
                    }
+
 
                    if (cmd->max_position < arg->region->current_position || cmd->min_position > arg->region->current_position) {
 
@@ -607,7 +617,6 @@ namespace parser
                        if (parrent_cmd->is_or() && parrent_cmd->status_process.status_find != status_find_t::success)
                        {
                            parrent_cmd->status_process.status_find = status_find_t::unknow;
-                         //  cmd->status_process = parrent_cmd->status_process;
                        }
                    }
 
@@ -671,8 +680,16 @@ namespace parser
                    if (cmd->is_maybe())
                        status = 1;
 
+                   if (cmd->is_exit() && status == 1)
+                       cmd->status_process.is_status_exit = true;
+
                    if (cmd->is_group() || cmd->is_value())
                    {	
+                       if (cmd->status_process.is_status_exit)
+                       {
+                           parrent_cmd->status_process.is_status_exit = true;
+                       }
+
                        if (status == 1)
                        {
                            show_tree fmt::print(fg(fmt::color::green_yellow), " [true]");
@@ -710,7 +727,6 @@ namespace parser
                            {		   
                                cmd->status_process.status_find = status_find_t::failed;
                            }
-
                        }
 
                        if (command_graph->is_last())

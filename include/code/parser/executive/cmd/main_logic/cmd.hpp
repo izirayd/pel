@@ -200,6 +200,7 @@ namespace parser
 			void reset() {
 
 				status_process.status_find = status_find_t::unknow;
+				status_process.is_status_exit = false;
 
 				is_check   = false;
 		
