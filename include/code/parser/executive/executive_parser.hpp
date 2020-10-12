@@ -340,7 +340,7 @@ namespace parser
                                        tmp_status_find = command_graph->tree[i]->get_value().status_process.status_find;
                                    }
 
-                                   if (len == 1)
+                                   if (len >= 1)
                                    {
                                        tmp_status_find = command_graph->tree[i]->get_value().status_process.status_find;
                                    }
@@ -396,9 +396,20 @@ namespace parser
                        }
                    }
 
+                   if (cmd->is_return() && cmd->status_process.status_find == status_find_t::success)
+                   {
+                       cmd->is_status_return = true;
+                       parrent_cmd->is_status_return = true;
+                   }
+
+                   if (cmd->is_exit() && cmd->status_process.status_find == status_find_t::success)
+                   {
+                       cmd->status_process.is_status_exit = true;
+                   }
+
                    if (cmd->is_maybe() && cmd->status_process.status_find != status_find_t::unknow)
                    {
-                       cmd->status_process.status_find == status_find_t::success;
+                       cmd->status_process.status_find = status_find_t::success;
                    }
 
                    if (cmd->is_type() && cmd->is_or() && parrent_cmd->is_or())
@@ -556,7 +567,25 @@ namespace parser
                        end_return;
                    }
 
+                   if (cmd->is_status_return || parrent_cmd->is_status_return)
+                   {
+                       if (command_graph->is_last())
+                       {
+                           cmd->is_end_find = true;
 
+                           if (!parrent_cmd->is_or()) {
+
+                               parrent_cmd->is_end_find = true;
+                           }
+                       }
+
+                       show_tree fmt::print(" [");
+                       show_tree fmt::print(fg(fmt::color::blue_violet), "status return");
+                       show_tree fmt::print("]");
+
+                       end_return;
+                   }
+         
                    if (cmd->is_or() && cmd->is_end_find && cmd->is_inc_current_index)
                    {
                        parrent_cmd->current_index++;
@@ -683,11 +712,19 @@ namespace parser
                    if (cmd->is_exit() && status == 1)
                        cmd->status_process.is_status_exit = true;
 
+                   if (cmd->is_return() && status == 1)
+                       cmd->is_status_return = true;
+
                    if (cmd->is_group() || cmd->is_value())
                    {	
                        if (cmd->status_process.is_status_exit)
                        {
                            parrent_cmd->status_process.is_status_exit = true;
+                       }
+
+                       if (cmd->is_status_return)
+                       {
+                           parrent_cmd->is_status_return = true;
                        }
 
                        if (status == 1)

@@ -241,7 +241,7 @@ namespace pel
 								parser_engine.group_parse(element, group_result);
 
 								if (parser_engine.is_render_group) {
-									print(fg(fmt::color::thistle), "\"{0}\": ", (char)element.element);
+									print(fg(fmt::color::thistle), "\"{0}\": ", (char) element.element);
 
 									std::size_t k = 0;
 
@@ -1162,8 +1162,7 @@ namespace pel
 
 			array_symbols.push_back({ "{", "}" });
 			array_symbols.push_back({ "\"", "\"" });
-			array_symbols.push_back({ "(", ")" });
-			
+				
 			block_parse_obj(tree_words, 0, spec_words.words.size(), new_position, array_symbols, &spec_words);
 			
 			pel_keywords_element_t type_keyword;

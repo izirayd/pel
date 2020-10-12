@@ -342,8 +342,6 @@ public:
 
 				tree[i]->delete_tree();
 
-				//printf("delete: %d [%d]\n", tree[i]->value, tree[i]->level);
-
 				delete tree[i];
 				tree[i] = nullptr;
 			}

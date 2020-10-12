@@ -164,7 +164,6 @@ namespace parser
 			inline bool is_execute()  { return std::check_flag(flag, parser_execute);       }
 			inline bool is_group()	  { return std::check_flag(flag, parser_group);    }
 			inline bool is_repeat()	  { return std::check_flag(flag, parser_repeat);   }
-
 			inline bool is_maybe()	  { return std::check_flag(flag, parser_maybe);    }
 			inline bool is_return()	  { return std::check_flag(flag, parser_return);   }
 			inline bool is_exit()	  { return std::check_flag(flag, parser_exit);     }
@@ -197,6 +196,8 @@ namespace parser
 			// 8 byte + 1 (+7) ?! its can just 1 byte std::flag8_t
 			status_process_t status_process;
 
+			bool is_status_return = false;
+
 			void reset() {
 
 				status_process.status_find = status_find_t::unknow;
@@ -211,6 +212,7 @@ namespace parser
 				is_inc_current_index = false;
 
 				is_finaly_or = false;
+				is_status_return = false;
 			}
 
 			// cast in std::flag8_t ?

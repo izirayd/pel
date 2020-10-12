@@ -1,7 +1,9 @@
+#module {tree};
+
 group space   : { " " }  = execute, ignore;
 group symbol  : { ";" }  = execute, split;
 group word    : { !space and !symbol } = execute, glue;
 
-type t1 { "a" = exit, ";" } = execute;
+type t1 { "int", { "apple" = return } , ";" } = execute;
 
-test test1 { "a;" };
+test test1 { "int apple;" };
