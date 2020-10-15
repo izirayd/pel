@@ -576,6 +576,14 @@ namespace parser
 #endif
 			}
 
+			if (cmd->is_recursion()) {
+
+#ifdef debug_print_global_cmd
+				show_tree  fmt::print(fg(fmt::color::hot_pink), " [recursion]");
+#endif
+			}
+
+
 			if (cmd->is_maybe()) {
 
 #ifdef debug_print_global_cmd
@@ -769,6 +777,12 @@ namespace parser
 				show_tree  fmt::print(" [empty_operation]");
 			}
 
+			if (cmd->is_recursion()) {
+
+				show_tree  fmt::print(fg(fmt::color::hot_pink), " [recursion]");
+			}
+
+
 			if (cmd->is_maybe()) {
 
 				show_tree  fmt::print(fg(fmt::color::bisque), " [maybe]");
@@ -864,13 +878,14 @@ namespace parser
 			block_depth_t<data_block_global_gcmd_t> block_depth;
 		};
 
-		using global_gcmd_t = std::vector<element_gcmd_t>;
-
-		void copy_process_gcmd(gcmd_t* gcmd, gcmd_t* data)
+		using global_gcmd_t    = std::vector<element_gcmd_t>;
+		using recursion_gcmd_t = std::vector<element_gcmd_t>;
+		
+		void copy_process_gcmd(const gcmd_t* gcmd, gcmd_t* data)
 		{
 			data->set_value(gcmd->get_value());
 
-			for (auto& tree_element : gcmd->tree)
+			for (const auto& tree_element : gcmd->tree)
 			{
 				gcmd_t* sub_data = data->push(tree_element->get_value());
 
@@ -915,6 +930,69 @@ namespace parser
 			}
 		}
 
+		gcmd_t* find_vertex_recursion(gcmd_t* command_graph, const std::string &name) {
+
+			cmd_t* cmd = &command_graph->get_value();
+
+			if (cmd->value == name)
+			{
+				return command_graph;
+			}
+
+			if (command_graph->is_root)
+				return nullptr;
+
+			return find_vertex_recursion(command_graph->parent, name);
+		}
+
+		void calc_recursion(gcmd_t* command_graph, recursion_gcmd_t* &recursion_gcmd, std::size_t& count_base_signature, bool is_render_tree)
+		{
+			cmd_t* cmd = &command_graph->get_value();
+			cmd_t* parrent_cmd = &command_graph->parent->get_value();
+
+			if (cmd->is_recursion())
+			{
+				element_gcmd_t recursion_element;
+
+				recursion_element.gcmd = new gcmd_t;
+
+				gcmd_t* graph = find_vertex_recursion(command_graph->parent, cmd->value);
+				
+				if (graph) {
+					copy_process_gcmd(graph, recursion_element.gcmd);
+
+					recursion_gcmd->push_back(recursion_element);
+
+					cmd->recursion_element = recursion_element.gcmd;
+					recursion_element.gcmd->get_value().recursion_element = recursion_element.gcmd;
+				}
+				else {
+					// TODO: Critical error!
+				}
+			}	
+		}
+
+		void calc_recursion_for_recursion_gcmd(gcmd_t* command_graph, recursion_gcmd_t*& recursion_gcmd, std::size_t& count_base_signature, bool is_render_tree)
+		{
+			cmd_t* cmd = &command_graph->get_value();
+			cmd_t* parrent_cmd = &command_graph->parent->get_value();
+
+			if (cmd->is_recursion())
+			{
+				if (!cmd->recursion_element)
+				{
+					for (const auto &it : *recursion_gcmd)
+					{					
+						if (it.gcmd->get_value().value == cmd->value)
+						{
+								cmd->recursion_element = it.gcmd;
+								break;
+						}					
+					}
+				}		
+			}
+		}
+
 		void find_last(gcmd_t* command_graph, bool is_render_tree)
 		{
 			cmd_t* cmd = &command_graph->get_value();
@@ -944,7 +1022,7 @@ namespace parser
 		}
 
 
-		void make_commands(global_gcmd_t* global_gcmd, bool is_render_tree)
+		void make_commands(global_gcmd_t* global_gcmd, recursion_gcmd_t *recursion_gcmd, bool is_render_tree)
 		{		
 			for (auto& it : *global_gcmd)
 			{
@@ -961,15 +1039,17 @@ namespace parser
 				dynamic_min = 0;
 				count_or    = 0;
 
-				it.gcmd->process_function["base"] = detail::bind_function(&print_global_cmd, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+				it.gcmd->process_function["base"]         = detail::bind_function(&print_global_cmd, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 				it.gcmd->process_function["last_parrent"] = detail::bind_function(&last_global_cmd, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
 
 				it.gcmd->start_process(it.count_signaturs, is_render_tree);
 
-				//fmt::print("\n\n");
+				it.gcmd->process_function.function_list.clear();
 
 				it.gcmd->process_function["base"] = detail::bind_function(&print_global_cmd2, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 				it.gcmd->start_process(it.count_signaturs, is_render_tree);
+
+				it.gcmd->process_function.function_list.clear();
 
 				gcmd_t* tree = nullptr;
 
@@ -985,6 +1065,19 @@ namespace parser
 					// root last element
 					it.gcmd->get_value().is_last = true;
 				}
+
+				it.gcmd->process_function["base"] = detail::bind_function(&calc_recursion, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+				it.gcmd->start_process(recursion_gcmd, it.count_signaturs, is_render_tree);
+
+				it.gcmd->process_function.function_list.clear();
+			}
+
+			for (auto& it : *recursion_gcmd)
+			{
+				it.gcmd->process_function["base"] = detail::bind_function(&calc_recursion_for_recursion_gcmd, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+				it.gcmd->start_process(recursion_gcmd, it.count_signaturs, is_render_tree);
+
+				it.gcmd->process_function.function_list.clear();
 			}
 		}
 	}

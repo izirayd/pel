@@ -38,6 +38,8 @@ namespace pel
 		bool is_return = false;
 		bool is_exit = false;
 
+		bool is_recursion = false;
+
 		words_base_t word;
 
 		std::vector<obj_t> values;
@@ -76,9 +78,11 @@ namespace pel
 			is_ignore = false;
 			is_autogen_block = false;
 
-			is_maybe = false;
+			is_maybe  = false;
 			is_return = false;
-			is_exit = false;
+			is_exit   = false;
+
+			is_recursion = false;
 		}
 	};
 }

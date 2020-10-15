@@ -34,6 +34,7 @@ namespace parser
 			parser_maybe	= 1 << 18,
 			parser_return	= 1 << 19,
 			parser_exit		= 1 << 20,
+			parser_recursion= 1 << 21,
 		};
 
 		template<typename block_depth_base_t>
@@ -87,13 +88,9 @@ namespace parser
 		};
 
 		struct cmd_t;
-
-		struct repeat_t
-		{
-			cmd_t* body;
-			cmd_t* exit_condition;
-		};
 	
+		using gcmd_t = tree_t<cmd_t>;
+
 		struct cmd_t
 		{
 			cmd_t() {
@@ -153,20 +150,21 @@ namespace parser
 					std::add_flag(flag, parser_print);
 			}
 
-			inline bool is_or()       { return std::check_flag(flag, parser_or);       }
-			inline bool is_and()      { return std::check_flag(flag, parser_and);      }
-			inline bool is_xor()      { return std::check_flag(flag, parser_xor);      }
-			inline bool is_not()      { return std::check_flag(flag, parser_not);      }
-			inline bool is_value()    { return std::check_flag(flag, parser_value);    }
-			inline bool is_type()     { return std::check_flag(flag, parser_type);     }
-			inline bool is_tree_or()  { return std::check_flag(flag, parser_tree_or);  }
-			inline bool is_tree_xor() { return std::check_flag(flag, parser_tree_xor); }			
-			inline bool is_execute()  { return std::check_flag(flag, parser_execute);       }
-			inline bool is_group()	  { return std::check_flag(flag, parser_group);    }
-			inline bool is_repeat()	  { return std::check_flag(flag, parser_repeat);   }
-			inline bool is_maybe()	  { return std::check_flag(flag, parser_maybe);    }
-			inline bool is_return()	  { return std::check_flag(flag, parser_return);   }
-			inline bool is_exit()	  { return std::check_flag(flag, parser_exit);     }
+			inline bool is_or()        { return std::check_flag(flag, parser_or);        }
+			inline bool is_and()       { return std::check_flag(flag, parser_and);       }
+			inline bool is_xor()       { return std::check_flag(flag, parser_xor);       }
+			inline bool is_not()       { return std::check_flag(flag, parser_not);       }
+			inline bool is_value()     { return std::check_flag(flag, parser_value);     }
+			inline bool is_type()      { return std::check_flag(flag, parser_type);      }
+			inline bool is_tree_or()   { return std::check_flag(flag, parser_tree_or);   }
+			inline bool is_tree_xor()  { return std::check_flag(flag, parser_tree_xor);  }			
+			inline bool is_execute()   { return std::check_flag(flag, parser_execute);   }
+			inline bool is_group()	   { return std::check_flag(flag, parser_group);     }
+			inline bool is_repeat()	   { return std::check_flag(flag, parser_repeat);    }
+			inline bool is_maybe()	   { return std::check_flag(flag, parser_maybe);     }
+			inline bool is_return()	   { return std::check_flag(flag, parser_return);    }
+			inline bool is_exit()	   { return std::check_flag(flag, parser_exit);      }
+			inline bool is_recursion() { return std::check_flag(flag, parser_recursion); }
 
 			inline bool is_empty_operation() { return std::check_flag(flag, empty_operation); }
 
@@ -176,7 +174,6 @@ namespace parser
 			std::string   print;  // +44 bytes in debug
 
 			pel::groups::group_t* group  = nullptr;
-			repeat_t*			  repeat = nullptr;
 
 			std::size_t min_position = SIZE_MAX;
 			std::size_t max_position = 0;
@@ -196,7 +193,12 @@ namespace parser
 			// 8 byte + 1 (+7) ?! its can just 1 byte std::flag8_t
 			status_process_t status_process;
 
-			bool is_status_return = false;
+			bool is_status_return    = false;
+
+			// TODO: reset state?
+			bool is_status_allocate_recursion_graph = false;
+
+			gcmd_t* recursion_element = nullptr;
 
 			void reset() {
 
@@ -223,6 +225,6 @@ namespace parser
 			bool is_last			  = false;
 		};
 
-		using gcmd_t = tree_t<cmd_t>;
+
 	}
 }

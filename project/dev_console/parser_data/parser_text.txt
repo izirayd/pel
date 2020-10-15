@@ -4,6 +4,8 @@ group space   : { " " }  = execute, ignore;
 group symbol  : { ";" }  = execute, split;
 group word    : { !space and !symbol } = execute, glue;
 
-type t1 { "int", { "apple" = return } , ";" } = execute;
 
-test test1 { "int apple;" };
+type m: { "a", m = recursion } = execute;
+
+
+test test1 : { "a b" };

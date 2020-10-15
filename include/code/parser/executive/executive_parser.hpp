@@ -48,8 +48,11 @@ namespace parser
         {
            public:
                block_depth_t<data_block_t> block_depth;
+
                base_arg_t                  base_arg;
                global_gcmd_t               global_gcmd;
+               recursion_gcmd_t            recursion_gcmd;
+
                groups::global_gcmd_group_t global_gcmd_group;
 
                bool is_render_tree = false;
@@ -414,7 +417,7 @@ namespace parser
 
                    if (cmd->is_type() && cmd->is_or() && parrent_cmd->is_or())
                    {
-    
+                       // ?
                    }
 
                    if (cmd->is_type() && cmd->is_or() && !parrent_cmd->is_or())
@@ -447,6 +450,10 @@ namespace parser
                }
 
                int total_operation = 0;
+
+
+               std::size_t recursion_offset_min = 0;
+               std::size_t recursion_offset_max = 0;
 
                void process_signature(gcmd_t* command_graph, base_arg_t* arg, int count_signaturs, bool& is_use)
                {
@@ -592,20 +599,22 @@ namespace parser
                        cmd->is_inc_current_index = false;
                    }
 
+                   std::size_t max_position = cmd->max_position + recursion_offset_max;
+                   std::size_t min_position = cmd->min_position + recursion_offset_min;
 
-                   if (cmd->max_position < arg->region->current_position || cmd->min_position > arg->region->current_position) {
+                   if (max_position < arg->region->current_position || min_position > arg->region->current_position) {
 
-                       if (cmd->max_position < arg->region->current_position)
+                       if (max_position < arg->region->current_position)
                        {
                            show_tree fmt::print(" [");
-                           show_tree fmt::print(fg(fmt::color::alice_blue), "skip position max {0} < {1}", cmd->max_position, arg->region->current_position);
+                           show_tree fmt::print(fg(fmt::color::alice_blue), "skip position max {0} < {1}", max_position, arg->region->current_position);
                            show_tree fmt::print("]");
                        }
 
-                       if (cmd->min_position > arg->region->current_position)
+                       if (min_position > arg->region->current_position)
                        {
                            show_tree fmt::print(" [");
-                           show_tree fmt::print(fg(fmt::color::blanched_almond), "skip position min {0} > {1}", cmd->min_position, arg->region->current_position);
+                           show_tree fmt::print(fg(fmt::color::blanched_almond), "skip position min {0} > {1}", min_position, arg->region->current_position);
                            show_tree fmt::print("]");
                        }
 
@@ -647,6 +656,23 @@ namespace parser
                        {
                            parrent_cmd->status_process.status_find = status_find_t::unknow;
                        }
+                   }
+
+                   // time for epic
+                   if (cmd->is_recursion())
+                   {
+                       if (cmd->recursion_element && !cmd->is_status_allocate_recursion_graph)
+                       {
+                           // allocate graph
+                           copy_process_gcmd(cmd->recursion_element, command_graph);
+
+                           cmd->is_status_allocate_recursion_graph = true;
+
+                           show_tree fmt::print(fg(fmt::color::green_yellow), " [allocate recursion graph]");
+
+                           recursion_offset_max += cmd->max_position + 1;
+                           recursion_offset_min += cmd->min_position + 1;                   
+                       } 
                    }
 
                    int status = 0;
@@ -785,6 +811,10 @@ namespace parser
 
                void reset_graph(gcmd_t* command_graph)
                {
+                   // TODO: Remove
+                  recursion_offset_min = 0;
+                  recursion_offset_max = 0;
+
                    command_graph->get_value().reset();
                }
 
@@ -833,13 +863,22 @@ namespace parser
                    std::clear(global_gcmd);
 
                    for (auto& it : global_gcmd_group)
-                   {
-                     
+                   {                 
                        it.gcmd->delete_tree();
                        delete it.gcmd;
                    }
 
                    std::clear(global_gcmd_group);
+
+
+                   for (auto& it : recursion_gcmd)
+                   {
+                       it.block_depth.delete_alloc();
+                       it.gcmd->delete_tree();
+                       delete it.gcmd;
+                   }
+
+                   std::clear(recursion_gcmd);
                }
 
                void process_executive_array_words(pel::groups::array_words_t& array_words, const std::size_t &level)
