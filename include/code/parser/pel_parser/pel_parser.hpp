@@ -2257,7 +2257,7 @@ namespace pel
 						{
 							parser::executive::gcmd_t* gcmd = parent->push({});
 
-							if (sub_obj.is_type)
+							if (sub_obj.is_type && !sub_obj.is_recursion)
 							{
 								no_ex(pel_lang, gcmd, sub_obj.word, level, is_stop, sub_obj, multinames_list, counter_tmp_or);
 

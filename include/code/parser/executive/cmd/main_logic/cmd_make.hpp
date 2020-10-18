@@ -10,162 +10,6 @@ namespace parser
 {
 	namespace executive
 	{
-		// TODO: Половина функций уже не актуальна, удалить?
-		inline void find_or(const gcmd_t* command_graph, bool& is_result)
-		{
-			if (std::check_flag(command_graph->get_value().flag, parser_or))
-				is_result = true;
-
-			if (command_graph->is_root)
-				return;
-
-			find_or(command_graph->parent, is_result);
-		}
-
-		gcmd_t *get_up_or(gcmd_t* command_graph, bool& is_result)
-		{
-			if (command_graph->is_root)
-			{
-				if (command_graph->get_value().is_or())
-				{
-					is_result = true;
-					return command_graph;
-				}
-				else
-				{
-					is_result = false;
-					return nullptr;
-				}
-			}
-
-			if (command_graph->get_value().is_or()) 
-			{
-				if (command_graph->parent->get_value().is_tree_or())
-				{
-					return get_up_or(command_graph->parent, is_result);
-				}
-				else
-				{
-					is_result = true;
-					return command_graph;
-				}
-			}
-
-			return get_up_or(command_graph->parent, is_result);
-		}
-
-		// Вернет первую вершину or, игнорируя любую or вершину
-		gcmd_t* get_first_or(gcmd_t* command_graph, bool& is_result)
-		{
-			if (command_graph->is_root)
-			{
-				if (command_graph->get_value().is_or())
-				{
-					is_result = true;
-					return command_graph;
-				}
-				else
-				{
-					is_result = false;
-					return nullptr;
-				}
-			}
-
-			if (command_graph->get_value().is_or())
-			{
-				is_result = true;
-				return command_graph;
-			}
-
-			return get_first_or(command_graph->parent, is_result);
-		}
-
-		gcmd_t* get_and_child_or(gcmd_t* command_graph, gcmd_t* main_or_grahp, bool& is_result)
-		{
-			if (command_graph->is_root)
-			{
-				return command_graph;
-			}
-
-			if (command_graph->get_value().is_and())
-			{
-				if (command_graph->get_value().is_and() && command_graph->parent == main_or_grahp)
-				{
-					return command_graph;
-				}
-				else
-				{
-					return get_and_child_or(command_graph->parent, main_or_grahp, is_result);
-				}
-			}
-
-			// for or
-			return get_and_child_or(command_graph->parent, main_or_grahp, is_result);
-		}
-
-		inline void find_xor(const gcmd_t* command_graph, bool& is_result)
-		{
-			if (std::check_flag(command_graph->get_value().flag, parser_xor))
-				is_result = true;
-
-			if (command_graph->is_root)
-				return;
-
-			find_xor(command_graph->parent, is_result);
-		}
-
-	
-
-		inline void set_max_position(gcmd_t* command_graph, const std::size_t& max_position)
-		{
-			command_graph->get_value().max_position = max_position;
-			//command_graph->get_value().current_position = max_position;
-
-			if (command_graph->is_root) 
-				return;
-			
-			set_max_position(command_graph->parent, max_position);
-		}
-
-		inline void set_min_position(gcmd_t* command_graph, const std::size_t& min_position)
-		{
-			command_graph->get_value().min_position = min_position;
-			//command_graph->get_value().current_position = min_position;
-
-			if (command_graph->is_root)
-				return;
-
-			set_min_position(command_graph->parent, min_position);
-		}
-
-		inline void set_min_position_ignore_root(gcmd_t* command_graph, const std::size_t& min_position)
-		{
-			if (command_graph->is_root)
-				return;
-
-			command_graph->get_value().min_position = min_position;
-			//command_graph->get_value().current_position = min_position;
-
-			set_min_position_ignore_root(command_graph->parent, min_position);
-		}
-
-		inline void set_min_position_ignore_root_with_check_min(gcmd_t* command_graph, const std::size_t& min_position)
-		{
-			if (command_graph->is_root)
-				return;
-
-			command_graph->get_value().min_position = min_position;
-
-			if (command_graph->get_value().min_position < min_position)
-			{
-				command_graph->get_value().min_position = min_position;
-			//	command_graph->get_value().current_position = min_position;
-			}
-
-			set_min_position_ignore_root(command_graph->parent, min_position);
-		}
-
-
 		void print_space_cmd(const std::size_t& count, bool is_elements, cmd_t* cmd)
 		{
 			if (is_elements && count == 0)
@@ -203,184 +47,6 @@ namespace parser
 			}
 		}
 
-		void set_max_position_for_graph(gcmd_t* command_graph, const std::size_t& max_position)
-		{
-			command_graph->get_value().max_position = max_position;
-		}
-
-		void set_min_max_position_for_graph(gcmd_t* command_graph, const std::size_t& max_position, const std::size_t& min_position)
-		{
-			command_graph->get_value().max_position = max_position;
-			command_graph->get_value().min_position = min_position;
-		}
-
-		void sub_min_position_change(gcmd_t* command_graph, const std::size_t& min_position)
-		{
-			if (command_graph->is_root)
-				return;
-
-			if (command_graph->get_value().min_position > min_position)
-				command_graph->get_value().min_position = min_position;
-
-			sub_min_position_change(command_graph->parent, min_position);
-		}
-
-		void min_position_change(gcmd_t* command_graph)
-		{
-			if (command_graph->is_root)
-				return;
-
-			std::size_t min_value = SIZE_MAX;
-
-			//if (command_graph->get_value().min_position == 0)
-			{
-				for (size_t i = 0; i < command_graph->tree.size(); i++)
-				{
-					if (command_graph->tree[i]->get_value().min_position < min_value)
-						min_value = command_graph->tree[i]->get_value().min_position;
-				}
-
-				if (min_value != SIZE_MAX) {
-					command_graph->get_value().min_position = min_value;
-				}
-			}
-
-			sub_min_position_change(command_graph->parent, min_value);
-		}
-
-		void print_global_cmd(gcmd_t* command_graph, std::size_t& count_base_signature, bool);
-
-		void min_position_change_all_or_iteration(gcmd_t* command_graph, std::size_t &min_value)
-		{
-			{
-				for (size_t i = 0; i < command_graph->tree.size(); i++)
-				{
-					if (command_graph->tree[i]->get_value().min_position < min_value)
-						min_value = command_graph->tree[i]->get_value().min_position;
-				}
-
-				if (min_value != SIZE_MAX)
-				{
-					for (size_t i = 0; i < command_graph->tree.size(); i++)
-					{
-						command_graph->tree[i]->get_value().min_position = min_value;
-					}
-
-					command_graph->get_value().min_position = min_value;
-				}
-			}
-		}
-
-		void min_position_change_all(gcmd_t* command_graph)
-		{
-			if (command_graph->is_root)
-				return;
-
-			std::size_t min_value = SIZE_MAX;
-
-			{
-				for (size_t i = 0; i < command_graph->tree.size(); i++)
-				{
-					if (command_graph->tree[i]->get_value().min_position < min_value)
-						min_value = command_graph->tree[i]->get_value().min_position;
-				}
-
-				if (min_value != SIZE_MAX) {
-
-					for (size_t i = 0; i < command_graph->tree.size(); i++)
-					{
-						command_graph->tree[i]->get_value().min_position = min_value;
-					}
-
-					command_graph->get_value().min_position = min_value;
-				}
-			}
-
-			sub_min_position_change(command_graph->parent, min_value);
-		}
-
-		void sub_max_position_change(gcmd_t* command_graph, const std::size_t& max_position)
-		{
-			if (command_graph->is_root)
-				return;
-
-			if (command_graph->get_value().max_position < max_position)
-				command_graph->get_value().max_position = max_position;
-
-			sub_max_position_change(command_graph->parent, max_position);
-		}
-
-		void max_position_change(gcmd_t* command_graph)
-		{
-			if (command_graph->is_root)
-				return;
-
-			std::size_t max_value = 0;
-
-			{
-				for (size_t i = 0; i < command_graph->tree.size(); i++)
-				{
-					if (command_graph->tree[i]->get_value().max_position > max_value)
-						max_value = command_graph->tree[i]->get_value().max_position;
-				}
-
-				command_graph->get_value().max_position = max_value;
-			}
-
-			sub_max_position_change(command_graph->parent, max_value);
-		}
-
-		void max_position_change_all(gcmd_t* command_graph)
-		{
-			if (command_graph->is_root)
-				return;
-
-			std::size_t max_value = 0;
-
-			{
-				for (size_t i = 0; i < command_graph->tree.size(); i++)
-				{
-					if (command_graph->tree[i]->get_value().max_position > max_value)
-						max_value = command_graph->tree[i]->get_value().max_position;
-				}
-
-				for (size_t i = 0; i < command_graph->tree.size(); i++)
-				{	
-					command_graph->tree[i]->get_value().max_position = max_value;
-				}
-
-				command_graph->get_value().max_position = max_value;
-
-			}
-
-			sub_max_position_change(command_graph->parent, max_value);
-		}
-
-		void set_min_position_for_graph_with_check_min(gcmd_t* command_graph, const std::size_t& min_position)
-		{
-			if (command_graph->get_value().min_position == 0)
-			{
-				command_graph->get_value().min_position = min_position;
-				return;
-			}
-
-			if (command_graph->get_value().min_position > min_position)
-			{
-				command_graph->get_value().min_position = min_position;
-			}
-		}
-
-		// TODO : Вынести в свой собственный контекст, для мультипоточности
-		// Не актуально, уничтожить
-		static std::size_t last_min = 0;
-		static std::size_t last_max = 0;
-		static std::size_t next_and_position = 0;
-		static std::size_t global_min_position  = 0;
-		static std::size_t global_max_position  = 0;
-		static std::size_t dynamic_max  = 0;
-		static std::size_t dynamic_min  = 0;
-		static std::size_t count_or  = 0;
-
 		bool is_last_graph(gcmd_t* current_graph, gcmd_t* child_graph, gcmd_t* final_graph)
 		{
 			if (current_graph->is_root)
@@ -412,6 +78,7 @@ namespace parser
 
 			return is_last_graph(current_graph->parent, current_graph, final_graph);
 		}
+
 		/*
 			функция завершающего обхода вершины графа. Когда последний элемент дочерней вершины графа завершается, то
 			её вершина-родитель вызывается, где обрабатывается её позиции. Данный подход является чем-то похожим на вертикальный перебор
@@ -420,7 +87,7 @@ namespace parser
 
 			В данной функции происходит расчет позиций вершины, решающий задачу OR и AND для вершин значения/типов через счетчик. Что насчет лицензии на этот алгоритм? Я его выводил очень долго :D
 		*/
-		void last_global_cmd(gcmd_t* command_graph, gcmd_t* first_child_graph, gcmd_t* last_child_graph, std::size_t& count_base_signature, bool is_render_tree)
+		void calc_position_in_graph_for_parrent(gcmd_t* command_graph, gcmd_t* first_child_graph, gcmd_t* last_child_graph, std::size_t& count_base_signature, bool is_render_tree)
 		{
 			cmd_t* cmd		   = &command_graph->get_value();
 			cmd_t* parrent_cmd = &command_graph->parent->get_value();
@@ -463,9 +130,6 @@ namespace parser
 				 if (!parrent_cmd->is_or()) {
 
 					 if (cmd->is_or()) {
-						 //parrent_cmd->max_counter = cmd->max_position + 1;
-						 //parrent_cmd->min_counter = cmd->min_position + 1;
-
 						 parrent_cmd->max_counter = cmd->max_counter;
 						 parrent_cmd->min_counter = cmd->min_counter;
 					 }
@@ -478,189 +142,16 @@ namespace parser
 			 }
 		}
 
-		//#define debug_print_global_cmd
-
-		void print_global_cmd(gcmd_t* command_graph, std::size_t& count_base_signature, bool is_render_tree)
+		void calc_position_in_graph(gcmd_t* command_graph, std::size_t& count_base_signature, bool is_render_tree)
 		{
 			cmd_t* cmd		   = &command_graph->get_value();
 			cmd_t* parrent_cmd = &command_graph->parent->get_value();
-
-			bool is_or       = false;
-			bool is_and      = false;
-			bool is_xor      = false;
-			bool is_not      = false;
-			bool is_value    = false;
-			bool is_position = false;
-		
-
-#ifdef debug_print_global_cmd
-
-			show_tree print_space_cmd(command_graph->level, command_graph->is_have_sub_elemets(), cmd);
-
-			if (!cmd->value.empty())
-			{
-				if (command_graph->is_root)
-				{
-					show_tree fmt::print(fg(fmt::color::coral), " {}", cmd->value);
-				}
-				else
-				{
-					if (cmd->is_type())
-					{
-						fmt::print(fg(fmt::color::blanched_almond), " {}", cmd->value);
-					}
-
-					if (cmd->is_value())
-					{
-						fmt::print(fg(fmt::color::thistle), " \"{}\"", cmd->value);
-					}
-
-					if (cmd->is_group())
-					{
-						fmt::print(fg(fmt::color::khaki), " {}", cmd->value);
-					}
-				}
-			}
-#endif // debug_print_global_cmd
-
-
-			if (cmd->is_group())
-			{
-				is_position = true;
-				is_value    = true;
-
-#ifdef debug_print_global_cmd
-				show_tree fmt::print(fg(fmt::color::deep_sky_blue), " [value]");
-#endif // debug_print_global_cmd
-
-			}
-
-
-			if (cmd->is_value())
-			{
-				is_position = true;
-				is_value    = true;
-
-#ifdef debug_print_global_cmd
-				show_tree fmt::print(fg(fmt::color::deep_sky_blue), " [value]");
-#endif // debug_print_global_cmd
-
-			}
-
-			if (cmd->is_or()) {
-
-				is_or = true;
-				is_position = true;
-#ifdef debug_print_global_cmd
-				show_tree  fmt::print(" [or]");
-#endif
-			}
-
-			if (cmd->is_and()) {
-
-				is_and = true;
-				is_position = true;
-
-#ifdef debug_print_global_cmd
-				show_tree  fmt::print(" [and]");
-#endif
-			}
-
-			if (cmd->is_empty_operation()) {
-
-				is_and = true;
-				is_position = true;
-
-#ifdef debug_print_global_cmd
-				show_tree  fmt::print(" [empty_operation]");
-#endif
-			}
-
-			if (cmd->is_recursion()) {
-
-#ifdef debug_print_global_cmd
-				show_tree  fmt::print(fg(fmt::color::hot_pink), " [recursion]");
-#endif
-			}
-
-
-			if (cmd->is_maybe()) {
-
-#ifdef debug_print_global_cmd
-				show_tree  fmt::print(fg(fmt::color::bisque), " [maybe]");
-#endif
-			}
-
-			if (cmd->is_exit()) {
-
-#ifdef debug_print_global_cmd
-				show_tree  fmt::print(fg(fmt::color::bisque), " [exit]");
-#endif
-			}
-
-			if (cmd->is_return()) {
-
-#ifdef debug_print_global_cmd
-				show_tree  fmt::print(fg(fmt::color::bisque), " [return]");
-#endif
-			}
-
-			if (cmd->is_xor()) {
-
-				is_xor = true;
-				is_position = true;
-
-#ifdef debug_print_global_cmd
-				show_tree  fmt::print(" [xor]");
-#endif
-			}
-
-			if (cmd->is_not()) {
-
-
-				is_not = true;
-				is_position = true;
-
-#ifdef debug_print_global_cmd
-				show_tree  fmt::print(" [not]");
-#endif
-			}
-
-			if (cmd->is_type()) {
-
-				is_position = true;
-
-#ifdef debug_print_global_cmd
-				show_tree fmt::print(fg(fmt::color::aquamarine), " [type]");
-#endif
-			}
-
-#ifdef debug_print_global_cmd
-			if (cmd->is_ex())
-				show_tree fmt::print(fg(fmt::color::red), " [ex]");
-#endif
-
 
 			if (command_graph->is_root)
 			{
 				command_graph->get_value().min_position = 0;
 			}
-		
-			// TODO: remove?
-			{
-				bool is_result = false;
 
-				find_or(command_graph, is_result);
-
-				if (is_result)
-				{
-					std::add_flag(command_graph->get_value().flag, parser_flag_t::parser_tree_or);
-#ifdef debug_print_global_cmd
-					show_tree fmt::print(" [parser_tree_or]");
-#endif
-				}
-			}
-	
 			if (cmd->is_type())
 			{
 				cmd->min_counter = parrent_cmd->min_counter;
@@ -675,10 +166,13 @@ namespace parser
 				}
 			} 
 
-			if (is_value)
+			if (cmd->is_group() || cmd->is_value())
 			{
 				cmd->min_position = parrent_cmd->min_counter;
 				cmd->max_position = parrent_cmd->max_counter;
+
+				cmd->min_counter = parrent_cmd->min_counter;
+				cmd->max_counter = parrent_cmd->max_counter;
 	
 				if (!parrent_cmd->is_or()) {
 					parrent_cmd->min_counter++;
@@ -690,13 +184,100 @@ namespace parser
 					cmd->max_counter++;
 				}
 			}
-
-#ifdef debug_print_global_cmd
-			show_tree fmt::print("\n");
-#endif
 		}
 
-		void print_global_cmd2(gcmd_t* command_graph, std::size_t& count_base_signature, bool is_render_tree)
+		void recursion_tree_traversals_positions(gcmd_t* command_graph, std::size_t level)
+		{
+			if (!command_graph->root->is_process)
+				return;
+
+			if (!command_graph)
+				return;
+
+			command_graph->level = level;
+
+			std::size_t need_remove = 0;
+
+			if (command_graph->is_value) 
+				calc_position_in_graph(command_graph, need_remove, false);
+			
+			for (size_t i = 0; i < command_graph->tree.size(); i++)
+			{
+				if (command_graph->tree[i])
+				{
+					level++;
+
+					recursion_tree_traversals_positions(command_graph->tree[i], level);
+
+					if (command_graph->is_value)
+					{
+						if (command_graph->tree[i]->is_last())
+						{
+							calc_position_in_graph_for_parrent(command_graph, command_graph->tree[0], command_graph->tree[i], need_remove, false);
+						
+						}
+					}
+
+					level--;
+				}
+			}
+		}
+
+		void recalc_position_in_graph(gcmd_t* command_graph)
+		{
+			recursion_tree_traversals_positions(command_graph, 0);
+		}
+
+		void get_position_from_parent_to_root(gcmd_t* command_graph, std::size_t& position)
+		{
+			if (command_graph->is_root) {
+				position = 0;
+				return;
+			}
+
+			if (command_graph->parent->is_root)
+				position = command_graph->position;
+			else
+				return get_position_from_parent_to_root(command_graph->parent, position);
+		}
+
+		void recalc_position_in_graph_from_position(gcmd_t* command_graph, const std::size_t &position)
+		{
+			if (!command_graph->root->is_process)
+				return;
+
+			if (!command_graph)
+				return;
+
+			std::size_t level = command_graph->level;
+
+			std::size_t need_remove = 0;
+
+		//	if (command_graph->is_value)
+		//		calc_position_in_graph(command_graph, need_remove, false);
+
+			for (size_t i = position; i < command_graph->tree.size(); i++)
+			{
+				if (command_graph->tree[i])
+				{
+					level++;
+
+					recursion_tree_traversals_positions(command_graph->tree[i], level);
+
+					if (command_graph->is_value)
+					{
+						if (command_graph->tree[i]->is_last())
+						{
+							calc_position_in_graph_for_parrent(command_graph, command_graph->tree[0], command_graph->tree[i], need_remove, false);
+						}
+					}
+
+					level--;
+				}
+			}
+		}
+
+		void print_graph_gcmd(gcmd_t* command_graph, std::size_t& count_base_signature, bool is_render_tree)
 		{
 			cmd_t* cmd = &command_graph->get_value();
 			cmd_t* parrent_cmd = &command_graph->parent->get_value();
@@ -824,41 +405,34 @@ namespace parser
 			if (cmd->is_execute())
 				show_tree fmt::print(fg(fmt::color::red), " [execute]");
 
-
-			if (is_value)
-			{
-				bool is_result = false;
-
-				find_or(command_graph, is_result);
-
-				if (is_result)
-				{
-					std::add_flag(command_graph->get_value().flag, parser_flag_t::parser_tree_or);
-
-					show_tree fmt::print(" [parser_tree_or]");
-				}
-			}
-
-			if (is_value)
-			{
-				bool is_result = false;
-
-				find_xor(command_graph, is_result);
-
-				if (is_result)
-				{
-					std::add_flag(command_graph->get_value().flag, parser_flag_t::parser_tree_xor);
-
-					show_tree fmt::print(" [parser_tree_xor]");
-				}
-			}
-
 			show_tree fmt::print(" [");
 			show_tree fmt::print(fg(fmt::color::coral), "{0}", cmd->min_position);
 			show_tree fmt::print("-");
 			show_tree fmt::print(fg(fmt::color::coral), "{0}", cmd->max_position);
 			show_tree fmt::print("]");
 			show_tree fmt::print("\n");
+		}
+
+		void print_graph(gcmd_t* command_graph)
+		{
+			if (!command_graph->root->is_process)
+				return;
+
+			if (!command_graph)
+				return;
+
+			std::size_t need_remove = 0;
+
+			if (command_graph->is_value)
+				print_graph_gcmd(command_graph, need_remove, true);
+
+			for (size_t i = 0; i < command_graph->tree.size(); i++)
+			{
+				if (command_graph->tree[i])
+				{
+					print_graph(command_graph->tree[i]);
+				}
+			}
 		}
 
 		struct data_block_global_gcmd_t
@@ -1026,27 +600,20 @@ namespace parser
 		{		
 			for (auto& it : *global_gcmd)
 			{
-				next_and_position = 0;
+				it.gcmd->is_process = true;
 
-				last_min = 0;
-				last_max = 0;
+				recalc_position_in_graph(it.gcmd);
 
-				next_and_position   = 0;
-				global_min_position = 0;
-				global_max_position = 0;
+				it.gcmd->stop_process();
 
-				dynamic_max = 0;
-				dynamic_min = 0;
-				count_or    = 0;
-
-				it.gcmd->process_function["base"]         = detail::bind_function(&print_global_cmd, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-				it.gcmd->process_function["last_parrent"] = detail::bind_function(&last_global_cmd, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+				/*it.gcmd->process_function["base"]         = detail::bind_function(&calc_position_in_graph, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+				it.gcmd->process_function["last_parrent"] = detail::bind_function(&calc_position_in_graph_for_parrent, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
 
 				it.gcmd->start_process(it.count_signaturs, is_render_tree);
 
-				it.gcmd->process_function.function_list.clear();
+				it.gcmd->process_function.function_list.clear();*/
 
-				it.gcmd->process_function["base"] = detail::bind_function(&print_global_cmd2, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+				it.gcmd->process_function["base"] = detail::bind_function(&print_graph_gcmd, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 				it.gcmd->start_process(it.count_signaturs, is_render_tree);
 
 				it.gcmd->process_function.function_list.clear();

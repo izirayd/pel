@@ -1,11 +1,8 @@
-#module {tree};
-
 group space   : { " " }  = execute, ignore;
 group symbol  : { ";" }  = execute, split;
 group word    : { !space and !symbol } = execute, glue;
 
+type b : { "b" };
+type r : { b, "a", r = recursion } = execute;
 
-type m: { "a", m = recursion } = execute;
-
-
-test test1 : { "a b" };
+test test1 : { "b a b a" };

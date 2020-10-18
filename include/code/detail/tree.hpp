@@ -51,11 +51,10 @@ class tree_t
 {
 public:
 	std::vector<tree_t<data_value_t>*> tree;
+	bool is_value = false;
 
 private:
 	data_value_t          value;
-
-	bool is_value = false;
 
 	tree_t<data_value_t>* push_tree(tree_t<data_value_t>* tree) {
 
@@ -118,6 +117,8 @@ public:
 
 	tree_t<data_value_t>* previous = nullptr;
 	tree_t<data_value_t>* next	   = nullptr;
+	tree_t<data_value_t>* first_chield = nullptr;
+	tree_t<data_value_t>* real_first_chield = nullptr; // for reset state
 
 	bool    is_root    = true;
 
@@ -136,6 +137,12 @@ public:
 		if (position == 0) 
 		{
 			previous = nullptr;
+
+			if (parent && !parent->first_chield)
+			{
+				parent->first_chield = this;
+				parent->real_first_chield = this;
+			}
 
 			if ((position + 1) < parent->size())
 			{
@@ -363,6 +370,5 @@ public:
 		is_value = true;
 	}
 
-	private:
-		bool is_process = false;
+	bool is_process = false;
 };

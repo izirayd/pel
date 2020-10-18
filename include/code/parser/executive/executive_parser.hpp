@@ -230,19 +230,21 @@ namespace parser
                    cmd_t* parrent_cmd = &command_graph->parent->get_value();
                    cmd_t* root_cmd    = &command_graph->root->get_value();
 
+                   bool is_result_final_signature = false;
+
             //	   if (command_graph->get_value().is_last)
                    {
                        if (cmd->status_process.status_find == status_find_t::success)
                        {              
                            if (arg->format_word == format_word_t::one_word)
                            {
-                               fmt::print(fg(fmt::color::lawn_green), "\nLine: {3} - its signature: {0} [count op: {1}, total op: {2}]", root_cmd->value, root_cmd->count_operation, total_operation, arg->element->number_line);
+                             if (is_result_final_signature)   fmt::print(fg(fmt::color::lawn_green), "\nLine: {3} - its signature: {0} [count op: {1}, total op: {2}]", root_cmd->value, root_cmd->count_operation, total_operation, arg->element->number_line);
                               
 
                            }
                            else if (arg->format_word == format_word_t::multi_word)
                            {
-                               fmt::print(fg(fmt::color::lawn_green), "\nIts signature: {0} [count op: {1}, total op: {2}]", root_cmd->value, root_cmd->count_operation, total_operation);                        
+                               if (is_result_final_signature)  fmt::print(fg(fmt::color::lawn_green), "\nIts signature: {0} [count op: {1}, total op: {2}]", root_cmd->value, root_cmd->count_operation, total_operation);
                            }
 
                            arg->region->is_status_find = true;
@@ -251,7 +253,7 @@ namespace parser
                        {
                            if (arg->format_word == format_word_t::one_word)
                            {
-                               fmt::print(fg(fmt::color::indian_red), "\nLine: {4} - its not signature {0}: {1}[{5}:{6}] [count op: {2}, total op: {3}",
+                               if (is_result_final_signature)   fmt::print(fg(fmt::color::indian_red), "\nLine: {4} - its not signature {0}: {1}[{5}:{6}] [count op: {2}, total op: {3}",
                                    root_cmd->value.c_str(),
                                    arg->element->data,
                                    root_cmd->count_operation,
@@ -264,7 +266,7 @@ namespace parser
                            }
                            else if (arg->format_word == format_word_t::multi_word)
                            {
-                               fmt::print(fg(fmt::color::indian_red), "\nIts not signature {0}: {1} total operaion: {2}",
+                               if (is_result_final_signature)  fmt::print(fg(fmt::color::indian_red), "\nIts not signature {0}: {1} total operaion: {2}",
                                    root_cmd->value.c_str(),                       
                                    root_cmd->count_operation,
                                    total_operation
@@ -276,7 +278,7 @@ namespace parser
                        else
                            if (cmd->status_process.status_find == status_find_t::unknow)
                            {
-                               fmt::print(fg(fmt::color::burly_wood), "\nIts maybe signature {0}: {1} total operaion: {2}",
+                               if (is_result_final_signature)   fmt::print(fg(fmt::color::burly_wood), "\nIts maybe signature {0}: {1} total operaion: {2}",
                                    root_cmd->value.c_str(),
                                    root_cmd->count_operation,
                                    total_operation
@@ -284,9 +286,9 @@ namespace parser
                            }
 
                        if (command_graph->get_value().status_process.is_status_exit)
-                           fmt::print(fg(fmt::color::gold), " [chain reached exit]");
+                           if (is_result_final_signature)  fmt::print(fg(fmt::color::gold), " [chain reached exit]");
 
-                       fmt::print("\n");
+                       if (is_result_final_signature)  fmt::print("\n");
 
                        is_use = false;
                        command_graph->stop_process();
@@ -300,14 +302,24 @@ namespace parser
                    cmd_t* root_cmd    = &command_graph->root->get_value();
                }
 
+               std::size_t recursion_offset_min = 0;
+               std::size_t recursion_offset_max = 0;
+
                void last_parrent(gcmd_t* command_graph, gcmd_t* first_child_graph, gcmd_t* last_child_graph, base_arg_t* arg, int count_signaturs, bool& is_use)
                {
                    cmd_t* cmd         = &command_graph->get_value();
                    cmd_t* parrent_cmd = &command_graph->parent->get_value();
                    cmd_t* root_cmd    = &command_graph->root->get_value();
 
-                   if (cmd->max_position < arg->region->current_position || cmd->min_position > arg->region->current_position)
+                 //  if (cmd->max_position < arg->region->current_position || cmd->min_position > arg->region->current_position)
+                 //      return;
+
+                   std::size_t max_position = cmd->max_position + recursion_offset_max;
+                   std::size_t min_position = cmd->min_position + recursion_offset_min;
+
+                   if (max_position < arg->region->current_position || min_position > arg->region->current_position) {
                        return;
+                   }
 
                    if (cmd->is_type() && command_graph->is_last() && !parrent_cmd->is_or()) {
                         parrent_cmd->is_end_find = cmd->is_end_find;
@@ -443,6 +455,12 @@ namespace parser
                        }               
                    }
 
+                   if (cmd->is_end_find)
+                   {
+                       if (command_graph->next)
+                            command_graph->parent->first_chield = command_graph->next;
+                   }
+
                    if ((command_graph->is_root && cmd->is_end_find) || (command_graph->is_root && cmd->status_process.is_status_exit))
                    {
                        final_signature(command_graph, arg, count_signaturs, is_use);
@@ -450,10 +468,6 @@ namespace parser
                }
 
                int total_operation = 0;
-
-
-               std::size_t recursion_offset_min = 0;
-               std::size_t recursion_offset_max = 0;
 
                void process_signature(gcmd_t* command_graph, base_arg_t* arg, int count_signaturs, bool& is_use)
                {
@@ -670,8 +684,35 @@ namespace parser
 
                            show_tree fmt::print(fg(fmt::color::green_yellow), " [allocate recursion graph]");
 
-                           recursion_offset_max += cmd->max_position + 1;
-                           recursion_offset_min += cmd->min_position + 1;                   
+
+                           std::size_t position = 0;
+                           get_position_from_parent_to_root(command_graph, position);
+
+                           gcmd_t* cmd_left = nullptr;
+
+                            // recalc position
+                           if (position > 0 && command_graph->root->size() > 0)
+                               cmd_left = command_graph->root->tree[position - 1];
+
+                           if (cmd_left)
+                           {
+                               command_graph->root->get_value().min_counter = cmd_left->get_value().min_counter + 1;
+                               command_graph->root->get_value().max_counter = cmd_left->get_value().max_counter + 1;
+                           }
+                           else
+                           {
+                               command_graph->root->get_value().min_counter = 0;
+                               command_graph->root->get_value().max_counter = 0;
+                           }
+
+                           // TODO: check it in test
+                           if (command_graph->root->size() > 0) {
+                               recalc_position_in_graph_from_position(command_graph->root, position);
+                           }
+
+                           show_tree  fmt::print("\nRecalc position:\n");
+                           show_tree  print_graph(command_graph->root);
+
                        } 
                    }
 
@@ -801,11 +842,106 @@ namespace parser
                                parrent_cmd->is_end_find = true;
                            }
                        }
+
+                       if (cmd->is_end_find)
+                       {
+                           if (command_graph->next)
+                               command_graph->parent->first_chield = command_graph->next;
+                       }
+
+                       // solo element, we can skip it
+                       if (command_graph->size() == 0)
+                       {
+                           if (command_graph->next)
+                               command_graph->parent->first_chield = command_graph->next;
+                       }
                    }	
 
                    {
                        end_timer(process_signature);
                        end_return;
+                   }
+               }
+
+               void process_signature_for_graph(gcmd_t* command_graph, base_arg_t* arg, int count_signaturs, bool& is_use)
+               {
+                   if (!command_graph->root->is_process)
+                       return;
+
+                   if (!command_graph)
+                       return;
+
+                   std::size_t need_remove = 0;
+
+                   if (command_graph->is_value)
+                       process_signature(command_graph, arg, count_signaturs, is_use);
+
+                   for (size_t i = 0; i < command_graph->tree.size(); i++)
+                   {
+                       if (command_graph->tree[i])
+                       {
+                           process_signature_for_graph(command_graph->tree[i], arg, count_signaturs, is_use);
+
+                           if (command_graph->is_value)
+                           {
+                               if (command_graph->tree[i]->is_last())
+                               {
+                                   last_parrent(command_graph, command_graph->tree[0], command_graph->tree[i], arg, count_signaturs, is_use);
+                               }
+                           }     
+                       }
+                   }
+               }
+
+               void recursion_emulation(gcmd_t* command_graph, base_arg_t* arg, int count_signaturs, bool& is_use)
+               {                     
+                   gcmd_t* current_graph    = command_graph->root;
+                   gcmd_t* parrent_iterator = nullptr;
+
+                   for (size_t i = 0; i <= command_graph->root->last_index; i++)
+                   {
+                       /*
+                          Function actions
+                       */
+                       if (current_graph->is_value) {
+
+                           process_signature(current_graph, arg, count_signaturs, is_use);
+
+                           if (current_graph->is_last())
+                           {
+                              last_parrent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, arg, count_signaturs, is_use);
+                           }
+                       }
+
+                       if (current_graph->first_chield)
+                       {
+                           current_graph = current_graph->first_chield;
+                       } 
+                       else
+                       if (current_graph->next)
+                       {
+                           current_graph = current_graph->next;
+                       }
+                       else
+                       {
+                           parrent_iterator = current_graph->parent;
+
+                           for (;;)
+                           {
+                               if (parrent_iterator->next)
+                               {
+                                   current_graph = parrent_iterator->next;
+                                   break;
+                               }
+                               else
+                               {
+                                   parrent_iterator = parrent_iterator->parent;
+                               }
+
+                               if (parrent_iterator->is_root)
+                                   break;
+                           }
+                       }
                    }
                }
 
@@ -944,11 +1080,18 @@ namespace parser
 
                            //if (d->is_use)
                            {
-                               it.gcmd->process_function["base"]         = detail::bind_function(&base_parser_t::process_signature, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+                            /*   it.gcmd->process_function["base"]         = detail::bind_function(&base_parser_t::process_signature, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
                                it.gcmd->process_function["last"]         = detail::bind_function(&base_parser_t::last_signature,    this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
                                it.gcmd->process_function["last_parrent"] = detail::bind_function(&base_parser_t::last_parrent,      this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6);
 
-                               it.gcmd->start_process(base_arg, it.count_signaturs, d->is_use);
+                               it.gcmd->start_process(base_arg, it.count_signaturs, d->is_use);*/
+
+                               it.gcmd->is_process = true;
+
+                                recursion_emulation(it.gcmd, &base_arg, it.count_signaturs, d->is_use);
+                              // process_signature_for_graph(it.gcmd, &base_arg, it.count_signaturs, d->is_use);
+
+                               it.gcmd->is_process = false;
 
                                if (!d->is_use)
                                {
@@ -1014,11 +1157,17 @@ namespace parser
                            {
                                //fmt::print("Graph: %s\n", it.gcmd->root->get_value().value.c_str());
 
-                                it.gcmd->process_function["base"]         = detail::bind_function(&base_parser_t::process_signature, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
-                                it.gcmd->process_function["last"]         = detail::bind_function(&base_parser_t::last_signature,    this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
-                                it.gcmd->process_function["last_parrent"] = detail::bind_function(&base_parser_t::last_parrent,      this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6);
+                             //   it.gcmd->process_function["base"]         = detail::bind_function(&base_parser_t::process_signature, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+                            //    it.gcmd->process_function["last"]         = detail::bind_function(&base_parser_t::last_signature,    this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+                            //    it.gcmd->process_function["last_parrent"] = detail::bind_function(&base_parser_t::last_parrent,      this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6);
 
-                                it.gcmd->start_process(base_arg, it.count_signaturs, d->is_use);
+                            //    it.gcmd->start_process(base_arg, it.count_signaturs, d->is_use);
+
+                                it.gcmd->is_process = true;
+
+                                process_signature_for_graph(it.gcmd, &base_arg, it.count_signaturs, d->is_use);
+
+                                it.gcmd->is_process = false;
 
                                 if (!d->is_use)
                                 {
