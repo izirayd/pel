@@ -50,14 +50,14 @@ namespace parser
 			void last_group_calculate(gcmd_group_t* command_graph, gcmd_group_t* first_child_graph, gcmd_group_t* last_child_graph, std::size_t& count_base_signature)
 			{
 				cmd_group_t* cmd = &command_graph->get_value();
-				cmd_group_t* parrent_cmd = &command_graph->parent->get_value();
+				cmd_group_t* parent_cmd = &command_graph->parent->get_value();
 
 			}
 			
 			void cmd_group_calculate(gcmd_group_t* command_graph)
 			{
 				cmd_group_t* cmd		 = &command_graph->get_value();
-				cmd_group_t* parrent_cmd = &command_graph->parent->get_value();
+				cmd_group_t* parent_cmd = &command_graph->parent->get_value();
 
 				bool is_value = false;
 
@@ -72,7 +72,7 @@ namespace parser
 			void print_group_cmd(gcmd_group_t* command_graph, bool is_render_tree)
 			{
 				cmd_group_t* cmd = &command_graph->get_value();
-				cmd_group_t* parrent_cmd = &command_graph->parent->get_value();
+				cmd_group_t* parent_cmd = &command_graph->parent->get_value();
 
 				show_tree print_space_cmd_group(command_graph->level, command_graph->is_have_sub_elemets(), cmd);
 
@@ -214,7 +214,7 @@ namespace parser
 				for (auto& it : *global_gcmd)
 				{
 					it.gcmd->process_function["base"]		  = detail::bind_function(&cmd_group_calculate, std::placeholders::_1);
-					it.gcmd->process_function["last_parrent"] = detail::bind_function(&last_group_calculate, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+					it.gcmd->process_function["last_parent"] = detail::bind_function(&last_group_calculate, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 
 					it.gcmd->start_process();
 

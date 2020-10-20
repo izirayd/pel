@@ -183,7 +183,11 @@
     <ClInclude Include="..\..\include\code\parser\executive\cmd\groups_logic\cmd_groups_make.hpp" />
     <ClInclude Include="..\..\include\code\parser\executive\cmd\groups_logic\groups.hpp" />
     <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\cmd.hpp" />
+    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\cmd_build.hpp" />
     <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\cmd_make.hpp" />
+    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\cmd_signature.hpp" />
+    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\emulate_recursion.hpp" />
+    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\real_recursion.hpp" />
     <ClInclude Include="..\..\include\code\parser\executive\code_render.hpp" />
     <ClInclude Include="..\..\include\code\parser\executive\error_context.hpp" />
     <ClInclude Include="..\..\include\code\parser\executive\executive_parser.hpp" />

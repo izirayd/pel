@@ -242,18 +242,18 @@ public:
 	}
 
 	template <typename... arguments>
-	void start_process_for(const std::string &base, const std::string& last_parrent, arguments&& ... args)
+	void start_process_for(const std::string &base, const std::string& last_parent, arguments&& ... args)
 	{
 		root->is_process = true;
 
 		int lvl = 0;
-		process(base, last_parrent, this, lvl, (args)...);
+		process(base, last_parent, this, lvl, (args)...);
 
 		root->is_process = false;
 	}
 
 	template <typename... arguments>
-	void process(const std::string& base, const std::string& last_parrent, tree_t* tree, int lvl, arguments&& ... args)
+	void process(const std::string& base, const std::string& last_parent, tree_t* tree, int lvl, arguments&& ... args)
 	{
 		if (!root->is_process)
 			return;
@@ -272,13 +272,13 @@ public:
 			{
 				lvl++;
 
-				process(base, last_parrent, tree->tree[i], lvl, (args)...);
+				process(base, last_parent, tree->tree[i], lvl, (args)...);
 
 				if (tree->is_value)
 				{
 					if (tree->tree[i]->is_last())
 					{
-						process_function.call(last_parrent, *tree, *tree->tree[0], *tree->tree[i], (args)...);
+						process_function.call(last_parent, *tree, *tree->tree[0], *tree->tree[i], (args)...);
 					}
 				}
 
@@ -324,7 +324,7 @@ public:
 				  {
 					  if (tree->tree[i]->is_last())
 					  {
-						  process_function.call("last_parrent", *tree, *tree->tree[0], *tree->tree[i], (args)...);
+						  process_function.call("last_parent", *tree, *tree->tree[0], *tree->tree[i], (args)...);
 					  }
 				  }
 
@@ -339,7 +339,7 @@ public:
 		return !tree.empty();
 	}
 
-	int level = 0;
+	std::size_t level = 0;
 
 	void delete_tree()
 	{

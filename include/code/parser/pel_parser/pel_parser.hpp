@@ -5,6 +5,7 @@
 #include "..\executive\cmd\main_logic\cmd_make.hpp"
 #include "..\executive\cmd\groups_logic\cmd_groups.hpp"
 #include "..\executive\cmd\groups_logic\cmd_groups_make.hpp"
+#include "..\executive\cmd\main_logic\cmd_build.hpp"
 
 #include "..\..\block_parser.hpp"
 
@@ -520,7 +521,7 @@ namespace pel
 		void last_process_parse_tree(tree_obj_base_t* tree_words, tree_obj_base_t* first_child_graph, tree_obj_base_t* last_child_graph)
 		{
 			auto word         = tree_words->get_value();
-			auto parrent_word = tree_words->parent->get_value();
+			auto parent_word = tree_words->parent->get_value();
 
 			if (word->words_base.data == "\"" || word->words_base.data == "'")
 			{
@@ -709,7 +710,7 @@ namespace pel
 		void process_parse_tree(tree_obj_base_t* tree_words)
 		{
 			auto word = tree_words->get_value();
-			auto parrent_word = tree_words->parent->get_value();
+			auto parent_word = tree_words->parent->get_value();
 
 			if (!word)
 				return;
@@ -725,11 +726,11 @@ namespace pel
 			if ((word->words_base.is_new_line() || word->words_base.is_space_tab()) && !is_read_string)
 				return;
 
-			if (parrent_word) {
+			if (parent_word) {
 
 				if (is_read_string)
 				{
-					if (parrent_word->words_base.data == "\"" || parrent_word->words_base.data == "'")
+					if (parent_word->words_base.data == "\"" || parent_word->words_base.data == "'")
 					{
 						word->obj.is_value = true;
 
@@ -739,7 +740,7 @@ namespace pel
 				}
 				else
 				{
-					if (parrent_word->is_read_property)
+					if (parent_word->is_read_property)
 					{
 						tree_obj_base_t* object_for_property = nullptr;
 						bool is_next_read = false;
@@ -792,7 +793,7 @@ namespace pel
 							{
 								if (word->words_base.data != ",")
 								{
-									parrent_word->is_read_property = false;
+									parent_word->is_read_property = false;
 								}
 							}
 						}
@@ -800,14 +801,14 @@ namespace pel
 
 					if (word->words_base.data == "=")
 					{
-						parrent_word->is_read_property = true;
+						parent_word->is_read_property = true;
 					}
 
 					if (word->words_base.data == "and" || word->words_base.data == ",")
-						parrent_word->obj.is_and = true;
+						parent_word->obj.is_and = true;
 
 					if (word->words_base.data == "or")
-						parrent_word->obj.is_or = true;
+						parent_word->obj.is_or = true;
 
 					if (word->words_base.data == "not" || word->words_base.data == "!")
 					{
@@ -864,8 +865,8 @@ namespace pel
 						obj->name = current_keyword->tree_obj_base.obj.name;
 						obj->word = current_keyword->tree_obj_base.obj.word;
 
-						if (parrent_word)
-							parrent_word->is_read_property = false;
+						if (parent_word)
+							parent_word->is_read_property = false;
 
 						if (current_keyword->name == "type")
 						{
@@ -1226,7 +1227,7 @@ namespace pel
 			pel_keywords.push_back(type_keyword);
 			
 			tree_words->process_function["base"]         = detail::bind_function(&pel_parser_t::process_parse_tree, this, std::placeholders::_1);
-			tree_words->process_function["last_parrent"] = detail::bind_function(&pel_parser_t::last_process_parse_tree, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+			tree_words->process_function["last_parent"] = detail::bind_function(&pel_parser_t::last_process_parse_tree, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
 
 			last_position = 0;
 			tree_words->start_process();

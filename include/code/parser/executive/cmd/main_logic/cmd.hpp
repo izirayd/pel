@@ -200,6 +200,13 @@ namespace parser
 
 			gcmd_t* recursion_element = nullptr;
 
+			// used for recursion, recursion rebuilds positions
+			void reinit() {
+			
+				min_position = SIZE_MAX;
+
+			}
+
 			void reset() {
 
 				status_process.status_find = status_find_t::unknow;

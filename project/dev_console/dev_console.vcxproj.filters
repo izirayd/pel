@@ -203,5 +203,17 @@
     <ClInclude Include="..\..\include\pel.hpp">
       <Filter>pel</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\real_recursion.hpp">
+      <Filter>pel\code\parser\executive\cmd\main_logic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\emulate_recursion.hpp">
+      <Filter>pel\code\parser\executive\cmd\main_logic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\cmd_build.hpp">
+      <Filter>pel\code\parser\executive\cmd\main_logic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\cmd_signature.hpp">
+      <Filter>pel\code\parser\executive\cmd\main_logic</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
