@@ -10,31 +10,31 @@ namespace parser
 	{
 		enum parser_flag_t : std::flag32_t
 		{
-			parser_value	= 1 << 0,
-			parser_any_word = 1 << 1, // Не актуальна
-			parser_any		= 1 << 2, // Не актуальна
-			parser_print	= 1 << 3, // Не актуальна ?
-			parser_open		= 1 << 4,
-			parser_close	= 1 << 5, 
-			parser_type		= 1 << 6,
-			parser_execute  = 1 << 7,
+			parser_value	  = 1 << 0,
+			parser_any_word   = 1 << 1, // Не актуальна
+			parser_any		  = 1 << 2, // Не актуальна
+			parser_print	  = 1 << 3, // Не актуальна ?
+			parser_open		  = 1 << 4,
+			parser_close	  = 1 << 5, 
+			parser_type		  = 1 << 6,
+			parser_execute    = 1 << 7,
 			parser_block_type = 1 << 8,
 			// Это инструкция сообщает, что дальше по стеку, где-то использоволся or, 
 			// требуется для оптимизиации, учавствует в отмене парсинга
 			// TODO: Не актуальна
-			parser_tree_or  = 1 << 9,  // Не актуальна
-			parser_and		= 1 << 10,
-			parser_or		= 1 << 11,
-			parser_xor	    = 1 << 12, // Не актуальна
-			parser_not		= 1 << 13,
-			parser_tree_xor = 1 << 14, // Не актуальна
-			empty_operation = 1 << 15,
-			parser_group	= 1 << 16,
-			parser_repeat	= 1 << 17,
-			parser_maybe	= 1 << 18,
-			parser_return	= 1 << 19,
-			parser_exit		= 1 << 20,
-			parser_recursion= 1 << 21,
+			parser_tree_or    = 1 << 9,  // Не актуальна
+			parser_and		  = 1 << 10,
+			parser_or		  = 1 << 11,
+			parser_xor	      = 1 << 12, // Не актуальна
+			parser_not		  = 1 << 13,
+			parser_tree_xor   = 1 << 14, // Не актуальна
+			empty_operation   = 1 << 15,
+			parser_group	  = 1 << 16,
+			parser_repeat	  = 1 << 17,
+			parser_maybe	  = 1 << 18,
+			parser_return	  = 1 << 19,
+			parser_exit		  = 1 << 20,
+			parser_recursion  = 1 << 21,
 		};
 
 		template<typename block_depth_base_t>

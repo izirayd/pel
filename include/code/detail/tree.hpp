@@ -223,7 +223,7 @@ public:
 
 	detail::function_wrapper_t process_function;
 
-	std::size_t size() { return tree.size(); }
+	inline std::size_t size() { return tree.size(); }
 
 	void stop_process()
 	{

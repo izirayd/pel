@@ -313,8 +313,14 @@ namespace parser
 							}
 						}
 
-					if (is_exit_recursion)
+					if (is_exit_recursion) {
+
+						if (current_graph->is_value) {						
+							calc_position_in_graph_for_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, need_remove, false);							
+						}
+
 						break;
+					}
 				}	
 			}
 

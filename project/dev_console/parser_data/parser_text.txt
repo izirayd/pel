@@ -4,7 +4,6 @@ group space   : { " " }  = execute, ignore;
 group symbol  : { ";" }  = execute, split;
 group word    : { !space and !symbol } = execute, glue;
 
-
 type b : { "b" };
 type r : { "a", b } = execute;
 

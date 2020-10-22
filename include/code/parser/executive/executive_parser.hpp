@@ -30,7 +30,7 @@ namespace parser
 
                groups::global_gcmd_group_t global_gcmd_group;
 
-               bool is_render_tree = false;
+               bool is_render_tree  = false;
                bool is_render_group = false;
 
                base_parser_t() {  }
@@ -284,8 +284,17 @@ namespace parser
                            }
                        }
 
-                       if (is_exit_recursion)
+                       if (is_exit_recursion) {
+
+                           if (current_graph->is_value) {
+
+                               
+                               last_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, arg, count_signatures, is_use);
+                               
+                           }
+
                            break;
+                       }
                    }
                }
 

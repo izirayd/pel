@@ -8,6 +8,9 @@
 #define print_timers false
 #define end_return  { show_tree fmt::print("\n");   return; }
 
+// TODO: Хвост зацикливает, пофиксить
+//#define FIRST_CHIELD_OPTIMISITION
+
 
 namespace parser
 {
@@ -116,9 +119,6 @@ namespace parser
             cmd_t* parent_cmd = &command_graph->parent->get_value();
             cmd_t* root_cmd = &command_graph->root->get_value();
         }
-
-        // TODO: Хвост зацикливает, пофиксить
-        #define FIRST_CHIELD_OPTIMISITION
 
         void last_parent(gcmd_t* command_graph, gcmd_t* first_child_graph, gcmd_t* last_child_graph, base_arg_t* arg, int count_signatures, bool& is_use)
         {
