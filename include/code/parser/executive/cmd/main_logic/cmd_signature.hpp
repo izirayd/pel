@@ -45,7 +45,7 @@ namespace parser
             cmd_t* parent_cmd = &command_graph->parent->get_value();
             cmd_t* root_cmd = &command_graph->root->get_value();
 
-            bool is_result_final_signature = false;
+            bool is_result_final_signature = true;
 
             //	   if (command_graph->get_value().is_last)
             {
@@ -118,7 +118,7 @@ namespace parser
         }
 
         // TODO: Хвост зацикливает, пофиксить
-        //#define FIRST_CHIELD_OPTIMISITION
+        #define FIRST_CHIELD_OPTIMISITION
 
         void last_parent(gcmd_t* command_graph, gcmd_t* first_child_graph, gcmd_t* last_child_graph, base_arg_t* arg, int count_signatures, bool& is_use)
         {
@@ -498,9 +498,8 @@ namespace parser
 
                     show_tree fmt::print(fg(fmt::color::green_yellow), " [allocate recursion graph]");
 
-
                     std::size_t position = 0;
-                    get_position_from_parent_to_root(command_graph, position);
+                    emulate_recursion::get_position_from_parent_to_root(command_graph, position);
 
                     gcmd_t* cmd_left = nullptr;
 
@@ -521,11 +520,11 @@ namespace parser
 
                     // TODO: check it in test
                     if (command_graph->root->size() > 0) {
-                        recalc_position_in_graph_from_position(command_graph->root, position);
+                       emulate_recursion::recalc_position_in_graph_from_position(command_graph->root, position);
                     }
 
                     show_tree  fmt::print("\nRecalc position:\n");
-                    show_tree  print_graph(command_graph->root);
+                    show_tree  emulate_recursion::print_graph(command_graph->root);
 
                 }
             }

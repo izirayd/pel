@@ -170,6 +170,118 @@ namespace parser
 					}
 				}
 			}
+
+			void recursion_tree_traversals_positions(gcmd_t* command_graph, std::size_t level)
+			{
+				if (!command_graph->root->is_process)
+					return;
+
+				if (!command_graph)
+					return;
+
+				command_graph->level = level;
+
+				std::size_t need_remove = 0;
+
+				if (command_graph->is_value)
+					calc_position_in_graph(command_graph, need_remove, false);
+
+				for (size_t i = 0; i < command_graph->tree.size(); i++)
+				{
+					if (command_graph->tree[i])
+					{
+						level++;
+
+						recursion_tree_traversals_positions(command_graph->tree[i], level);
+
+						if (command_graph->is_value)
+						{
+							if (command_graph->tree[i]->is_last())
+							{
+								calc_position_in_graph_for_parent(command_graph, command_graph->tree[0], command_graph->tree[i], need_remove, false);
+
+							}
+						}
+
+						level--;
+					}
+				}
+			}
+
+			void recalc_position_in_graph(gcmd_t* command_graph)
+			{
+				recursion_tree_traversals_positions(command_graph, 0);
+			}
+
+			void get_position_from_parent_to_root(gcmd_t* command_graph, std::size_t& position)
+			{
+				if (command_graph->is_root) {
+					position = 0;
+					return;
+				}
+
+				if (command_graph->parent->is_root)
+					position = command_graph->position;
+				else
+					return get_position_from_parent_to_root(command_graph->parent, position);
+			}
+
+
+			void recalc_position_in_graph_from_position(gcmd_t* command_graph, const std::size_t& position)
+			{
+				if (!command_graph->root->is_process)
+					return;
+
+				if (!command_graph)
+					return;
+
+				std::size_t level = command_graph->level;
+
+				std::size_t need_remove = 0;
+
+				for (size_t i = position; i < command_graph->tree.size(); i++)
+				{
+					if (command_graph->tree[i])
+					{
+						level++;
+
+						recursion_tree_traversals_positions(command_graph->tree[i], level);
+
+						if (command_graph->is_value)
+						{
+							if (command_graph->tree[i]->is_last())
+							{
+								calc_position_in_graph_for_parent(command_graph, command_graph->tree[0], command_graph->tree[i], need_remove, false);
+							}
+						}
+
+						level--;
+					}
+				}
+			}
+
+			void print_graph(gcmd_t* command_graph)
+			{
+				if (!command_graph->root->is_process)
+					return;
+
+				if (!command_graph)
+					return;
+
+				std::size_t need_remove = 0;
+
+				if (command_graph->is_value)
+					print_graph_gcmd(command_graph, need_remove, true);
+
+				for (size_t i = 0; i < command_graph->tree.size(); i++)
+				{
+					if (command_graph->tree[i])
+					{
+						print_graph(command_graph->tree[i]);
+					}
+				}
+			}
+
 		}
 	}
 }

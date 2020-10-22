@@ -13,7 +13,7 @@ namespace parser
 			{
 				it.gcmd->is_process = true;
 
-				recalc_position_in_graph(it.gcmd);
+				emulate_recursion::recalc_position_in_graph(it.gcmd);
 
 				it.gcmd->stop_process();
 
@@ -24,8 +24,11 @@ namespace parser
 
 				it.gcmd->process_function.function_list.clear();*/
 
-				it.gcmd->process_function["base"] = detail::bind_function(&print_graph_gcmd, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-				it.gcmd->start_process(it.count_signatures, is_render_tree);
+				//it.gcmd->process_function["base"] = detail::bind_function(&print_graph_gcmd, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
+				//it.gcmd->start_process(it.count_signatures, is_render_tree);
+
+				//real_recursion::print_graph(it.gcmd);
+				emulate_recursion::print_graph(it.gcmd);
 
 				it.gcmd->process_function.function_list.clear();
 

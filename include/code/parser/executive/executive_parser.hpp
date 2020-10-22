@@ -227,11 +227,11 @@ namespace parser
                void emulate_recursion_for_process_signature(gcmd_t* command_graph, base_arg_t* arg, int count_signatures, bool& is_use)
                {                     
                    gcmd_t* current_graph   = command_graph->root;
-                   gcmd_t* parent_iterator = nullptr;
-
+ 
                    std::size_t counter_level = 0; // 0 - root
+                   bool is_exit_recursion = false;
 
-                   for (size_t i = 0; i <= command_graph->root->last_index; i++)
+                   for (;;)
                    {
                        /*
                           Function actions
@@ -241,11 +241,6 @@ namespace parser
                            current_graph->level = counter_level;
 
                            process_signature_base(current_graph, arg, count_signatures, is_use, is_render_tree);
-
-                           if (current_graph->is_last())
-                           {
-                              last_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, arg, count_signatures, is_use);
-                           }
                        }
 
                        if (current_graph->first_chield)
@@ -260,25 +255,37 @@ namespace parser
                        }
                        else
                        {
-                           parent_iterator = current_graph->parent;
+                           if (current_graph->is_value) {
 
-                           for (;;) // infinity is heart of recursion and loop
-                           {
-                               if (parent_iterator->next)
+                               if (current_graph->is_last())
                                {
-                                   current_graph = parent_iterator->next;
+                                   last_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, arg, count_signatures, is_use);
+                               }
+                           }
+
+                           current_graph = current_graph->parent;
+
+                           for (;;)
+                           {
+                               if (current_graph->next)
+                               {
+                                   current_graph = current_graph->next;
                                    counter_level--;
                                    break;
                                }
-                               else
-                               {
-                                   parent_iterator = parent_iterator->parent;
+                               else {
+                                   current_graph = current_graph->parent;
                                }
 
-                               if (parent_iterator->is_root)
+                               if (current_graph->is_root || current_graph == command_graph) {
+                                   is_exit_recursion = true;
                                    break;
+                               }
                            }
                        }
+
+                       if (is_exit_recursion)
+                           break;
                    }
                }
 

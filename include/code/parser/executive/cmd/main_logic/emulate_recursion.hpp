@@ -80,7 +80,7 @@ namespace parser
 
 					if (current_graph->first_chield) {
 						current_graph = current_graph->first_chield;
-						current_data = current_data->push(current_graph->get_value());
+						current_data  = current_data->push(current_graph->get_value());
 
 						current_data->get_value().reinit();
 					}
@@ -203,7 +203,181 @@ namespace parser
 				}
 			}
 
+			void print_graph(gcmd_t* command_graph)
+			{
+				if (!command_graph)
+					return;
 
+				std::size_t need_remove = 0;
+
+				gcmd_t* current_graph   = command_graph;
+
+				bool is_exit_recursion = false;
+
+				for (;;)
+				{
+					if (current_graph->is_value)
+						print_graph_gcmd(current_graph, need_remove, true);
+	
+					if (current_graph->real_first_chield) {
+						current_graph = current_graph->real_first_chield;
+					}
+					else
+						if (current_graph->next) {
+							current_graph = current_graph->next;
+						}
+						else
+						{
+							current_graph = current_graph->parent;
+
+							for (;;)
+							{
+								if (current_graph->next)
+								{
+									current_graph = current_graph->next;
+									break;
+								}
+								else {
+									current_graph = current_graph->parent;
+								}
+
+								if (current_graph->is_root || current_graph == command_graph) {
+									is_exit_recursion = true;
+									break;
+								}
+							}
+						}
+
+					if (is_exit_recursion)
+						break;
+				}
+			}
+
+			void recursion_tree_traversals_positions(gcmd_t* command_graph, std::size_t level)
+			{
+				if (!command_graph)
+					return;
+
+				std::size_t need_remove = 0;
+				std::size_t counter_level = level; 
+
+				gcmd_t* current_graph = command_graph;
+
+				bool is_exit_recursion = false;
+
+				for (;;)
+				{
+					if (current_graph->is_value) {
+
+						current_graph->level = counter_level;
+
+						calc_position_in_graph(current_graph, need_remove, false);
+					}
+
+					if (current_graph->real_first_chield) {
+						counter_level++;
+						current_graph = current_graph->real_first_chield;
+					}
+					else
+						if (current_graph->next) {
+							current_graph = current_graph->next;
+						}
+						else
+						{
+							if (current_graph->is_value) {
+
+								if (current_graph->is_last())
+								{
+									calc_position_in_graph_for_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, need_remove, false);
+								}
+							}
+
+							current_graph = current_graph->parent;
+
+							for (;;)
+							{
+								if (current_graph->next)
+								{
+									current_graph = current_graph->next;
+									counter_level--;
+									break;
+								}
+								else {
+									current_graph = current_graph->parent;
+								}
+
+								if (current_graph->is_root || current_graph == command_graph) {
+									is_exit_recursion = true;
+									break;
+								}
+							}
+						}
+
+					if (is_exit_recursion)
+						break;
+				}	
+			}
+
+			void recalc_position_in_graph(gcmd_t* command_graph)
+			{
+				recursion_tree_traversals_positions(command_graph, 0);
+			}
+
+			void get_position_from_parent_to_root(gcmd_t* command_graph, std::size_t& position)
+			{
+				if (!command_graph)
+					return;
+
+				position = 0;
+
+				gcmd_t* current_graph = command_graph;
+
+				bool is_exit_recursion = false;
+
+				for (;;)
+				{
+					if (current_graph->parent->is_root) {
+						position = current_graph->position;
+						return;
+					}
+
+					current_graph = current_graph->parent;
+				}
+			}	
+
+			void recalc_position_in_graph_from_position(gcmd_t* command_graph, const std::size_t& position)
+			{
+				if (!command_graph->root->is_process)
+					return;
+
+				if (!command_graph)
+					return;
+
+				std::size_t level = command_graph->level;
+
+				std::size_t need_remove = 0;
+
+				for (size_t i = position; i < command_graph->tree.size(); i++)
+				{
+					if (command_graph->tree[i])
+					{
+						level++;
+
+						recursion_tree_traversals_positions(command_graph->tree[i], level);
+
+						if (command_graph->is_value)
+						{
+							if (command_graph->tree[i]->is_last())
+							{
+								calc_position_in_graph_for_parent(command_graph, command_graph->tree[0], command_graph->tree[i], need_remove, false);
+							}
+						}
+
+						level--;
+					}
+				}
+
+			}
 		}
 	}
 }
