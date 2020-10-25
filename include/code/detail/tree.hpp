@@ -146,7 +146,11 @@ public:
 
 			if ((position + 1) < parent->size())
 			{
-				next = parent->tree[position];
+				next = parent->tree[position + 1];
+			}
+				else
+			{
+				next = nullptr;
 			}
 		}
 		else if (position > 0)
@@ -157,7 +161,11 @@ public:
 
 			if ((position + 1) < parent->size())
 			{
-				next = parent->tree[position];
+				next = parent->tree[position + 1];
+			}
+				else
+			{
+				next = nullptr;
 			}
 		}
 	}

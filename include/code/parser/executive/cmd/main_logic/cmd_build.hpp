@@ -14,6 +14,7 @@ namespace parser
 				it.gcmd->is_process = true;
 
 				emulate_recursion::recalc_position_in_graph(it.gcmd);
+				emulate_recursion::sort_graph_in_or(it.gcmd);
 
 				it.gcmd->stop_process();
 
@@ -28,6 +29,9 @@ namespace parser
 				//it.gcmd->start_process(it.count_signatures, is_render_tree);
 
 				//real_recursion::print_graph(it.gcmd);
+
+
+
 				emulate_recursion::print_graph(it.gcmd);
 
 				it.gcmd->process_function.function_list.clear();
@@ -51,6 +55,8 @@ namespace parser
 				it.gcmd->start_process(recursion_gcmd, it.count_signatures, is_render_tree);
 
 				it.gcmd->process_function.function_list.clear();
+
+				
 			}
 
 			for (auto& it : *recursion_gcmd)

@@ -1,15 +1,24 @@
 #module {tree};
 
 group space   : { " " }  = execute, ignore;
-group symbol  : { ";" }  = execute, split;
+group symbol  : { ";," }  = execute, split;
 group word    : { !space and !symbol } = execute, glue;
 
-type int    : { "int"    };
+type int    : { "int" };
 type float  : { "float"  };
 type string : { "string" };
 
 type var_type : { int or float or string };
 
-type var_declaration: { var_type, word, ";" } = execute;
+// В общем return выходит из автоблока, из-за чего фокус с рекурсией не прокатывает.
+// Нам нужно выйти из name_var, нужен новый оператор выхода.
+// Идея о том, что бы выйти из множества родителя глупа, потому что могут быть вложенные блоки {{}{}}
+// Использовать exit нельзя
+// Сделать что бы return игнорировал автоген блоки?
 
-test test1 : { "string apple;" };
+type name_var : { { ";" = return or word or "," }, name_var = recursion };
+
+type var_declaration: { var_type, name_var } = execute;
+
+
+test test1 : { "int apple;" };

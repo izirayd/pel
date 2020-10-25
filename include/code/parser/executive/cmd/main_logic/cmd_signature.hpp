@@ -11,6 +11,7 @@
 // TODO: Хвост зацикливает, пофиксить
 // Shifts all nodes in such a way that no entry into already processed nodes occurs
 #define FIRST_CHIELD_OPTIMISITION
+// Сделать сортировку элементов по длине подмножеств, для инструкций or
 
 // If the next node in the root node is not available, then the search for vertices stops
 #define NEXT_ELEMENT_SKIP_OPTIMISITION
@@ -24,10 +25,11 @@ namespace parser
 	{
         struct data_block_t
         {
-            global_gcmd_t* gcmd = nullptr;
-            int  current_position = 0;
+            global_gcmd_t* gcmd      = nullptr;
+
+            int  current_position    = 0;
             int  count_not_signature = 0;
-            bool is_status_find = false;
+            bool is_status_find      = false;
         };
 
         enum class format_word_t {
@@ -118,16 +120,16 @@ namespace parser
 
         void last_signature(gcmd_t* command_graph, base_arg_t* arg, int count_signatures, bool& is_use)
         {
-            cmd_t* cmd = &command_graph->get_value();
+            cmd_t* cmd        = &command_graph->get_value();
             cmd_t* parent_cmd = &command_graph->parent->get_value();
-            cmd_t* root_cmd = &command_graph->root->get_value();
+            cmd_t* root_cmd   = &command_graph->root->get_value();
         }
 
         void last_parent(gcmd_t* command_graph, gcmd_t* first_child_graph, gcmd_t* last_child_graph, base_arg_t* arg, int count_signatures, bool& is_use)
         {
-            cmd_t* cmd = &command_graph->get_value();
+            cmd_t* cmd        = &command_graph->get_value();
             cmd_t* parent_cmd = &command_graph->parent->get_value();
-            cmd_t* root_cmd = &command_graph->root->get_value();
+            cmd_t* root_cmd   = &command_graph->root->get_value();
 
             //  if (cmd->max_position < arg->region->current_position || cmd->min_position > arg->region->current_position)
             //      return;
@@ -203,7 +205,7 @@ namespace parser
                         cmd->current_index++;
                     }
 
-                    cmd->is_end_find = true;
+                    cmd->is_end_find  = true;
                     cmd->is_finaly_or = true;
 
                     cmd->status_process.status_find = tmp_status_find;
@@ -274,11 +276,26 @@ namespace parser
             }
 
 #ifdef FIRST_CHIELD_OPTIMISITION
+            //if (cmd->is_end_find)
+            //{
+            //    if (command_graph->next) {
+
+            //        //if (command_graph->parent->first_chield->get_value().is_end_find) 
+            //        {
+            //            command_graph->next->get_value().is_inc_current_index = cmd->is_inc_current_index;
+            //            command_graph->parent->first_chield = command_graph->next;
+            //        }
+            //    }
+            //}
+
             if (cmd->is_end_find)
             {
                 if (command_graph->next) {
-                    command_graph->next->get_value().is_inc_current_index = cmd->is_inc_current_index;
-                    command_graph->parent->first_chield = command_graph->next;
+                    
+                 //  command_graph->next->get_value().is_inc_current_index = cmd->is_inc_current_index;
+                   command_graph->next->parent->get_value().is_move_current_index_in_next_it = cmd->is_inc_current_index;
+                   command_graph->parent->first_chield = command_graph->next;
+                    
                 }
             }
 #endif // FIRST_CHIELD_OPTIMISITION
@@ -433,6 +450,20 @@ namespace parser
                 cmd->is_inc_current_index = false;
             }
 
+            if (parent_cmd->is_move_current_index_in_next_it)
+            {
+                if (parent_cmd->is_move_current_index_in_next_it && parent_cmd->is_move_current_index_in_next_it_tmp)
+                {
+                    parent_cmd->current_index++;
+                    parent_cmd->is_move_current_index_in_next_it_tmp = false;
+                    parent_cmd->is_move_current_index_in_next_it     = false;
+                }
+                else
+                {
+                    parent_cmd->is_move_current_index_in_next_it_tmp = true;
+                }
+            }
+
             std::size_t max_position = cmd->max_position;
             std::size_t min_position = cmd->min_position;
 
@@ -522,8 +553,8 @@ namespace parser
 
                     if (cmd_left)
                     {
-                        command_graph->root->get_value().min_counter = cmd_left->get_value().min_counter + 1;
-                        command_graph->root->get_value().max_counter = cmd_left->get_value().max_counter + 1;
+                        command_graph->root->get_value().min_counter = cmd_left->get_value().min_counter; //+1;
+                        command_graph->root->get_value().max_counter = cmd_left->get_value().max_counter; //+1;
                     }
                     else
                     {
@@ -631,7 +662,8 @@ namespace parser
                         if (parent_cmd->status_process.status_find != status_find_t::failed)
                             parent_cmd->status_process = cmd->status_process;
 
-                        parent_cmd->current_index++;
+                        //parent_cmd->current_index++;
+                        parent_cmd->is_move_current_index_in_next_it = true;
                     }
 
                     if (parent_cmd->is_or())
@@ -650,7 +682,8 @@ namespace parser
 
                         parent_cmd->status_process = cmd->status_process;
 
-                        parent_cmd->current_index++;
+                        //parent_cmd->current_index++;
+                        parent_cmd->is_move_current_index_in_next_it = true;
                     }
 
                     if (parent_cmd->is_or())

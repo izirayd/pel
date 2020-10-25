@@ -322,15 +322,82 @@ namespace parser
 						}
 
 					if (is_exit_recursion) {
-
-					/*	if (current_graph->is_value) {						
-							calc_position_in_graph_for_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, need_remove, false);							
-						}*/
-
 						break;
 					}
 				}	
 			}
+
+			bool sort_function(const gcmd_t *i, const gcmd_t *j) { return (i->tree.size() < j->tree.size()); }
+
+			void sort_graph_in_or(gcmd_t* command_graph)
+			{
+				if (!command_graph)
+					return;
+
+				gcmd_t* current_graph = command_graph;
+
+				bool is_exit_recursion = false;
+
+				for (;;)
+				{
+					if (current_graph->is_value) {
+
+						if (current_graph->get_value().is_or() && current_graph->tree.size() > 0) {
+							
+							std::sort(current_graph->tree.begin(), current_graph->tree.end(), sort_function);
+
+							current_graph->first_chield      = current_graph->tree[0];
+							current_graph->real_first_chield = current_graph->first_chield;
+
+							for (size_t i = 0; i < current_graph->tree.size(); i++)
+							{
+								current_graph->tree[i]->position = i;
+								current_graph->tree[i]->calculate_previous_next();
+							}
+
+						}
+					
+					}
+
+					if (current_graph->real_first_chield) {
+					
+						current_graph = current_graph->real_first_chield;
+					}
+					else
+						if (current_graph->next) {
+							current_graph = current_graph->next;
+						}
+						else
+						{
+
+							current_graph = current_graph->parent;
+
+							for (;;)
+							{
+								if (current_graph->next)
+								{
+									current_graph = current_graph->next;
+							
+									break;
+								}
+								else {
+
+									current_graph = current_graph->parent;
+
+								}
+
+								if (current_graph->is_root || current_graph == command_graph) {
+									is_exit_recursion = true;
+									break;
+								}
+							}
+						}
+
+					if (is_exit_recursion) {
+						break;
+					}
+				}
+			}	
 
 			void recalc_position_in_graph(gcmd_t* command_graph)
 			{

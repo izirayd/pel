@@ -184,6 +184,8 @@ namespace parser
 			std::size_t min_counter = 0;
 			std::size_t max_counter = 0;
 
+			
+
 			// Еще один позиционный счетчик
 			std::size_t current_index = 0;
 
@@ -223,7 +225,8 @@ namespace parser
 				is_finaly_or     = false;
 				is_status_return = false;
 
-				
+				is_move_current_index_in_next_it     = false;	
+				is_move_current_index_in_next_it_tmp = false;
 			}
 
 			// cast in std::flag8_t ?
@@ -232,6 +235,9 @@ namespace parser
 			bool is_check             = false;
 			bool is_finaly_or		  = false;
 			bool is_last			  = false;
+
+			bool is_move_current_index_in_next_it     = false;
+			bool is_move_current_index_in_next_it_tmp = false;
 		};
 
 
