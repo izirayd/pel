@@ -9,8 +9,14 @@
 #define end_return  { show_tree fmt::print("\n");   return; }
 
 // TODO: Хвост зацикливает, пофиксить
-//#define FIRST_CHIELD_OPTIMISITION
+// Shifts all nodes in such a way that no entry into already processed nodes occurs
+#define FIRST_CHIELD_OPTIMISITION
 
+// If the next node in the root node is not available, then the search for vertices stops
+#define NEXT_ELEMENT_SKIP_OPTIMISITION
+
+// TODO: The selected node will rebuild its positions during recursion only when the entry is reached at these positions
+//#define RECURSION_REBUILD_OPTIMISITION
 
 namespace parser
 {
@@ -44,9 +50,9 @@ namespace parser
 
         void final_signature(gcmd_t* command_graph, base_arg_t* arg, int count_signatures, bool& is_use)
         {
-            cmd_t* cmd = &command_graph->get_value();
+            cmd_t* cmd        = &command_graph->get_value();
             cmd_t* parent_cmd = &command_graph->parent->get_value();
-            cmd_t* root_cmd = &command_graph->root->get_value();
+            cmd_t* root_cmd   = &command_graph->root->get_value();
 
             bool is_result_final_signature = true;
 
@@ -57,8 +63,6 @@ namespace parser
                     if (arg->format_word == format_word_t::one_word)
                     {
                         if (is_result_final_signature)   fmt::print(fg(fmt::color::lawn_green), "\nLine: {3} - its signature: {0} [count op: {1}, total op: {2}]", root_cmd->value, root_cmd->count_operation, total_operation, arg->element->number_line);
-
-
                     }
                     else if (arg->format_word == format_word_t::multi_word)
                     {
@@ -80,7 +84,6 @@ namespace parser
                             arg->element->start_position,
                             arg->element->end_position
                         );
-
                     }
                     else if (arg->format_word == format_word_t::multi_word)
                     {
@@ -273,8 +276,10 @@ namespace parser
 #ifdef FIRST_CHIELD_OPTIMISITION
             if (cmd->is_end_find)
             {
-                if (command_graph->next)
+                if (command_graph->next) {
+                    command_graph->next->get_value().is_inc_current_index = cmd->is_inc_current_index;
                     command_graph->parent->first_chield = command_graph->next;
+                }
             }
 #endif // FIRST_CHIELD_OPTIMISITION
 
@@ -284,12 +289,11 @@ namespace parser
             }
         }
 
-
-        void process_signature_base(gcmd_t* command_graph, base_arg_t* arg, int count_signatures, bool& is_use, bool is_render_tree)
+        void process_signature_base(gcmd_t* command_graph, base_arg_t* arg, int count_signatures, bool& is_use, bool is_render_tree, bool &is_skip_next)
         {
-            cmd_t* cmd = &command_graph->get_value();
+            cmd_t* cmd        = &command_graph->get_value();
             cmd_t* parent_cmd = &command_graph->parent->get_value();
-            cmd_t* root_cmd = &command_graph->root->get_value();
+            cmd_t* root_cmd   = &command_graph->root->get_value();
 
             // can null need use with check  "if (arg->format_word == format_word_t::one_word)"
             words_base_t* element = arg->element;
@@ -422,7 +426,8 @@ namespace parser
                 end_return;
             }
 
-            if (cmd->is_or() && cmd->is_end_find && cmd->is_inc_current_index)
+            // TODO: Имеет ли проблемы ситуация с комментированием cmd->is_or() && cmd->is_end_find && ?
+            if (/*cmd->is_or() && cmd->is_end_find &&*/ cmd->is_inc_current_index)
             {
                 parent_cmd->current_index++;
                 cmd->is_inc_current_index = false;
@@ -445,6 +450,14 @@ namespace parser
                     show_tree fmt::print(" [");
                     show_tree fmt::print(fg(fmt::color::blanched_almond), "skip position min {0} > {1}", min_position, arg->region->current_position);
                     show_tree fmt::print("]");
+
+#ifdef NEXT_ELEMENT_SKIP_OPTIMISITION
+
+                    if (command_graph->parent->is_root)
+                    {
+                        is_skip_next = true;
+                    }
+#endif
                 }
 
                 end_return;

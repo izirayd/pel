@@ -220,8 +220,10 @@ namespace parser
 				current_index        = 0;
 				is_inc_current_index = false;
 
-				is_finaly_or = false;
+				is_finaly_or     = false;
 				is_status_return = false;
+
+				
 			}
 
 			// cast in std::flag8_t ?

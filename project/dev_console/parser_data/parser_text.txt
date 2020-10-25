@@ -4,7 +4,12 @@ group space   : { " " }  = execute, ignore;
 group symbol  : { ";" }  = execute, split;
 group word    : { !space and !symbol } = execute, glue;
 
-type b : { "b" };
-type r : { "a", b } = execute;
+type int    : { "int"    };
+type float  : { "float"  };
+type string : { "string" };
 
-test test1 : { "a b" };
+type var_type : { int or float or string };
+
+type var_declaration: { var_type, word, ";" } = execute;
+
+test test1 : { "string apple;" };

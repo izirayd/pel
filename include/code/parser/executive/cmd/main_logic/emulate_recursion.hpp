@@ -42,12 +42,12 @@ namespace parser
 								if (parent_iterator->next)
 								{
 									current_graph = parent_iterator->next;
-									current_data = current_data->parent->push(current_graph->get_value());
+									current_data  = current_data->parent->push(current_graph->get_value());
 									break;
 								}
 								else {
 									parent_iterator = parent_iterator->parent;
-									current_data = current_data->parent;
+									current_data    = current_data->parent;
 								}
 
 								if (parent_iterator->is_root || current_graph == command_graph) {
@@ -79,6 +79,7 @@ namespace parser
 					current_data->get_value().reinit();
 
 					if (current_graph->first_chield) {
+
 						current_graph = current_graph->first_chield;
 						current_data  = current_data->push(current_graph->get_value());
 
@@ -86,8 +87,9 @@ namespace parser
 					}
 					else
 						if (current_graph->next) {
+
 							current_graph = current_graph->next;
-							current_data = current_data->parent->push(current_graph->get_value());
+							current_data  = current_data->parent->push(current_graph->get_value());
 
 							current_data->get_value().reinit();
 						}
@@ -101,7 +103,7 @@ namespace parser
 								if (parent_iterator->next)
 								{
 									current_graph = parent_iterator->next;
-									current_data = current_data->parent->push(current_graph->get_value());
+									current_data  = current_data->parent->push(current_graph->get_value());
 
 									current_data->get_value().reinit();
 
@@ -109,7 +111,7 @@ namespace parser
 								}
 								else {
 									parent_iterator = parent_iterator->parent;
-									current_data = current_data->parent;
+									current_data    = current_data->parent;
 								}
 
 								if (parent_iterator->is_root || current_graph == command_graph) {
@@ -303,7 +305,13 @@ namespace parser
 									break;
 								}
 								else {
+
 									current_graph = current_graph->parent;
+
+									if (current_graph->is_value) {	
+										calc_position_in_graph_for_parent(current_graph, current_graph->size() > 0 ? current_graph->tree[0] : nullptr, current_graph->size() > 0 ? current_graph->tree[current_graph->size() - 1] : nullptr, need_remove, false);										
+									}
+
 								}
 
 								if (current_graph->is_root || current_graph == command_graph) {
@@ -315,9 +323,9 @@ namespace parser
 
 					if (is_exit_recursion) {
 
-						if (current_graph->is_value) {						
+					/*	if (current_graph->is_value) {						
 							calc_position_in_graph_for_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, need_remove, false);							
-						}
+						}*/
 
 						break;
 					}

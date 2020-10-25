@@ -203,9 +203,10 @@ namespace parser
                        return;
 
                    std::size_t need_remove = 0;
+                   bool is_skip_next;
                 
                    if (command_graph->is_value)
-                       process_signature_base(command_graph, arg, count_signatures, is_use, is_render_tree);
+                       process_signature_base(command_graph, arg, count_signatures, is_use, is_render_tree, is_skip_next);
 
                    for (size_t i = 0; i < command_graph->tree.size(); i++)
                    {
@@ -224,12 +225,14 @@ namespace parser
                    }
                }
     
+               // TODO: Написать выход из графа
                void emulate_recursion_for_process_signature(gcmd_t* command_graph, base_arg_t* arg, int count_signatures, bool& is_use)
                {                     
                    gcmd_t* current_graph   = command_graph->root;
  
                    std::size_t counter_level = 0; // 0 - root
                    bool is_exit_recursion = false;
+                   bool is_skip_next = false;
 
                    for (;;)
                    {
@@ -240,15 +243,18 @@ namespace parser
 
                            current_graph->level = counter_level;
 
-                           process_signature_base(current_graph, arg, count_signatures, is_use, is_render_tree);
+                           process_signature_base(current_graph, arg, count_signatures, is_use, is_render_tree, is_skip_next);
                        }
+
+                       if (is_skip_next)
+                           return;
 
                        if (current_graph->first_chield)
                        {
                            counter_level++;
                            current_graph = current_graph->first_chield;
                        } 
-                       else
+                        else
                        if (current_graph->next)
                        {
                            current_graph = current_graph->next;
@@ -274,7 +280,14 @@ namespace parser
                                    break;
                                }
                                else {
+
                                    current_graph = current_graph->parent;
+                                   
+                                   if (current_graph->is_value && current_graph->root->is_process) {
+
+                                       last_parent(current_graph, current_graph->size() > 0 ? current_graph->tree[0] : nullptr, current_graph->size() > 0 ? current_graph->tree[current_graph->size() - 1] : nullptr, arg, count_signatures, is_use);
+
+                                   }
                                }
 
                                if (current_graph->is_root || current_graph == command_graph) {
@@ -286,12 +299,11 @@ namespace parser
 
                        if (is_exit_recursion) {
 
-                           if (current_graph->is_value) {
-
-                               
-                               last_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, arg, count_signatures, is_use);
-                               
-                           }
+                           //if (current_graph->is_value && current_graph->is_process) {
+                         
+                           //    last_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, arg, count_signatures, is_use);
+                           //    
+                           //}
 
                            break;
                        }
@@ -301,6 +313,7 @@ namespace parser
                void reset_graph(gcmd_t* command_graph)
                {
                    command_graph->get_value().reset();
+                   command_graph->first_chield = command_graph->real_first_chield;
                }
 
                void reset(int level, base_arg_t* arg)
