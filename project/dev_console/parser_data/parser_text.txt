@@ -10,15 +10,8 @@ type string : { "string" };
 
 type var_type : { int or float or string };
 
-// В общем return выходит из автоблока, из-за чего фокус с рекурсией не прокатывает.
-// Нам нужно выйти из name_var, нужен новый оператор выхода.
-// Идея о том, что бы выйти из множества родителя глупа, потому что могут быть вложенные блоки {{}{}}
-// Использовать exit нельзя
-// Сделать что бы return игнорировал автоген блоки?
-
 type name_var : { { ";" = return or word or "," }, name_var = recursion };
 
 type var_declaration: { var_type, name_var } = execute;
-
 
 test test1 : { "int apple;" };

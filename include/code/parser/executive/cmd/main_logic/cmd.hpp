@@ -35,6 +35,7 @@ namespace parser
 			parser_return	  = 1 << 19,
 			parser_exit		  = 1 << 20,
 			parser_recursion  = 1 << 21,
+			parser_autogen    = 1 << 22,
 		};
 
 		template<typename block_depth_base_t>
@@ -157,7 +158,7 @@ namespace parser
 			inline bool is_value()     { return std::check_flag(flag, parser_value);     }
 			inline bool is_type()      { return std::check_flag(flag, parser_type);      }
 			inline bool is_tree_or()   { return std::check_flag(flag, parser_tree_or);   }
-			inline bool is_tree_xor()  { return std::check_flag(flag, parser_tree_xor);  }			
+			inline bool is_tree_xor()  { return std::check_flag(flag, parser_tree_xor);  }
 			inline bool is_execute()   { return std::check_flag(flag, parser_execute);   }
 			inline bool is_group()	   { return std::check_flag(flag, parser_group);     }
 			inline bool is_repeat()	   { return std::check_flag(flag, parser_repeat);    }
@@ -165,6 +166,7 @@ namespace parser
 			inline bool is_return()	   { return std::check_flag(flag, parser_return);    }
 			inline bool is_exit()	   { return std::check_flag(flag, parser_exit);      }
 			inline bool is_recursion() { return std::check_flag(flag, parser_recursion); }
+			inline bool is_autogen()   { return std::check_flag(flag, parser_autogen);   }
 
 			inline bool is_empty_operation() { return std::check_flag(flag, empty_operation); }
 

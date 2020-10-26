@@ -2104,6 +2104,10 @@ namespace pel
 		if (obj->is_recursion)
 			std::add_flag(cmd->flag, parser::executive::parser_recursion);
 
+		if (obj->is_autogen_block)
+			std::add_flag(cmd->flag, parser::executive::parser_autogen);
+
+
 		if (is_in_chain && original_obj)
 		{
 			if (original_obj->is_maybe)

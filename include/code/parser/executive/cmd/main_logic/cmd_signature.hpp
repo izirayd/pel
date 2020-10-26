@@ -235,6 +235,9 @@ namespace parser
             {
                 cmd->is_status_return = true;
                 parent_cmd->is_status_return = true;
+
+                if (parent_cmd->is_autogen())
+                    command_graph->parent->parent->get_value().is_status_return = true;
             }
 
             if (cmd->is_exit() && cmd->status_process.status_find == status_find_t::success)
@@ -649,6 +652,9 @@ namespace parser
                 if (cmd->is_status_return)
                 {
                     parent_cmd->is_status_return = true;
+
+                    if (parent_cmd->is_autogen())
+                        command_graph->parent->parent->get_value().is_status_return = true;
                 }
 
                 if (status == 1)
