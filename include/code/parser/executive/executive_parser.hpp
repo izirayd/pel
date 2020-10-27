@@ -440,7 +440,7 @@ namespace parser
                            data_block_global_gcmd_t* d = it.block_depth.get_block(level);
                            base_arg.region->is_status_find = false;
 
-                           //if (d->is_use)
+                           if (d->is_use)
                            {
                                // here used "real" recursion
                                /* 

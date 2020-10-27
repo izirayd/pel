@@ -230,7 +230,7 @@ namespace pel
 						{
 							parser_engine.code = sub_test.name;
 
-							fmt::print("pel <- {}\nList signature: ", parser_engine.code);
+							fmt::print("pel <- {}\nList signature: \n", parser_engine.code);
 
 							std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 

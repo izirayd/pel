@@ -64,11 +64,11 @@ namespace parser
                 {
                     if (arg->format_word == format_word_t::one_word)
                     {
-                        if (is_result_final_signature)   fmt::print(fg(fmt::color::lawn_green), "\nLine: {3} - its signature: {0} [count op: {1}, total op: {2}]", root_cmd->value, root_cmd->count_operation, total_operation, arg->element->number_line);
+                        if (is_result_final_signature)   fmt::print(fg(fmt::color::lawn_green), "Line: {3} - its signature: {0} [count op: {1}, total op: {2}]", root_cmd->value, root_cmd->count_operation, total_operation, arg->element->number_line);
                     }
                     else if (arg->format_word == format_word_t::multi_word)
                     {
-                        if (is_result_final_signature)  fmt::print(fg(fmt::color::lawn_green), "\nIts signature: {0} [count op: {1}, total op: {2}]", root_cmd->value, root_cmd->count_operation, total_operation);
+                        if (is_result_final_signature)  fmt::print(fg(fmt::color::lawn_green), "Its signature: {0} [count op: {1}, total op: {2}]", root_cmd->value, root_cmd->count_operation, total_operation);
                     }
 
                     arg->region->is_status_find = true;
@@ -77,7 +77,7 @@ namespace parser
                 {
                     if (arg->format_word == format_word_t::one_word)
                     {
-                        if (is_result_final_signature)   fmt::print(fg(fmt::color::indian_red), "\nLine: {4} - its not signature {0}: {1}[{5}:{6}] [count op: {2}, total op: {3}",
+                        if (is_result_final_signature)   fmt::print(fg(fmt::color::indian_red), "Line: {4} - its not signature {0}: {1}[{5}:{6}] [count op: {2}, total op: {3}",
                             root_cmd->value.c_str(),
                             arg->element->data,
                             root_cmd->count_operation,
@@ -89,7 +89,7 @@ namespace parser
                     }
                     else if (arg->format_word == format_word_t::multi_word)
                     {
-                        if (is_result_final_signature)  fmt::print(fg(fmt::color::indian_red), "\nIts not signature {0}: {1} total operaion: {2}",
+                        if (is_result_final_signature)  fmt::print(fg(fmt::color::indian_red), "Its not signature {0}: {1} total operaion: {2}",
                             root_cmd->value.c_str(),
                             root_cmd->count_operation,
                             total_operation
@@ -101,7 +101,7 @@ namespace parser
                 else
                     if (cmd->status_process.status_find == status_find_t::unknow)
                     {
-                        if (is_result_final_signature)   fmt::print(fg(fmt::color::burly_wood), "\nIts maybe signature {0}: {1} total operaion: {2}",
+                        if (is_result_final_signature)   fmt::print(fg(fmt::color::burly_wood), "Its maybe signature {0}: {1} total operaion: {2}",
                             root_cmd->value.c_str(),
                             root_cmd->count_operation,
                             total_operation
@@ -130,6 +130,9 @@ namespace parser
             cmd_t* cmd        = &command_graph->get_value();
             cmd_t* parent_cmd = &command_graph->parent->get_value();
             cmd_t* root_cmd   = &command_graph->root->get_value();
+
+            root_cmd->count_operation++;
+            total_operation++;
 
             //  if (cmd->max_position < arg->region->current_position || cmd->min_position > arg->region->current_position)
             //      return;
@@ -167,15 +170,15 @@ namespace parser
                     {
                         count_success++;
 
-                        std::size_t len = (arg->region->current_position + 1) < command_graph->tree[i]->tree.size() ? command_graph->tree[i]->tree.size() - (arg->region->current_position + 1) : (arg->region->current_position + 1) - command_graph->tree[i]->tree.size();
+                        std::size_t len_graph = (arg->region->current_position + 1) < command_graph->tree[i]->tree.size() ? command_graph->tree[i]->tree.size() - (arg->region->current_position + 1) : (arg->region->current_position + 1) - command_graph->tree[i]->tree.size();
 
-                        if (len == 0)
+                        if (len_graph == 0)
                         {
                             state_move = true;
                             tmp_status_find = command_graph->tree[i]->get_value().status_process.status_find;
                         }
 
-                        if (len >= 1)
+                        if (len_graph >= 1)
                         {
                             tmp_status_find = command_graph->tree[i]->get_value().status_process.status_find;
                         }
@@ -245,6 +248,11 @@ namespace parser
                 cmd->status_process.is_status_exit = true;
             }
 
+            if (cmd->status_process.is_status_exit)
+            {
+                parent_cmd->status_process.is_status_exit = true;
+            }
+
             if (cmd->is_maybe() && cmd->status_process.status_find != status_find_t::unknow)
             {
                 cmd->status_process.status_find = status_find_t::success;
@@ -253,6 +261,11 @@ namespace parser
             if (cmd->is_type() && cmd->is_or() && parent_cmd->is_or())
             {
                 // ?
+                if (cmd->is_end_find)
+                {
+                    //parent_cmd->current_index++;
+                }
+
             }
 
             if (cmd->is_type() && cmd->is_or() && !parent_cmd->is_or())
@@ -262,8 +275,10 @@ namespace parser
 
                 if (cmd->is_end_find)
                 {
-                    //parent_cmd->current_index++;
-                    parent_cmd->current_index = cmd->current_index;
+                   // parent_cmd->is_move_current_index_in_next_it = true;
+                     parent_cmd->current_index++;
+                   // parent_cmd->current_index = cmd->current_index;
+                  
                 }
             }
 
@@ -556,6 +571,7 @@ namespace parser
 
                     if (cmd_left)
                     {
+                        // TODO: need fix bug this +1 and +0
                         command_graph->root->get_value().min_counter = cmd_left->get_value().min_counter; //+1;
                         command_graph->root->get_value().max_counter = cmd_left->get_value().max_counter; //+1;
                     }
@@ -570,8 +586,8 @@ namespace parser
                        emulate_recursion::recalc_position_in_graph_from_position(command_graph->root, position);
                     }
 
-                    show_tree  fmt::print("\nRecalc position:\n");
-                    show_tree  emulate_recursion::print_graph(command_graph->root);
+                    //show_tree  fmt::print("\nRecalc position:\n");
+                    //show_tree  emulate_recursion::print_graph(command_graph->root);
 
                 }
             }
@@ -695,6 +711,16 @@ namespace parser
                     if (parent_cmd->is_or())
                     {
                         cmd->status_process.status_find = status_find_t::failed;
+                    }
+
+                    {
+                        // todo: дописал для тестов, как остановку цепочки, если она уже не верная
+                        cmd->is_end_find = true;
+
+                        if (!parent_cmd->is_or()) {
+
+                            parent_cmd->is_end_find = true;
+                        }
                     }
                 }
 

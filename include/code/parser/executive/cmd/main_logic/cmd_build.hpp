@@ -30,9 +30,8 @@ namespace parser
 
 				//real_recursion::print_graph(it.gcmd);
 
-
-
-				emulate_recursion::print_graph(it.gcmd);
+				if (is_render_tree)
+					emulate_recursion::print_graph(it.gcmd);
 
 				it.gcmd->process_function.function_list.clear();
 
