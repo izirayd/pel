@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{95ba6d7a-fb6b-45b9-8543-0f4dbe0d9582}</ProjectGuid>
-    <RootNamespace>devconsole</RootNamespace>
+    <ProjectGuid>{e871a994-2b09-4734-9c95-c5115b27199c}</ProjectGuid>
+    <RootNamespace>peltests</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -141,61 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\include\code\detail\file_watcher\FileWatcher.cpp" />
-    <ClCompile Include="..\..\include\code\detail\file_watcher\FileWatcherLinux.cpp" />
-    <ClCompile Include="..\..\include\code\detail\file_watcher\FileWatcherOSX.cpp" />
-    <ClCompile Include="..\..\include\code\detail\file_watcher\FileWatcherWin32.cpp" />
-    <ClCompile Include="..\..\include\code\detail\fmt\format.cc" />
-    <ClCompile Include="..\..\include\code\detail\fmt\os.cc" />
-    <ClCompile Include="dev_console.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\include\code\ast.hpp" />
-    <ClInclude Include="..\..\include\code\block_parser.hpp" />
-    <ClInclude Include="..\..\include\code\detail\file.hpp" />
-    <ClInclude Include="..\..\include\code\detail\file_watcher\FileWatcher.h" />
-    <ClInclude Include="..\..\include\code\detail\file_watcher\FileWatcherImpl.h" />
-    <ClInclude Include="..\..\include\code\detail\file_watcher\FileWatcherLinux.h" />
-    <ClInclude Include="..\..\include\code\detail\file_watcher\FileWatcherOSX.h" />
-    <ClInclude Include="..\..\include\code\detail\file_watcher\FileWatcherWin32.h" />
-    <ClInclude Include="..\..\include\code\detail\flag.hpp" />
-    <ClInclude Include="..\..\include\code\detail\fmt\fmt\chrono.h" />
-    <ClInclude Include="..\..\include\code\detail\fmt\fmt\color.h" />
-    <ClInclude Include="..\..\include\code\detail\fmt\fmt\compile.h" />
-    <ClInclude Include="..\..\include\code\detail\fmt\fmt\core.h" />
-    <ClInclude Include="..\..\include\code\detail\fmt\fmt\format-inl.h" />
-    <ClInclude Include="..\..\include\code\detail\fmt\fmt\format.h" />
-    <ClInclude Include="..\..\include\code\detail\fmt\fmt\locale.h" />
-    <ClInclude Include="..\..\include\code\detail\fmt\fmt\os.h" />
-    <ClInclude Include="..\..\include\code\detail\fmt\fmt\ostream.h" />
-    <ClInclude Include="..\..\include\code\detail\fmt\fmt\posix.h" />
-    <ClInclude Include="..\..\include\code\detail\fmt\fmt\printf.h" />
-    <ClInclude Include="..\..\include\code\detail\fmt\fmt\ranges.h" />
-    <ClInclude Include="..\..\include\code\detail\function_wrapper.hpp" />
-    <ClInclude Include="..\..\include\code\detail\path.hpp" />
-    <ClInclude Include="..\..\include\code\detail\platform.hpp" />
-    <ClInclude Include="..\..\include\code\detail\string_function.hpp" />
-    <ClInclude Include="..\..\include\code\detail\tree.hpp" />
-    <ClInclude Include="..\..\include\code\flags_enums.hpp" />
-    <ClInclude Include="..\..\include\code\json\json.hpp" />
-    <ClInclude Include="..\..\include\code\obj.hpp" />
-    <ClInclude Include="..\..\include\code\parser\executive\cmd\base\cmd_base.hpp" />
-    <ClInclude Include="..\..\include\code\parser\executive\cmd\groups_logic\cmd_groups.hpp" />
-    <ClInclude Include="..\..\include\code\parser\executive\cmd\groups_logic\cmd_groups_make.hpp" />
-    <ClInclude Include="..\..\include\code\parser\executive\cmd\groups_logic\groups.hpp" />
-    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\cmd.hpp" />
-    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\cmd_build.hpp" />
-    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\cmd_make.hpp" />
-    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\cmd_signature.hpp" />
-    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\emulate_recursion.hpp" />
-    <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\real_recursion.hpp" />
-    <ClInclude Include="..\..\include\code\parser\executive\code_render.hpp" />
-    <ClInclude Include="..\..\include\code\parser\executive\error_context.hpp" />
-    <ClInclude Include="..\..\include\code\parser\executive\executive_parser.hpp" />
-    <ClInclude Include="..\..\include\code\parser\pel_parser\pel_parser.hpp" />
-    <ClInclude Include="..\..\include\code\words.hpp" />
-    <ClInclude Include="..\..\include\code\words_parser.hpp" />
-    <ClInclude Include="..\..\include\pel.hpp" />
+    <ClCompile Include="pel_tests.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

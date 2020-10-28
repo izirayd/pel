@@ -215,5 +215,8 @@
     <ClInclude Include="..\..\include\code\parser\executive\cmd\main_logic\cmd_signature.hpp">
       <Filter>pel\code\parser\executive\cmd\main_logic</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\code\ast.hpp">
+      <Filter>pel\code</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

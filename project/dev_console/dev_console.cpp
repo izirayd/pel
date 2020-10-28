@@ -93,7 +93,8 @@ int process(const std::string& code)
 
 	if (!code.empty()) {
 		pel_parser.code = code;
-		pel_parser.compilation();
+		pel_parser.compile();
+		pel_parser.run();
 	}
 	else
 	{

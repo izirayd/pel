@@ -214,7 +214,7 @@ namespace parser
 				for (auto& it : *global_gcmd)
 				{
 					it.gcmd->process_function["base"]		  = detail::bind_function(&cmd_group_calculate, std::placeholders::_1);
-					it.gcmd->process_function["last_parent"] = detail::bind_function(&last_group_calculate, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+					it.gcmd->process_function["last_parent"]  = detail::bind_function(&last_group_calculate, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 
 					it.gcmd->start_process();
 

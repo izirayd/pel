@@ -23,8 +23,8 @@ namespace parser
 					// TODO: check
 					current_data->set_value(current_graph->get_value());
 
-					if (current_graph->first_chield) {
-						current_graph = current_graph->first_chield;
+					if (current_graph->first_child) {
+						current_graph = current_graph->first_child;
 						current_data = current_data->push(current_graph->get_value());
 					}
 					else
@@ -78,9 +78,9 @@ namespace parser
 					current_data->set_value(current_graph->get_value());
 					current_data->get_value().reinit();
 
-					if (current_graph->first_chield) {
+					if (current_graph->first_child) {
 
-						current_graph = current_graph->first_chield;
+						current_graph = current_graph->first_child;
 						current_data  = current_data->push(current_graph->get_value());
 
 						current_data->get_value().reinit();
@@ -144,8 +144,8 @@ namespace parser
 					if (current_graph->is_root)
 						return nullptr;
 
-					if (current_graph->first_chield) {
-						current_graph = current_graph->first_chield;
+					if (current_graph->first_child) {
+						current_graph = current_graph->first_child;
 
 					}
 					else
@@ -221,8 +221,8 @@ namespace parser
 					if (current_graph->is_value)
 						print_graph_gcmd(current_graph, need_remove, true);
 	
-					if (current_graph->real_first_chield) {
-						current_graph = current_graph->real_first_chield;
+					if (current_graph->real_first_child) {
+						current_graph = current_graph->real_first_child;
 					}
 					else
 						if (current_graph->next) {
@@ -260,7 +260,7 @@ namespace parser
 				if (!command_graph)
 					return;
 
-				std::size_t need_remove = 0;
+				std::size_t need_remove   = 0;
 				std::size_t counter_level = level; 
 
 				gcmd_t* current_graph = command_graph;
@@ -276,9 +276,9 @@ namespace parser
 						calc_position_in_graph(current_graph, need_remove, false);
 					}
 
-					if (current_graph->real_first_chield) {
+					if (current_graph->real_first_child) {
 						counter_level++;
-						current_graph = current_graph->real_first_chield;
+						current_graph = current_graph->real_first_child;
 					}
 					else
 						if (current_graph->next) {
@@ -346,8 +346,8 @@ namespace parser
 							
 							std::sort(current_graph->tree.begin(), current_graph->tree.end(), sort_function);
 
-							current_graph->first_chield      = current_graph->tree[0];
-							current_graph->real_first_chield = current_graph->first_chield;
+							current_graph->first_child = current_graph->tree[0];
+							current_graph->real_first_child = current_graph->first_child;
 
 							for (size_t i = 0; i < current_graph->tree.size(); i++)
 							{
@@ -359,9 +359,9 @@ namespace parser
 					
 					}
 
-					if (current_graph->real_first_chield) {
+					if (current_graph->real_first_child) {
 					
-						current_graph = current_graph->real_first_chield;
+						current_graph = current_graph->real_first_child;
 					}
 					else
 						if (current_graph->next) {

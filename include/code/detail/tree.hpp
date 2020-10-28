@@ -117,8 +117,8 @@ public:
 
 	tree_t<data_value_t>* previous = nullptr;
 	tree_t<data_value_t>* next	   = nullptr;
-	tree_t<data_value_t>* first_chield = nullptr;
-	tree_t<data_value_t>* real_first_chield = nullptr; // for reset state
+	tree_t<data_value_t>* first_child = nullptr;
+	tree_t<data_value_t>* real_first_child = nullptr; // for reset state
 
 	bool    is_root    = true;
 
@@ -138,10 +138,10 @@ public:
 		{
 			previous = nullptr;
 
-			if (parent && !parent->first_chield)
+			if (parent && !parent->first_child)
 			{
-				parent->first_chield = this;
-				parent->real_first_chield = this;
+				parent->first_child = this;
+				parent->real_first_child = this;
 			}
 
 			if ((position + 1) < parent->size())

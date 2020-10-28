@@ -35,10 +35,13 @@ namespace pel
 		bool is_autogen_block = false;
 
 		bool is_maybe = false;
+
 		bool is_return = false;
 		bool is_exit = false;
 
 		bool is_recursion = false;
+
+		bool is_breakpoint = false;
 
 		words_base_t word;
 
@@ -83,6 +86,8 @@ namespace pel
 			is_exit   = false;
 
 			is_recursion = false;
+
+			is_breakpoint = false;
 		}
 	};
 }

@@ -204,9 +204,10 @@ namespace parser
 
                    std::size_t need_remove = 0;
                    bool is_skip_next;
+                   bool is_skip_subsets;
                 
                    if (command_graph->is_value)
-                       process_signature_base(command_graph, arg, count_signatures, is_use, is_render_tree, is_skip_next);
+                       process_signature_base(command_graph, arg, count_signatures, is_use, is_render_tree, is_skip_next, is_skip_subsets);
 
                    for (size_t i = 0; i < command_graph->tree.size(); i++)
                    {
@@ -218,7 +219,7 @@ namespace parser
                            {
                                if (command_graph->tree[i]->is_last())
                                {
-                                   last_parent(command_graph, command_graph->tree[0], command_graph->tree[i], arg, count_signatures, is_use);
+                                   last_parent(command_graph, command_graph->tree[0], command_graph->tree[i], arg, count_signatures, is_use, is_render_tree);
                                }
                            }     
                        }
@@ -232,7 +233,8 @@ namespace parser
  
                    std::size_t counter_level = 0; // 0 - root
                    bool is_exit_recursion = false;
-                   bool is_skip_next = false;
+                   bool is_skip_all = false;
+                   bool is_skip_subsets = false;
 
                    for (;;)
                    {
@@ -243,31 +245,43 @@ namespace parser
 
                            current_graph->level = counter_level;
 
-                           process_signature_base(current_graph, arg, count_signatures, is_use, is_render_tree, is_skip_next);
+                           process_signature_base(current_graph, arg, count_signatures, is_use, is_render_tree, is_skip_all, is_skip_subsets);
                        }
 
-                       if (is_skip_next)
+                       if (is_skip_all)
                            return;
 
-                       if (current_graph->first_chield)
+                     
+
+                       if (current_graph->first_child && !is_skip_subsets
+#ifdef SKIP_ERROR_NODES_OPTIMISITION
+                           && !current_graph->get_value().is_end_find
+#endif                     
+                          )
                        {
                            counter_level++;
-                           current_graph = current_graph->first_chield;
+                           current_graph = current_graph->first_child;
                        } 
                         else
-                       if (current_graph->next)
+                       if (current_graph->next && !is_skip_subsets
+#ifdef SKIP_ERROR_NODES_OPTIMISITION
+                           && (!current_graph->get_value().is_end_find || !current_graph->get_value().is_or()) // todo: need check
+#endif             
+                           )
                        {
                            current_graph = current_graph->next;
                        }
                        else
                        {
-                           if (current_graph->is_value) {
+                           if (current_graph->is_value && !is_skip_subsets) {
 
                                if (current_graph->is_last())
                                {
-                                   last_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, arg, count_signatures, is_use);
+                                   last_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, arg, count_signatures, is_use, is_render_tree);
                                }
                            }
+
+                           is_skip_subsets = false;
 
                            current_graph = current_graph->parent;
 
@@ -285,7 +299,7 @@ namespace parser
                                    
                                    if (current_graph->is_value && current_graph->root->is_process) {
 
-                                       last_parent(current_graph, current_graph->size() > 0 ? current_graph->tree[0] : nullptr, current_graph->size() > 0 ? current_graph->tree[current_graph->size() - 1] : nullptr, arg, count_signatures, is_use);
+                                       last_parent(current_graph, current_graph->size() > 0 ? current_graph->tree[0] : nullptr, current_graph->size() > 0 ? current_graph->tree[current_graph->size() - 1] : nullptr, arg, count_signatures, is_use, is_render_tree);
 
                                    }
                                }
@@ -313,7 +327,7 @@ namespace parser
                void reset_graph(gcmd_t* command_graph)
                {
                    command_graph->get_value().reset();
-                   command_graph->first_chield = command_graph->real_first_chield;
+                   command_graph->first_child = command_graph->real_first_child;
                }
 
                void reset(int level, base_arg_t* arg)

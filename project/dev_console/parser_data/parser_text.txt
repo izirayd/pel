@@ -15,7 +15,7 @@ type value_read : { "=", word };
 
 type read_var : { name_var, { "," or value_read or ";" = return }, read_var = recursion };
 
-type var_declaration: { var_type, read_var } = execute;
+type var_declaration: { var_type = breakpoint, read_var };
 
 type body_namespace: { var_declaration or namespace_declaration = recursion  };
 
@@ -25,6 +25,7 @@ type namespace_read: { namespace_name, "{",  body_namespace, "}" = return };
 type namespace_declaration : {
 	"namespace",
 	 namespace_read
-};
+}  = execute;
 
-test test1 : { "int a, b;" };
+test test1 : { "namespace test { int a, b; }" };
+

@@ -36,6 +36,7 @@ namespace parser
 			parser_exit		  = 1 << 20,
 			parser_recursion  = 1 << 21,
 			parser_autogen    = 1 << 22,
+			parser_breakpoint = 1 << 23 // for debug from c++
 		};
 
 		template<typename block_depth_base_t>
@@ -167,6 +168,7 @@ namespace parser
 			inline bool is_exit()	   { return std::check_flag(flag, parser_exit);      }
 			inline bool is_recursion() { return std::check_flag(flag, parser_recursion); }
 			inline bool is_autogen()   { return std::check_flag(flag, parser_autogen);   }
+			inline bool is_breakpoint(){ return std::check_flag(flag, parser_breakpoint);}
 
 			inline bool is_empty_operation() { return std::check_flag(flag, empty_operation); }
 
@@ -229,11 +231,14 @@ namespace parser
 
 				is_move_current_index_in_next_it     = false;	
 				is_move_current_index_in_next_it_tmp = false;
+
+				is_inc_current_index_parrent = false;
 			}
 
 			// cast in std::flag8_t ?
 			bool is_end_find          = false;
 			bool is_inc_current_index = false;
+			bool is_inc_current_index_parrent = false;
 			bool is_check             = false;
 			bool is_finaly_or		  = false;
 			bool is_last			  = false;

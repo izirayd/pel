@@ -10,14 +10,17 @@
 
 // TODO: Хвост зацикливает, пофиксить
 // Shifts all nodes in such a way that no entry into already processed nodes occurs
-#define FIRST_CHIELD_OPTIMISITION
+#define FIRST_CHILD_OPTIMISITION
 // Сделать сортировку элементов по длине подмножеств, для инструкций or
 
 // If the next node in the root node is not available, then the search for vertices stops
 #define NEXT_ELEMENT_SKIP_OPTIMISITION
 
+#define SKIP_IN_SUBSETS_NODES_OPTIMISITION
+#define SKIP_ERROR_NODES_OPTIMISITION
+
 // TODO: The selected node will rebuild its positions during recursion only when the entry is reached at these positions
-//#define RECURSION_REBUILD_OPTIMISITION
+#define RECURSION_REBUILD_OPTIMISITION
 
 namespace parser
 {
@@ -125,7 +128,7 @@ namespace parser
             cmd_t* root_cmd   = &command_graph->root->get_value();
         }
 
-        void last_parent(gcmd_t* command_graph, gcmd_t* first_child_graph, gcmd_t* last_child_graph, base_arg_t* arg, int count_signatures, bool& is_use)
+        void last_parent(gcmd_t* command_graph, gcmd_t* first_child_graph, gcmd_t* last_child_graph, base_arg_t* arg, int count_signatures, bool& is_use, bool is_render_tree)
         {
             cmd_t* cmd        = &command_graph->get_value();
             cmd_t* parent_cmd = &command_graph->parent->get_value();
@@ -142,6 +145,58 @@ namespace parser
 
             if (max_position < arg->region->current_position || min_position > arg->region->current_position) {
                 return;
+            }
+
+            if (is_render_tree) {
+
+                if (command_graph->is_root)
+                {
+                    fmt::print("\n");
+                }
+
+                if (!cmd->value.empty()) {
+
+                    print_space_cmd(command_graph->level, command_graph->is_have_sub_elemets(), cmd);
+
+                    if (command_graph->is_root)
+                    {
+                        fmt::print(fg(fmt::color::coral), " {}", cmd->value);
+                    }
+                    else
+                    {
+                        if (cmd->is_type())
+                        {
+                            fmt::print(fg(fmt::color::blanched_almond), " {}", cmd->value);
+                        }
+
+                        if (cmd->is_value())
+                        {
+                            fmt::print(fg(fmt::color::thistle), " \"{}\"", cmd->value);
+                        }
+
+                        if (cmd->is_group())
+                        {
+                            fmt::print(fg(fmt::color::khaki), " {}", cmd->value);
+                        }
+                    }
+
+                    fmt::print(" [");
+                    fmt::print(fg(fmt::color::coral), "{0}", cmd->min_position);
+                    fmt::print("-");
+                    fmt::print(fg(fmt::color::coral), "{0}", cmd->max_position);
+                    fmt::print("]");
+
+                    fmt::print(" [");
+                    fmt::print(fg(fmt::color::coral), "parrent");
+                    fmt::print("]");
+
+                    fmt::print(" pos: {0} pci: {1} ci: {2}", command_graph->position, parent_cmd->current_index, cmd->current_index);
+
+                    if (cmd->is_last)
+                    {
+                        fmt::print(fg(fmt::color::orange_red), " <last element>");
+                    }
+                }
             }
 
             if (cmd->is_type() && command_graph->is_last() && !parent_cmd->is_or()) {
@@ -193,6 +248,13 @@ namespace parser
                     {
                         is_have_not_checked = true;
                     }
+
+                    if (command_graph->tree[i]->get_value().status_process.status_find == status_find_t::unknow && command_graph->tree[i]->get_value().is_end_find)
+                    {
+                       // show_tree fmt::print(fg(fmt::color::aqua), " [wtf?!]");
+                        count_failed++;
+                    }
+
                 }
 
                 if (
@@ -201,10 +263,16 @@ namespace parser
                 {
                     if (state_move)
                     {
-                        cmd->is_inc_current_index = true;
+                        cmd->is_inc_current_index_parrent = true;
+
+                        show_tree fmt::print(fg(fmt::color::light_pink), " [start inc for {}]", parent_cmd->value);
                     }
                     else
                     {
+                        show_tree fmt::print(" [");
+                        show_tree fmt::print(fg(fmt::color::sea_green), "ci {} -> {} for {}", cmd->current_index, cmd->current_index + 1, cmd->value);
+                        show_tree fmt::print("]");
+
                         cmd->current_index++;
                     }
 
@@ -260,10 +328,14 @@ namespace parser
 
             if (cmd->is_type() && cmd->is_or() && parent_cmd->is_or())
             {
-                // ?
                 if (cmd->is_end_find)
                 {
-                    //parent_cmd->current_index++;
+                    //show_tree fmt::print(" [");
+                    //show_tree fmt::print(fg(fmt::color::dark_sea_green), "pci {} -> {} for {}", parent_cmd->current_index, parent_cmd->current_index + 1, parent_cmd->value);
+                    //show_tree fmt::print("]");
+
+                    ////  parent_cmd->current_index++;
+                    //parent_cmd->is_inc_current_index = true;
                 }
 
             }
@@ -275,10 +347,15 @@ namespace parser
 
                 if (cmd->is_end_find)
                 {
+                    show_tree fmt::print(" [");
+                    show_tree fmt::print(fg(fmt::color::dark_sea_green), "pci {} -> {} for {}", parent_cmd->current_index, parent_cmd->current_index + 1, parent_cmd->value);
+                    show_tree fmt::print("]");
+
                    // parent_cmd->is_move_current_index_in_next_it = true;
-                     parent_cmd->current_index++;
+                   //  parent_cmd->current_index++;
+                    parent_cmd->is_inc_current_index = true;
                    // parent_cmd->current_index = cmd->current_index;
-                  
+       
                 }
             }
 
@@ -289,19 +366,24 @@ namespace parser
 
                 if (cmd->is_end_find)
                 {
-                    parent_cmd->current_index++;
+                    show_tree fmt::print(" [");
+                    show_tree fmt::print(fg(fmt::color::dark_sea_green), "pci {} -> {} for {}", parent_cmd->current_index, parent_cmd->current_index + 1, parent_cmd->value);
+                    show_tree fmt::print("]");
+
+                  //  parent_cmd->current_index++;
+                    parent_cmd->is_inc_current_index = true;
                 }
             }
 
-#ifdef FIRST_CHIELD_OPTIMISITION
+#ifdef FIRST_CHILD_OPTIMISITION
             //if (cmd->is_end_find)
             //{
             //    if (command_graph->next) {
 
-            //        //if (command_graph->parent->first_chield->get_value().is_end_find) 
+            //        //if (command_graph->parent->first_child->get_value().is_end_find) 
             //        {
-            //            command_graph->next->get_value().is_inc_current_index = cmd->is_inc_current_index;
-            //            command_graph->parent->first_chield = command_graph->next;
+            //            command_graph->next->get_value().is_inc_current_index_parrent = cmd->is_inc_current_index_parrent;
+            //            command_graph->parent->first_child = command_graph->next;
             //        }
             //    }
             //}
@@ -310,21 +392,26 @@ namespace parser
             {
                 if (command_graph->next) {
                     
-                 //  command_graph->next->get_value().is_inc_current_index = cmd->is_inc_current_index;
-                   command_graph->next->parent->get_value().is_move_current_index_in_next_it = cmd->is_inc_current_index;
-                   command_graph->parent->first_chield = command_graph->next;
+                 //  command_graph->next->get_value().is_inc_current_index_parrent = cmd->is_inc_current_index_parrent;
+                   command_graph->next->parent->get_value().is_move_current_index_in_next_it = cmd->is_inc_current_index_parrent;
+                   command_graph->parent->first_child = command_graph->next;
                     
                 }
             }
-#endif // FIRST_CHIELD_OPTIMISITION
+#endif // FIRST_CHILD_OPTIMISITION
+
+            {
+                if (is_render_tree) fmt::print("\n");
+            }
 
             if ((command_graph->is_root && cmd->is_end_find) || (command_graph->is_root && cmd->status_process.is_status_exit))
             {
                 final_signature(command_graph, arg, count_signatures, is_use);
             }
+
         }
 
-        void process_signature_base(gcmd_t* command_graph, base_arg_t* arg, int count_signatures, bool& is_use, bool is_render_tree, bool &is_skip_next)
+        void process_signature_base(gcmd_t* command_graph, base_arg_t* arg, int count_signatures, bool& is_use, bool is_render_tree, bool &is_skip_all, bool &is_skip_subsets)
         {
             cmd_t* cmd        = &command_graph->get_value();
             cmd_t* parent_cmd = &command_graph->parent->get_value();
@@ -424,12 +511,16 @@ namespace parser
                     fmt::print(fg(fmt::color::coral), "{0}", cmd->max_position);
                     fmt::print("]");
 
-                    fmt::print(" pos: {0}", command_graph->position);
-
                     if (cmd->is_last)
                     {
                         fmt::print(fg(fmt::color::orange_red), " <last element>");
                     }
+
+                    if (cmd->is_breakpoint())
+                    {
+                        show_tree fmt::print(fg(fmt::color::red), " [breakpoint]");
+                    }
+
                 }
             }
 
@@ -460,32 +551,13 @@ namespace parser
 
                 end_return;
             }
-
-            // TODO: Имеет ли проблемы ситуация с комментированием cmd->is_or() && cmd->is_end_find && ?
-            if (/*cmd->is_or() && cmd->is_end_find &&*/ cmd->is_inc_current_index)
-            {
-                parent_cmd->current_index++;
-                cmd->is_inc_current_index = false;
-            }
-
-            if (parent_cmd->is_move_current_index_in_next_it)
-            {
-                if (parent_cmd->is_move_current_index_in_next_it && parent_cmd->is_move_current_index_in_next_it_tmp)
-                {
-                    parent_cmd->current_index++;
-                    parent_cmd->is_move_current_index_in_next_it_tmp = false;
-                    parent_cmd->is_move_current_index_in_next_it     = false;
-                }
-                else
-                {
-                    parent_cmd->is_move_current_index_in_next_it_tmp = true;
-                }
-            }
-
+    
             std::size_t max_position = cmd->max_position;
             std::size_t min_position = cmd->min_position;
 
             if (max_position < arg->region->current_position || min_position > arg->region->current_position) {
+
+                show_tree  fmt::print(" pos: {} pci: {} ci: {}", command_graph->position, parent_cmd->current_index, cmd->current_index);
 
                 if (max_position < arg->region->current_position)
                 {
@@ -504,20 +576,87 @@ namespace parser
 
                     if (command_graph->parent->is_root)
                     {
-                        is_skip_next = true;
+                        is_skip_all = true;
                     }
+
+    #ifdef SKIP_IN_SUBSETS_NODES_OPTIMISITION
+                    is_skip_subsets = true;
+    #endif
+
 #endif
                 }
 
                 end_return;
             }
 
-            if (parent_cmd->current_index != command_graph->position && !parent_cmd->is_or()) {
+            // TODO: Имеет ли проблемы ситуация с комментированием cmd->is_or() && cmd->is_end_find && ?
+            if (/*cmd->is_or() && cmd->is_end_find &&*/ cmd->is_inc_current_index_parrent)
+            {
+
                 show_tree fmt::print(" [");
-                show_tree fmt::print(fg(fmt::color::gold), "skip current index {0} graph pos {1}", cmd->current_index, command_graph->position);
+                show_tree fmt::print(fg(fmt::color::blue_violet), "inc index");
+                show_tree fmt::print("]");
+
+                show_tree fmt::print(" [");
+                show_tree fmt::print(fg(fmt::color::dark_sea_green), "pci {} -> {} for {}", parent_cmd->current_index, parent_cmd->current_index + 1, parent_cmd->value);
+                show_tree fmt::print("]");
+
+                parent_cmd->current_index++;
+                cmd->is_inc_current_index_parrent = false;
+
+            }
+
+            // TODO: Имеет ли проблемы ситуация с комментированием cmd->is_or() && cmd->is_end_find && ?
+            if (/*cmd->is_or() && cmd->is_end_find &&*/ cmd->is_inc_current_index)
+            {
+
+                show_tree fmt::print(" [");
+                show_tree fmt::print(fg(fmt::color::blue_violet), "inc index");
+                show_tree fmt::print("]");
+
+                show_tree fmt::print(" [");
+                show_tree fmt::print(fg(fmt::color::dark_sea_green), "ci {} -> {} for {}", cmd->current_index, cmd->current_index + 1, cmd->value);
+                show_tree fmt::print("]");
+
+                cmd->current_index++;
+                cmd->is_inc_current_index = false;
+            }
+
+            if (parent_cmd->is_move_current_index_in_next_it)
+            {
+                if (parent_cmd->is_move_current_index_in_next_it && parent_cmd->is_move_current_index_in_next_it_tmp)
+                {
+                    if (is_render_tree)
+                    {
+                        show_tree fmt::print(" [");
+                        show_tree fmt::print(fg(fmt::color::blue_violet), "inc parrent next");
+                        show_tree fmt::print("]");
+
+                        show_tree fmt::print(" [");
+                        show_tree fmt::print(fg(fmt::color::dark_sea_green), "pci {} -> {} for {}", parent_cmd->current_index, parent_cmd->current_index + 1, parent_cmd->value);
+                        show_tree fmt::print("]");
+                    }
+
+                    parent_cmd->current_index++;
+                    parent_cmd->is_move_current_index_in_next_it_tmp = false;
+                    parent_cmd->is_move_current_index_in_next_it = false;
+                }
+                else
+                {
+                    parent_cmd->is_move_current_index_in_next_it_tmp = true;
+                }
+            }
+
+
+            show_tree fmt::print(" pos: {} pci: {} ci: {}", command_graph->position, parent_cmd->current_index, cmd->current_index);
+
+            if (parent_cmd->current_index != command_graph->position && !parent_cmd->is_or() && !command_graph->is_root) {
+                show_tree fmt::print(" [");
+                show_tree fmt::print(fg(fmt::color::gold), "skip pos: {} != pci: {}",  command_graph->position, parent_cmd->current_index );
                 show_tree fmt::print("]");
                 end_return;
             }
+
 
             if (cmd->is_check && cmd->is_type()) {
              
@@ -563,17 +702,19 @@ namespace parser
                     std::size_t position = 0;
                     emulate_recursion::get_position_from_parent_to_root(command_graph, position);
 
-                    gcmd_t* cmd_left = nullptr;
+                    gcmd_t* command_graph_left = nullptr;
 
                     // recalc position
                     if (position > 0 && command_graph->root->size() > 0)
-                        cmd_left = command_graph->root->tree[position - 1];
+                        command_graph_left = command_graph->root->tree[position - 1];
 
-                    if (cmd_left)
+                    if (command_graph_left)
                     {
+                        auto cmd_left = &command_graph_left->get_value();
+
                         // TODO: need fix bug this +1 and +0
-                        command_graph->root->get_value().min_counter = cmd_left->get_value().min_counter; //+1;
-                        command_graph->root->get_value().max_counter = cmd_left->get_value().max_counter; //+1;
+                        root_cmd->min_counter = cmd_left->min_counter; //+1;
+                        root_cmd->max_counter = cmd_left->max_counter; //+1;
                     }
                     else
                     {
@@ -685,7 +826,9 @@ namespace parser
                             parent_cmd->status_process = cmd->status_process;
 
                         //parent_cmd->current_index++;
-                        parent_cmd->is_move_current_index_in_next_it = true;
+                      //  parent_cmd->is_move_current_index_in_next_it = true;
+                        parent_cmd->is_inc_current_index = true;
+                        show_tree fmt::print(fg(fmt::color::dark_orchid), " [start inc next for {}]", parent_cmd->value);
                     }
 
                     if (parent_cmd->is_or())
@@ -705,7 +848,9 @@ namespace parser
                         parent_cmd->status_process = cmd->status_process;
 
                         //parent_cmd->current_index++;
-                        parent_cmd->is_move_current_index_in_next_it = true;
+                      //  parent_cmd->is_move_current_index_in_next_it = true;
+                        parent_cmd->is_inc_current_index = true;
+                        show_tree fmt::print(fg(fmt::color::dark_orchid), " [start inc next for {}]", parent_cmd->value);
                     }
 
                     if (parent_cmd->is_or())
@@ -734,18 +879,18 @@ namespace parser
                     }
                 }
 
-#ifdef FIRST_CHIELD_OPTIMISITION
+#ifdef FIRST_CHILD_OPTIMISITION
                 if (cmd->is_end_find)
                 {
                     if (command_graph->next)
-                        command_graph->parent->first_chield = command_graph->next;
+                        command_graph->parent->first_child = command_graph->next;
                 }
 
                 // solo element, we can skip it
                 if (command_graph->size() == 0)
                 {
                     if (command_graph->next)
-                        command_graph->parent->first_chield = command_graph->next;
+                        command_graph->parent->first_child = command_graph->next;
                 }
 #endif
             }

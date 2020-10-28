@@ -179,10 +179,10 @@ namespace parser
 					parent_cmd->max_counter++;
 				}
 
-				if (parent_cmd->is_or()) {
+				//if (parent_cmd->is_or()) {
 					cmd->min_counter++;
 					cmd->max_counter++;
-				}
+				//}
 			}
 		}
 
