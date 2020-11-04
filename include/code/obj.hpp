@@ -42,6 +42,8 @@ namespace pel
 		bool is_recursion = false;
 
 		bool is_breakpoint = false;
+		bool is_repeat     = false;
+		bool is_repeat_end = false;
 
 		words_base_t word;
 
@@ -88,6 +90,8 @@ namespace pel
 			is_recursion = false;
 
 			is_breakpoint = false;
+			is_repeat = false;
+			is_repeat_end = false;
 		}
 	};
 }

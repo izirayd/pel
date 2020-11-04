@@ -171,8 +171,8 @@ namespace parser
 				cmd->min_position = parent_cmd->min_counter;
 				cmd->max_position = parent_cmd->max_counter;
 
-				cmd->min_counter = parent_cmd->min_counter;
-				cmd->max_counter = parent_cmd->max_counter;
+				cmd->min_counter  = parent_cmd->min_counter;
+				cmd->max_counter  = parent_cmd->max_counter;
 	
 				if (!parent_cmd->is_or()) {
 					parent_cmd->min_counter++;
@@ -341,5 +341,6 @@ namespace parser
 
 		using global_gcmd_t    = std::vector<element_gcmd_t>;
 		using recursion_gcmd_t = std::vector<element_gcmd_t>;
+		using repeat_gcmd_t    = std::vector<element_gcmd_t>;
 	}
 }

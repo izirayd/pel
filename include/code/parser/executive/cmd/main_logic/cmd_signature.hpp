@@ -20,7 +20,10 @@
 #define SKIP_ERROR_NODES_OPTIMISITION
 
 // TODO: The selected node will rebuild its positions during recursion only when the entry is reached at these positions
-#define RECURSION_REBUILD_OPTIMISITION
+//#define RECURSION_REBUILD_OPTIMISITION
+
+//#define FAKE_REPEAT_OPTIMISITION
+//#define REAL_REPEAT_NODES
 
 namespace parser
 {
@@ -80,7 +83,8 @@ namespace parser
                 {
                     if (arg->format_word == format_word_t::one_word)
                     {
-                        if (is_result_final_signature)   fmt::print(fg(fmt::color::indian_red), "Line: {4} - its not signature {0}: {1}[{5}:{6}] [count op: {2}, total op: {3}",
+                        if (is_result_final_signature)   
+                            fmt::print(fg(fmt::color::indian_red), "Line: {4} - its not signature {0}: {1}[{5}:{6}] [count op: {2}, total op: {3}",
                             root_cmd->value.c_str(),
                             arg->element->data,
                             root_cmd->count_operation,
@@ -684,6 +688,63 @@ namespace parser
                 if (parent_cmd->is_or() && parent_cmd->status_process.status_find != status_find_t::success)
                 {
                     parent_cmd->status_process.status_find = status_find_t::unknow;
+                }
+            }
+
+            if (cmd->is_repeat())
+            {
+                /*
+                  ƒолжна происходить в ноде родителе при выходе
+                */
+                if (cmd->repeat_element && !cmd->is_status_allocate_recursion_graph)
+                {
+                    std::size_t position = command_graph->position;
+
+                    gcmd_t* node = new gcmd_t;
+                       
+                    emulate_recursion::copy_process_gcmd(cmd->repeat_element, node);
+       
+                    cmd->is_status_allocate_repeat_graph = true;
+
+                    node->get_value().value = "repeat " + node->get_value().value;
+
+                    // insert after
+                    position++;
+
+                 
+                    command_graph->parent->insert(node, position);
+
+                    show_tree fmt::print(fg(fmt::color::green_yellow), " [allocate repeat graph]");
+
+                  //  emulate_recursion::get_position_from_parent_to_root(command_graph, position);
+
+                    gcmd_t* command_graph_left = nullptr;
+
+                    // recalc position
+                    if (position > 0 && command_graph->root->size() > 0)
+                        command_graph_left = command_graph->root->tree[position - 1];
+
+                    if (command_graph_left)
+                    {
+                        auto cmd_left = &command_graph_left->get_value();
+                                
+                        // TODO: need fix bug this +1 and +0
+                        root_cmd->min_counter = cmd_left->min_counter; //+1;
+                        root_cmd->max_counter = cmd_left->max_counter; //+1;
+                    }
+                    else
+                    {
+                        command_graph->root->get_value().min_counter = 0;
+                        command_graph->root->get_value().max_counter = 0;
+                    }
+
+                    // TODO: check it in test
+                    if (command_graph->root->size() > 0) {
+                        emulate_recursion::recalc_position_in_graph_from_position(command_graph->root, position);
+                    }
+
+                    show_tree  fmt::print("\nRecalc position:\n");
+                    show_tree  emulate_recursion::print_graph(command_graph->root);
                 }
             }
 

@@ -4,28 +4,8 @@ group space   : { " " }  = execute, ignore;
 group symbol  : { ";," } = execute, split;
 group word    : { !space and !symbol } = execute, glue;
 
-type int    : { "int" };
-type float  : { "float"  };
-type string : { "string" };
 
-type var_type : { "int" };
+type b : { "b" };
+type main : { "a", b = repeat } = execute;
 
-type name_var : { word };
-type value_read : { "=", word };
-
-type read_var : { name_var, { "," or value_read or ";" = return }, read_var = recursion };
-
-type var_declaration: { var_type = breakpoint, read_var };
-
-type body_namespace: { var_declaration or namespace_declaration = recursion  };
-
-type namespace_name: { word };
-type namespace_read: { namespace_name, "{",  body_namespace, "}" = return };
-
-type namespace_declaration : {
-	"namespace",
-	 namespace_read
-}  = execute;
-
-test test1 : { "namespace test { int a, b; }" };
-
+test test1 : { "a b c b" };

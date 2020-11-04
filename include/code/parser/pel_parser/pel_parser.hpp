@@ -44,7 +44,11 @@ namespace pel
 
 	class pel_parser_t;
 
-	void build(pel::pel_parser_t& pel_lang, parser::executive::global_gcmd_t* global_gcmd, parser::executive::recursion_gcmd_t* recursion_gcmd, parser::executive::groups::global_gcmd_group_t *global_gcmd_group);
+	void build(pel::pel_parser_t& pel_lang,
+		parser::executive::global_gcmd_t* global_gcmd,
+		parser::executive::recursion_gcmd_t* recursion_gcmd,
+		parser::executive::repeat_gcmd_t* repeat_gcmd,
+		parser::executive::groups::global_gcmd_group_t* global_gcmd_group);
 
 	class pel_parser_t: public parser::block_parser_t, public parser::words_parser_t
 	{
@@ -641,6 +645,8 @@ namespace pel
 						it_word->words_base.data != "return"  &&
 						it_word->words_base.data != "exit"  &&
 						it_word->words_base.data != "recursion"  &&
+						it_word->words_base.data != "repeat"  &&
+						it_word->words_base.data != "repeat_end"  &&
 						it_word->words_base.data != "breakpoint"  &&
 						it_word->words_base.data != "{"		 &&
 						it_word->words_base.data != "}" 
@@ -822,6 +828,16 @@ namespace pel
 							{
 								word_object_for_property->obj.is_recursion = true;
 							}	
+							else
+							if (word->words_base.data == "repeat")
+							{
+								word_object_for_property->obj.is_repeat = true;
+							}
+							else
+							if (word->words_base.data == "repeat_end")
+							{
+								word_object_for_property->obj.is_repeat_end = true;
+							}
 							else
 							if (word->words_base.data == "breakpoint")
 							{
@@ -1277,7 +1293,7 @@ namespace pel
 			delete tree_words;
 			tree_words = nullptr;
 
-			build(*this, &parser_engine.global_gcmd, &parser_engine.recursion_gcmd, &parser_engine.global_gcmd_group);
+			build(*this, &parser_engine.global_gcmd, &parser_engine.recursion_gcmd, &parser_engine.repeat_gcmd, &parser_engine.global_gcmd_group);
 		}
 
 		// cpp prototype version
@@ -2141,13 +2157,17 @@ namespace pel
 		if ((!cmd->is_or() && !cmd->is_xor() && !cmd->is_and()))
 			std::add_flag(cmd->flag, parser::executive::empty_operation);
 
-
 		if (obj->is_recursion)
 			std::add_flag(cmd->flag, parser::executive::parser_recursion);
 
+		if (obj->is_repeat)
+			std::add_flag(cmd->flag, parser::executive::parser_repeat);
+
+		if (obj->is_repeat_end)
+			std::add_flag(cmd->flag, parser::executive::parser_repeat_end);
+
 		if (obj->is_autogen_block)
 			std::add_flag(cmd->flag, parser::executive::parser_autogen);
-
 
 		if (is_in_chain && original_obj)
 		{
@@ -2162,6 +2182,12 @@ namespace pel
 
 			if (original_obj->is_recursion)
 				std::add_flag(cmd->flag, parser::executive::parser_recursion);
+
+			if (original_obj->is_repeat)
+				std::add_flag(cmd->flag, parser::executive::parser_repeat);
+
+			if (original_obj->is_repeat_end)
+				std::add_flag(cmd->flag, parser::executive::parser_repeat_end);
 
 			if (original_obj->is_breakpoint)
 				std::add_flag(cmd->flag, parser::executive::parser_breakpoint);
@@ -2503,7 +2529,13 @@ namespace pel
 		}
 	}
 
-	void build(pel::pel_parser_t& pel_lang, parser::executive::global_gcmd_t* global_gcmd, parser::executive::recursion_gcmd_t *recursion_gcmd, parser::executive::groups::global_gcmd_group_t *global_gcmd_group)
+	void build(
+		pel::pel_parser_t& pel_lang, 
+		parser::executive::global_gcmd_t* global_gcmd,
+		parser::executive::recursion_gcmd_t *recursion_gcmd, 
+		parser::executive::repeat_gcmd_t *repeat_gcmd,
+		parser::executive::groups::global_gcmd_group_t *global_gcmd_group
+	)
 	{
 		for (const auto obj_ex : pel_lang.all_groups)
 		{
@@ -2594,7 +2626,7 @@ namespace pel
 		pel_lang.error_context.print_console(&pel_lang.code_render);
 			
 		if (!pel_lang.error_context.is_error()) {
-			parser::executive::make_commands(global_gcmd, recursion_gcmd, pel_lang.parser_engine.is_render_tree);
+			parser::executive::make_commands(global_gcmd, recursion_gcmd, repeat_gcmd, pel_lang.parser_engine.is_render_tree);
 			parser::executive::groups::make_commands(global_gcmd_group, pel_lang.parser_engine.is_render_tree && pel_lang.parser_engine.is_render_group);
 		}
 	}

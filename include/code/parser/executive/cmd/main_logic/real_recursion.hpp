@@ -92,6 +92,25 @@ namespace parser
 				return find_vertex_recursion(command_graph->parent, name);
 			}
 
+			void calc_repeat(gcmd_t* command_graph, repeat_gcmd_t*& repeat_gcmd, std::size_t& count_base_signature, bool is_render_tree)
+			{
+				cmd_t* cmd = &command_graph->get_value();
+				cmd_t* parent_cmd = &command_graph->parent->get_value();
+
+				if (cmd->is_repeat())
+				{
+					element_gcmd_t repeat_element;
+					repeat_element.gcmd = new gcmd_t;
+
+					copy_process_gcmd_with_reinit(command_graph, repeat_element.gcmd);
+
+					repeat_gcmd->push_back(repeat_element);
+
+					cmd->repeat_element = repeat_element.gcmd;
+					repeat_element.gcmd->get_value().repeat_element = repeat_element.gcmd;
+				}
+			}
+
 			void calc_recursion(gcmd_t* command_graph, recursion_gcmd_t*& recursion_gcmd, std::size_t& count_base_signature, bool is_render_tree)
 			{
 				cmd_t* cmd = &command_graph->get_value();

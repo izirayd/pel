@@ -7,7 +7,7 @@ namespace parser
 {
 	namespace executive
 	{
-		void make_commands(global_gcmd_t* global_gcmd, recursion_gcmd_t* recursion_gcmd, bool is_render_tree)
+		void make_commands(global_gcmd_t* global_gcmd, recursion_gcmd_t* recursion_gcmd, repeat_gcmd_t *repeat_gcmd, bool is_render_tree)
 		{
 			for (auto& it : *global_gcmd)
 			{
@@ -50,12 +50,17 @@ namespace parser
 					it.gcmd->get_value().is_last = true;
 				}
 
+				// ћожно сложить в один перебор
+				// Ёто должно быть перенесенно в обработчик при выходе в родительскую ноду алгоритма позиций
 				it.gcmd->process_function["base"] = detail::bind_function(&real_recursion::calc_recursion, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 				it.gcmd->start_process(recursion_gcmd, it.count_signatures, is_render_tree);
 
 				it.gcmd->process_function.function_list.clear();
+			
+				it.gcmd->process_function["base"] = detail::bind_function(&real_recursion::calc_repeat, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
+				it.gcmd->start_process(recursion_gcmd, it.count_signatures, is_render_tree);
 
-				
+				it.gcmd->process_function.function_list.clear();	
 			}
 
 			for (auto& it : *recursion_gcmd)

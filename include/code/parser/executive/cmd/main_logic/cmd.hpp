@@ -36,7 +36,8 @@ namespace parser
 			parser_exit		  = 1 << 20,
 			parser_recursion  = 1 << 21,
 			parser_autogen    = 1 << 22,
-			parser_breakpoint = 1 << 23 // for debug from c++
+			parser_breakpoint = 1 << 23, // for debug from c++
+			parser_repeat_end = 1 << 24
 		};
 
 		template<typename block_depth_base_t>
@@ -169,6 +170,7 @@ namespace parser
 			inline bool is_recursion() { return std::check_flag(flag, parser_recursion); }
 			inline bool is_autogen()   { return std::check_flag(flag, parser_autogen);   }
 			inline bool is_breakpoint(){ return std::check_flag(flag, parser_breakpoint);}
+			inline bool is_repeat_end(){ return std::check_flag(flag, parser_repeat_end);}
 
 			inline bool is_empty_operation() { return std::check_flag(flag, empty_operation); }
 
@@ -203,8 +205,11 @@ namespace parser
 
 			// TODO: reset state?
 			bool is_status_allocate_recursion_graph = false;
+			bool is_status_allocate_repeat_graph = false;
 
 			gcmd_t* recursion_element = nullptr;
+			gcmd_t* repeat_element    = nullptr;
+
 
 			// used for recursion, recursion rebuilds positions
 			void reinit() {

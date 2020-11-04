@@ -27,6 +27,7 @@ namespace parser
                base_arg_t                  base_arg;
                global_gcmd_t               global_gcmd;
                recursion_gcmd_t            recursion_gcmd;
+               repeat_gcmd_t               repeat_gcmd;
 
                groups::global_gcmd_group_t global_gcmd_group;
 
@@ -250,9 +251,7 @@ namespace parser
 
                        if (is_skip_all)
                            return;
-
-                     
-
+             
                        if (current_graph->first_child && !is_skip_subsets
 #ifdef SKIP_ERROR_NODES_OPTIMISITION
                            && !current_graph->get_value().is_end_find
@@ -391,6 +390,15 @@ namespace parser
                    }
 
                    std::clear(recursion_gcmd);
+
+                   for (auto& it : repeat_gcmd)
+                   {
+                       it.block_depth.delete_alloc();
+                       it.gcmd->delete_tree();
+                       delete it.gcmd;
+                   }
+
+                   std::clear(repeat_gcmd);
                }
 
                void process_executive_array_words(pel::groups::array_words_t& array_words, const std::size_t &level)

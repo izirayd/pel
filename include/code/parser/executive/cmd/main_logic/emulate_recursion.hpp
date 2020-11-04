@@ -25,7 +25,7 @@ namespace parser
 
 					if (current_graph->first_child) {
 						current_graph = current_graph->first_child;
-						current_data = current_data->push(current_graph->get_value());
+						current_data  = current_data->push(current_graph->get_value());
 					}
 					else
 						if (current_graph->next) {
@@ -35,7 +35,7 @@ namespace parser
 						else
 						{
 							parent_iterator = current_graph->parent;
-							current_data = current_data->parent;
+							current_data    = current_data->parent;
 
 							for (;;)
 							{

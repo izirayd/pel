@@ -81,9 +81,95 @@ private:
 		return tree;
 	}
 
+	// no recursion
+	void recalc_root_node(tree_t<data_value_t> *tree, tree_t<data_value_t>* real_root)
+	{
+		auto current_graph     = tree;
+		bool is_exit_recursion = false;
+
+		for (;;)
+		{
+			current_graph->root = real_root;
+
+			if (current_graph->real_first_child) {
+				current_graph = current_graph->real_first_child;
+			}
+			else
+				if (current_graph->next) {
+					current_graph = current_graph->next;
+				}
+				else
+				{
+					current_graph = current_graph->parent;
+
+					for (;;)
+					{
+						if (current_graph->next)
+						{
+							current_graph = current_graph->next;
+							break;
+						}
+						else {
+							current_graph = current_graph->parent;
+						}
+
+						if (current_graph->is_root || current_graph == tree) {
+							is_exit_recursion = true;
+							break;
+						}
+					}
+				}
+
+			if (is_exit_recursion)
+				break;
+		}
+
+	}
+
+	tree_t<data_value_t>* insert_tree_body(tree_t<data_value_t>* tree, const std::size_t &insert_position)
+	{
+		if (insert_position > size())
+			return nullptr;
+
+		tree->root = root;
+
+		if (tree->index == 0) {
+			tree->index = root->last_index;
+			root->last_index++;
+		}
+
+		tree->is_root = false;
+		tree->parent  = this;
+
+		if (tree->index_level == 0) {
+			tree->index_level = tree->parent->last_index_level;
+			tree->parent->last_index_level++;
+		}
+
+		this->tree.insert(this->tree.begin() + insert_position, tree);
+
+		tree->position = insert_position;
+
+		for (size_t i = insert_position; i < this->size(); i++)
+		{
+			this->tree[i]->position = i;
+		}
+
+		recalc_root_node(tree, root);
+
+		tree->calculate_previous_next();
+
+		return tree;
+	}
+
 public:
 
 	inline bool is_last() const { if (parent->size() == 0) return false; return parent->size() - 1 == position; }
+
+	inline tree_t<data_value_t>* insert(tree_t<data_value_t>* tree, const std::size_t& insert_position)
+	{
+		return insert_tree_body(tree, insert_position);
+	}
 
 	void sync(tree_t<data_value_t>* tree)
 	{
