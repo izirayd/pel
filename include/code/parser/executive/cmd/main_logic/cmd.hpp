@@ -44,7 +44,6 @@ namespace parser
 		class block_depth_t
 		{		  
 		  public:
-
 			std::vector<block_depth_base_t> block;
 
 			void delete_alloc()
@@ -190,8 +189,6 @@ namespace parser
 			std::size_t min_counter = 0;
 			std::size_t max_counter = 0;
 
-			
-
 			// Еще один позиционный счетчик
 			std::size_t current_index = 0;
 
@@ -210,22 +207,19 @@ namespace parser
 			gcmd_t* recursion_element = nullptr;
 			gcmd_t* repeat_element    = nullptr;
 
-
 			// used for recursion, recursion rebuilds positions
 			void reinit() {
-			
 				min_position = SIZE_MAX;
-
 			}
 
 			void reset() {
 
-				status_process.status_find = status_find_t::unknow;
+				status_process.status_find    = status_find_t::unknow;
 				status_process.is_status_exit = false;
 
 				is_check   = false;
 		
-				count_operation = 0;
+				count_operation      = 0;
 		
 				is_end_find			 = false;
 				current_index        = 0;

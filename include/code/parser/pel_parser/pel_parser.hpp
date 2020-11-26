@@ -68,7 +68,7 @@ namespace pel
 	
 		groups::groups_t groups;
 
-		parser::executive::parser_engine_t parser_engine;
+		parser::executive::parser_core_t parser_core;
 
 		std::string version;
 
@@ -123,9 +123,9 @@ namespace pel
 		}
 
 		void clear_pe() {
-			parser_engine.delete_alloc();
-			parser_engine.code.clear();
-			parser_engine.delete_global_gcmd();
+			parser_core.delete_alloc();
+			parser_core.code.clear();
+			parser_core.delete_global_gcmd();
 		}
 
 		void is_in_list(pel::groups::group_t *group, pel::groups::vector_objects_t &vector_objects, bool &is_result)
@@ -202,11 +202,11 @@ namespace pel
 					{
 						for (auto sub_test : all_tests[i]->values)
 						{
-							parser_engine.code = sub_test.name;
+							parser_core.code = sub_test.name;
 
 							std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
-							parser_engine.process_parse_pel_to_words();
+							parser_core.process_parse_pel_to_words();
 
 							std::intptr_t new_position = -1;
 							std::vector<std::pair<std::string, std::string>> array_symbols;
@@ -214,11 +214,11 @@ namespace pel
 							array_symbols.push_back({ "{", "}" });
 							array_symbols.push_back({ "\"", "\"" });
 
-							parser_engine.block_parse(&parser_engine.tree, 0, parser_engine.words.words.size(), new_position, array_symbols, &parser_engine.words);
+							parser_core.block_parse(&parser_core.tree, 0, parser_core.words.words.size(), new_position, array_symbols, &parser_core.words);
 
 							std::chrono::high_resolution_clock::time_point timer_parse_tree_start = std::chrono::high_resolution_clock::now();
 
-							parser_engine.parse_tree();
+							parser_core.parse_tree();
 
 							std::chrono::high_resolution_clock::time_point end = std::chrono::high_resolution_clock::now();
 
@@ -233,14 +233,14 @@ namespace pel
 							print(fg(fmt::color::coral), "{}", result.count());
 							print(fg(fmt::color::azure), "us\n");
 
-							parser_engine.delete_alloc();
+							parser_core.delete_alloc();
 						}
 					}
 				}
 			}
 			else
 			{
-				parser_engine.group_init();
+				parser_core.group_init();
 
 				pel::groups::group_result_t group_result;		
 				pel::groups::array_words_t  array_words;
@@ -253,7 +253,7 @@ namespace pel
 
 				bool last_glut = false, last_split = false;
 
-				if (parser_engine.is_render_group)
+				if (parser_core.is_render_group)
 				{
 					print(fg(fmt::color::green_yellow), "Debug groups to base symbols\n\n");
 				}
@@ -264,20 +264,20 @@ namespace pel
 					{
 						for (auto sub_test : all_tests[i]->values)
 						{
-							parser_engine.code = sub_test.name;
+							parser_core.code = sub_test.name;
 
-							fmt::print("pel <- {}\nList signature: \n", parser_engine.code);
+							fmt::print("pel <- {}\nList signature: \n", parser_core.code);
 
 							std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
-							for (size_t w = 0; w < parser_engine.code.length(); w++)
+							for (size_t w = 0; w < parser_core.code.length(); w++)
 							{
 								// copy iteration ? sound sad
-								groups::group_element_t element(parser_engine.code[w]);
+								groups::group_element_t element(parser_core.code[w]);
 
-								parser_engine.group_parse(element, group_result);
+								parser_core.group_parse(element, group_result);
 
-								if (parser_engine.is_render_group) {
+								if (parser_core.is_render_group) {
 									print(fg(fmt::color::thistle), "\"{0}\": ", (char) element.element);
 
 									std::size_t k = 0;
@@ -305,7 +305,7 @@ namespace pel
 									if (group_result.groups[0]->is_split || group_result.groups[0]->is_ignore)
 									{
 										std::size_t level = 0;
-										parser_engine.process_executive_array_words(array_words, level);
+										parser_core.process_executive_array_words(array_words, level);
 
 										array_words.clear();
 
@@ -376,7 +376,7 @@ namespace pel
 												it->last_position += 1;
 											}
 
-											parser_engine.process_executive_array_words(array_words, level);
+											parser_core.process_executive_array_words(array_words, level);
 											array_words.clear();
 										}
 									}
@@ -443,7 +443,7 @@ namespace pel
 									}
 								}
 															
-								if (parser_engine.is_render_group) {
+								if (parser_core.is_render_group) {
 
 									if (!group_result.groups.empty())
 									{
@@ -460,7 +460,7 @@ namespace pel
 							}
 							
 							std::size_t level = 0;
-							parser_engine.process_executive_array_words(array_words, level);
+							parser_core.process_executive_array_words(array_words, level);
 							array_words.clear();
 
 							std::chrono::high_resolution_clock::time_point timer_parse_tree_start = std::chrono::high_resolution_clock::now();
@@ -474,7 +474,7 @@ namespace pel
 							print(fg(fmt::color::coral), "{}", result_timer.count());
 							print(fg(fmt::color::azure), "us\n");
 						
-							parser_engine.delete_alloc();
+							parser_core.delete_alloc();
 						}
 					}					
 				}
@@ -872,10 +872,12 @@ namespace pel
 						if (next_tree)
 						{
 							auto next_word = next_tree->get_value();
+							auto this_word = tree_words->get_value();
 
 							if (next_word)
 							{
-								next_word->obj.is_not = true;
+								// yeah, for double not
+								next_word->obj.is_not = !this_word->obj.is_not;
 							}
 						}
 					}
@@ -944,12 +946,12 @@ namespace pel
 
 								if (it.name == "group")
 								{
-									parser_engine.is_render_group = true;
+									parser_core.is_render_group = true;
 								}
 
 								if (it.name == "tree")
 								{
-									parser_engine.is_render_tree = true;
+									parser_core.is_render_tree = true;
 								}
 							}
 
@@ -1017,6 +1019,9 @@ namespace pel
 			bool is_global_comments = false;
 			bool is_ignore_next = false;
 
+			bool is_ignore_push = false;
+			bool is_ignore_next_push = false;
+
 			bool is_no_recursion = false;
 			std::string no_recursion_str = "";
 			tree_obj_base_t* range_tree = nullptr;
@@ -1025,6 +1030,12 @@ namespace pel
 
 			for (std::size_t i = position_start; i < position_end; i++)
 			{
+				if (is_ignore_next_push)
+				{
+					is_ignore_next_push = false;
+					is_ignore_push		= true;
+				}
+
 				is_skip = false;
 
 				if (max_size_words == (i + 1))
@@ -1043,15 +1054,12 @@ namespace pel
 					{
 						is_comment_line = true;
 					}
-				}
-
-				if (base_words->words[i].words_base.data == "/" && next_word && !is_comment_line && !is_global_comments)
-				{
-					if (next_word->words_base.data == "*")
+					else if (next_word->words_base.data == "*")
 					{
 						is_global_comments = true;
 					}
 				}
+
 
 				/* stop range */
 				if (is_no_recursion && no_recursion_str == base_words->words[i].words_base.data)
@@ -1183,7 +1191,6 @@ namespace pel
 
 					if (base_words->words[i].words_base.is_new_line() && is_comment_line) {
 						is_comment_line = false;
-						//is_ignore_next  = true;
 					}
 
 					if (base_words->words[i].words_base.data == "*" && next_word && is_global_comments)
@@ -1191,11 +1198,24 @@ namespace pel
 						if (next_word->words_base.data == "/")
 						{
 							is_global_comments = false;
-							is_ignore_next = true;
+							is_ignore_next     = true;
+							is_ignore_push     = true;
+							is_ignore_next_push = true;
 						}
 					}
 
-					mother_tree->push(&base_words->words[i]);
+					if (!is_comment_line && !is_global_comments) {
+
+						if (is_ignore_push)
+						{
+							is_ignore_push = false;
+
+						}
+						else {
+							mother_tree->push(&base_words->words[i]);
+						}
+		
+					}
 				}			
 			}
 
@@ -1293,7 +1313,7 @@ namespace pel
 			delete tree_words;
 			tree_words = nullptr;
 
-			build(*this, &parser_engine.global_gcmd, &parser_engine.recursion_gcmd, &parser_engine.repeat_gcmd, &parser_engine.global_gcmd_group);
+			build(*this, &parser_core.global_gcmd, &parser_core.recursion_gcmd, &parser_core.repeat_gcmd, &parser_core.global_gcmd_group);
 		}
 
 		// cpp prototype version
@@ -1555,13 +1575,13 @@ namespace pel
 					{
 						if (is_debug)
 						{
-							parser_engine.is_render_tree = is_print_tree;
+							parser_core.is_render_tree = is_print_tree;
 							is_render_code_in_console = is_module_render_code;
-							parser_engine.is_render_group = is_module_render_group;
+							parser_core.is_render_group = is_module_render_group;
 						}
 						else
 						{
-							parser_engine.is_render_tree = false;
+							parser_core.is_render_tree = false;
 							is_render_code_in_console = false;
 						}
 
@@ -2171,6 +2191,9 @@ namespace pel
 
 		if (is_in_chain && original_obj)
 		{
+			if (original_obj->is_not)
+				std::add_flag(cmd->flag, parser::executive::parser_not);
+
 			if (original_obj->is_maybe)
 				std::add_flag(cmd->flag, parser::executive::parser_maybe);
 
@@ -2369,11 +2392,11 @@ namespace pel
 				{
 					get_property(parent, it);
 						
-					for (size_t i = 0; i < pel_lang.parser_engine.global_gcmd_group.size(); i++)
+					for (size_t i = 0; i < pel_lang.parser_core.global_gcmd_group.size(); i++)
 					{
-						if (pel_lang.parser_engine.global_gcmd_group[i].gcmd->get_value().group.name == word.data)
+						if (pel_lang.parser_core.global_gcmd_group[i].gcmd->get_value().group.name == word.data)
 						{
-							parent->get_value().group = &pel_lang.parser_engine.global_gcmd_group[i].gcmd->get_value().group;
+							parent->get_value().group = &pel_lang.parser_core.global_gcmd_group[i].gcmd->get_value().group;
 							is_find = true;
 							break;
 						}
@@ -2626,8 +2649,8 @@ namespace pel
 		pel_lang.error_context.print_console(&pel_lang.code_render);
 			
 		if (!pel_lang.error_context.is_error()) {
-			parser::executive::make_commands(global_gcmd, recursion_gcmd, repeat_gcmd, pel_lang.parser_engine.is_render_tree);
-			parser::executive::groups::make_commands(global_gcmd_group, pel_lang.parser_engine.is_render_tree && pel_lang.parser_engine.is_render_group);
+			parser::executive::make_commands(global_gcmd, recursion_gcmd, repeat_gcmd, pel_lang.parser_core.is_render_tree);
+			parser::executive::groups::make_commands(global_gcmd_group, pel_lang.parser_core.is_render_tree && pel_lang.parser_core.is_render_group);
 		}
 	}
 }

@@ -206,6 +206,7 @@ namespace parser
                    std::size_t need_remove = 0;
                    bool is_skip_next;
                    bool is_skip_subsets;
+                   bool is_skip_from_parent;
                 
                    if (command_graph->is_value)
                        process_signature_base(command_graph, arg, count_signatures, is_use, is_render_tree, is_skip_next, is_skip_subsets);
@@ -220,7 +221,7 @@ namespace parser
                            {
                                if (command_graph->tree[i]->is_last())
                                {
-                                   last_parent(command_graph, command_graph->tree[0], command_graph->tree[i], arg, count_signatures, is_use, is_render_tree);
+                                   last_parent(command_graph, command_graph->tree[0], command_graph->tree[i], arg, count_signatures, is_use, is_render_tree, is_skip_from_parent);
                                }
                            }     
                        }
@@ -234,8 +235,9 @@ namespace parser
  
                    std::size_t counter_level = 0; // 0 - root
                    bool is_exit_recursion = false;
-                   bool is_skip_all = false;
-                   bool is_skip_subsets = false;
+                   bool is_skip_all       = false;
+                   bool is_skip_subsets   = false;
+                   bool is_skip_from_parent = false;
 
                    for (;;)
                    {
@@ -276,7 +278,11 @@ namespace parser
 
                                if (current_graph->is_last())
                                {
-                                   last_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, arg, count_signatures, is_use, is_render_tree);
+                                   last_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, arg, count_signatures, is_use, is_render_tree, is_skip_from_parent);
+                                   
+                                   if (is_skip_from_parent)
+                                       return;
+                               
                                }
                            }
 
@@ -298,8 +304,10 @@ namespace parser
                                    
                                    if (current_graph->is_value && current_graph->root->is_process) {
 
-                                       last_parent(current_graph, current_graph->size() > 0 ? current_graph->tree[0] : nullptr, current_graph->size() > 0 ? current_graph->tree[current_graph->size() - 1] : nullptr, arg, count_signatures, is_use, is_render_tree);
+                                       last_parent(current_graph, current_graph->size() > 0 ? current_graph->tree[0] : nullptr, current_graph->size() > 0 ? current_graph->tree[current_graph->size() - 1] : nullptr, arg, count_signatures, is_use, is_render_tree, is_skip_from_parent);
 
+                                       if (is_skip_from_parent)
+                                           return;
                                    }
                                }
 
@@ -596,7 +604,7 @@ namespace parser
 {
     namespace executive
     {
-        class parser_engine_t : public parser::executive::base_parser_t, public parser::block_parser_t, public parser::words_parser_t
+        class parser_core_t : public parser::executive::base_parser_t, public parser::block_parser_t, public parser::words_parser_t
         {
         public:
             std::string               code;

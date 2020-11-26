@@ -1,11 +1,13 @@
-#module {tree};
+#module { tree };
 
 group space   : { " " }  = execute, ignore;
 group symbol  : { ";," } = execute, split;
 group word    : { !space and !symbol } = execute, glue;
 
-
+type a : { "a" };
 type b : { "b" };
-type main : { "a", b = repeat } = execute;
+type c : { "c" };
 
-test test1 : { "a b c b" };
+type main : { {{ a, b } or { not a, c }}, { "1" or "."} } = execute;
+
+test test1 : { "b c;" };

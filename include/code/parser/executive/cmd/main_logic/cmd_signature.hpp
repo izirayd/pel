@@ -132,7 +132,7 @@ namespace parser
             cmd_t* root_cmd   = &command_graph->root->get_value();
         }
 
-        void last_parent(gcmd_t* command_graph, gcmd_t* first_child_graph, gcmd_t* last_child_graph, base_arg_t* arg, int count_signatures, bool& is_use, bool is_render_tree)
+        void last_parent(gcmd_t* command_graph, gcmd_t* first_child_graph, gcmd_t* last_child_graph, base_arg_t* arg, int count_signatures, bool& is_use, bool is_render_tree, bool &is_skip_from_parent)
         {
             cmd_t* cmd        = &command_graph->get_value();
             cmd_t* parent_cmd = &command_graph->parent->get_value();
@@ -380,23 +380,13 @@ namespace parser
             }
 
 #ifdef FIRST_CHILD_OPTIMISITION
-            //if (cmd->is_end_find)
-            //{
-            //    if (command_graph->next) {
-
-            //        //if (command_graph->parent->first_child->get_value().is_end_find) 
-            //        {
-            //            command_graph->next->get_value().is_inc_current_index_parrent = cmd->is_inc_current_index_parrent;
-            //            command_graph->parent->first_child = command_graph->next;
-            //        }
-            //    }
-            //}
-
             if (cmd->is_end_find)
             {
                 if (command_graph->next) {
+
+                   if (cmd->is_inc_current_index_parrent)
+                       parent_cmd->is_inc_current_index = false;
                     
-                 //  command_graph->next->get_value().is_inc_current_index_parrent = cmd->is_inc_current_index_parrent;
                    command_graph->next->parent->get_value().is_move_current_index_in_next_it = cmd->is_inc_current_index_parrent;
                    command_graph->parent->first_child = command_graph->next;
                     
@@ -412,7 +402,6 @@ namespace parser
             {
                 final_signature(command_graph, arg, count_signatures, is_use);
             }
-
         }
 
         void process_signature_base(gcmd_t* command_graph, base_arg_t* arg, int count_signatures, bool& is_use, bool is_render_tree, bool &is_skip_all, bool &is_skip_subsets)
@@ -710,7 +699,6 @@ namespace parser
 
                     // insert after
                     position++;
-
                  
                     command_graph->parent->insert(node, position);
 
@@ -908,8 +896,6 @@ namespace parser
 
                         parent_cmd->status_process = cmd->status_process;
 
-                        //parent_cmd->current_index++;
-                      //  parent_cmd->is_move_current_index_in_next_it = true;
                         parent_cmd->is_inc_current_index = true;
                         show_tree fmt::print(fg(fmt::color::dark_orchid), " [start inc next for {}]", parent_cmd->value);
                     }
