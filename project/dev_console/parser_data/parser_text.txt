@@ -1,11 +1,13 @@
-
-#module {tree};
+// exist квант существования, заменить execute на exist?
+#module { tree }; 
 
 group space   : { " " }  = execute, ignore;
 group symbol  : { ";," } = execute, split;
 group word    : { !space and !symbol } = execute, glue;
 
 
-type a1 : { "1" -> "2" -> "3" : "4" : { "4", "5" }}  = execute;
+//"a" -> "b" : {a, b}
+//"a" -> "b" -> "c" : {a, { "b", "c" }}
+type a1 : { "1" -> "2" -> "3" : "4" }  = execute;
 
-test t1 : { "x 4 5" };
+

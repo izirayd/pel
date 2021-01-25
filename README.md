@@ -44,3 +44,24 @@ Graph debug:
 - [x] Created a system for working with files and uploading in real time for developer mode.
 - [x] Created command system.
 - [x] Graph system created.
+
+## Sample code of PEL
+
+In this example, a variable is read, where its type is determined, and any name that does not contain symbols is selected.
+
+```cpp
+#module {tree};
+
+group space   : { " " }  = execute, ignore;
+group symbol  : { ";," } = execute, split;
+group word    : { !space and !symbol } = execute, glue;
+
+
+type int    : { "int" };
+type string : { "string" };
+type float  : { "float" };
+
+type read_type : { int or string or float };
+type var_name  : { word };
+type var_decl  : { read_type, var_name, ";"  } = execute;
+```
