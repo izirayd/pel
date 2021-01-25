@@ -1,9 +1,11 @@
 
+#module {tree};
+
 group space   : { " " }  = execute, ignore;
 group symbol  : { ";," } = execute, split;
 group word    : { !space and !symbol } = execute, glue;
 
 
-type a1 : { "1" -> "2" }  = execute;
+type a1 : { "1" -> "2" -> "3" : "4" : { "4", "5" }}  = execute;
 
-test t1 : { "1 2" };
+test t1 : { "x 4 5" };

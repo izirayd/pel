@@ -55,6 +55,9 @@
     <Filter Include="pel\code\detail\fmt\fmt">
       <UniqueIdentifier>{14935f20-ebf5-4400-9c89-dcc07626199f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="pel\code\parser\pel_parser\cpp_parser">
+      <UniqueIdentifier>{016a183d-5b51-445d-8eeb-5013bd51eaaa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dev_console.cpp">
@@ -217,6 +220,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\code\ast.hpp">
       <Filter>pel\code</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\parser\pel_parser\cpp_parser\cpp_parser.hpp">
+      <Filter>pel\code\parser\pel_parser\cpp_parser</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

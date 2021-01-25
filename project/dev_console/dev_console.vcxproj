@@ -193,6 +193,7 @@
     <ClInclude Include="..\..\include\code\parser\executive\code_render.hpp" />
     <ClInclude Include="..\..\include\code\parser\executive\error_context.hpp" />
     <ClInclude Include="..\..\include\code\parser\executive\executive_parser.hpp" />
+    <ClInclude Include="..\..\include\code\parser\pel_parser\cpp_parser\cpp_parser.hpp" />
     <ClInclude Include="..\..\include\code\parser\pel_parser\pel_parser.hpp" />
     <ClInclude Include="..\..\include\code\words.hpp" />
     <ClInclude Include="..\..\include\code\words_parser.hpp" />
