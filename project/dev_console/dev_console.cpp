@@ -3,6 +3,7 @@
 */
 
 #include <pel.hpp>
+
 #include <code\detail\file.hpp>
 #include <code\detail\file_watcher/FileWatcher.h>
 #include <code\detail\path.hpp>
@@ -188,38 +189,50 @@ void start(int count_th)
 }
 
 
+class output_handle_t {
+public:
+
+	void init() {
+
+#ifdef PLATFORM_WINDOWS
+		// for color FMT
+		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+
+		if (hOut == INVALID_HANDLE_VALUE)
+		{
+			fmt::print("Error init STD_OUTPUT_HANDLE %u\n", GetLastError());
+			return;
+		}
+
+		DWORD dwMode = 0;
+
+		if (!GetConsoleMode(hOut, &dwMode))
+		{
+			fmt::print("Error init GetConsoleMode %u\n", GetLastError());
+			return;
+		}
+
+		dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+
+		if (!SetConsoleMode(hOut, dwMode))
+		{
+			fmt::print("Error init SetConsoleMode %u\n", GetLastError());
+			return;
+		}
+
+#endif // PLATFORM_WINDOWS
+	}
+
+};
+
 int main()
 {
 	std::system("title PEL DEV: Parser Engine Lang Dev console");
 
-#ifdef PLATFORM_WINDOWS
-	// for color FMT
-	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	if (hOut == INVALID_HANDLE_VALUE)
-	{
-		return GetLastError();
-	}
-
-	DWORD dwMode = 0;
-	if (!GetConsoleMode(hOut, &dwMode))
-	{
-		return GetLastError();
-	}
-
-	dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-	if (!SetConsoleMode(hOut, dwMode))
-	{
-		return GetLastError();
-	}
-
-#endif // PLATFORM_WINDOWS
+	output_handle_t output_handle;
+	output_handle.init();
 
 	fmt::print(fmt::fg(fmt::color::coral), "Dev version with render code pel, with tree code. v{0}.{1}\n\n",  PEL_VERSION_MAJOR, PEL_VERSION_MINOR);
-
-	//fmt::print("class size ");
-	//fmt::print(fmt::fg(fmt::color::aqua), "cmd_t");
-	//fmt::print(": ");
-	//fmt::print(fmt::fg(fmt::color::aquamarine), "{}\n", sizeof(tree_t<pel::pel_parser_t::obj_base_t>));
 
 	start(1);
 

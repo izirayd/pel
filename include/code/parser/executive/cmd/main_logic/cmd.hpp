@@ -231,13 +231,13 @@ namespace parser
 				is_move_current_index_in_next_it     = false;	
 				is_move_current_index_in_next_it_tmp = false;
 
-				is_inc_current_index_parrent = false;
+				is_inc_current_index_parent = false;
 			}
 
 			// cast in std::flag8_t ?
 			bool is_end_find          = false;
 			bool is_inc_current_index = false;
-			bool is_inc_current_index_parrent = false;
+			bool is_inc_current_index_parent = false;
 			bool is_check             = false;
 			bool is_finaly_or		  = false;
 			bool is_last			  = false;

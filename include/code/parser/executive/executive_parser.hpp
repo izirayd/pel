@@ -19,6 +19,16 @@ namespace parser
 {
     namespace executive
     {
+        class debug_page_t {
+        public:
+
+        };
+
+        class debug_context_t {
+        public:
+
+        };
+
         class base_parser_t
         {
            public:
@@ -234,9 +244,9 @@ namespace parser
                    gcmd_t* current_graph   = command_graph->root;
  
                    std::size_t counter_level = 0; // 0 - root
-                   bool is_exit_recursion = false;
-                   bool is_skip_all       = false;
-                   bool is_skip_subsets   = false;
+                   bool is_exit_recursion   = false;
+                   bool is_skip_all         = false;
+                   bool is_skip_subsets     = false;
                    bool is_skip_from_parent = false;
 
                    for (;;)
@@ -319,13 +329,6 @@ namespace parser
                        }
 
                        if (is_exit_recursion) {
-
-                           //if (current_graph->is_value && current_graph->is_process) {
-                         
-                           //    last_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, arg, count_signatures, is_use);
-                           //    
-                           //}
-
                            break;
                        }
                    }

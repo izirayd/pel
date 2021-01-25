@@ -191,7 +191,7 @@ namespace parser
                     fmt::print("]");
 
                     fmt::print(" [");
-                    fmt::print(fg(fmt::color::coral), "parrent");
+                    fmt::print(fg(fmt::color::coral), "parent");
                     fmt::print("]");
 
                     fmt::print(" pos: {0} pci: {1} ci: {2}", command_graph->position, parent_cmd->current_index, cmd->current_index);
@@ -233,7 +233,7 @@ namespace parser
 
                         if (len_graph == 0)
                         {
-                            state_move = true;
+                            state_move      = true;
                             tmp_status_find = command_graph->tree[i]->get_value().status_process.status_find;
                         }
 
@@ -267,7 +267,7 @@ namespace parser
                 {
                     if (state_move)
                     {
-                        cmd->is_inc_current_index_parrent = true;
+                        cmd->is_inc_current_index_parent = true;
 
                         show_tree fmt::print(fg(fmt::color::light_pink), " [start inc for {}]", parent_cmd->value);
                     }
@@ -384,10 +384,10 @@ namespace parser
             {
                 if (command_graph->next) {
 
-                   if (cmd->is_inc_current_index_parrent)
+                   if (cmd->is_inc_current_index_parent)
                        parent_cmd->is_inc_current_index = false;
                     
-                   command_graph->next->parent->get_value().is_move_current_index_in_next_it = cmd->is_inc_current_index_parrent;
+                   command_graph->next->parent->get_value().is_move_current_index_in_next_it = cmd->is_inc_current_index_parent;
                    command_graph->parent->first_child = command_graph->next;
                     
                 }
@@ -583,7 +583,7 @@ namespace parser
             }
 
             // TODO: Имеет ли проблемы ситуация с комментированием cmd->is_or() && cmd->is_end_find && ?
-            if (/*cmd->is_or() && cmd->is_end_find &&*/ cmd->is_inc_current_index_parrent)
+            if (/*cmd->is_or() && cmd->is_end_find &&*/ cmd->is_inc_current_index_parent)
             {
 
                 show_tree fmt::print(" [");
@@ -595,7 +595,7 @@ namespace parser
                 show_tree fmt::print("]");
 
                 parent_cmd->current_index++;
-                cmd->is_inc_current_index_parrent = false;
+                cmd->is_inc_current_index_parent = false;
 
             }
 
@@ -622,7 +622,7 @@ namespace parser
                     if (is_render_tree)
                     {
                         show_tree fmt::print(" [");
-                        show_tree fmt::print(fg(fmt::color::blue_violet), "inc parrent next");
+                        show_tree fmt::print(fg(fmt::color::blue_violet), "inc parent next");
                         show_tree fmt::print("]");
 
                         show_tree fmt::print(" [");

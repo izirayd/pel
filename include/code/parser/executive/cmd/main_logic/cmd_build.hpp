@@ -19,7 +19,7 @@ namespace parser
 				it.gcmd->stop_process();
 
 				/*it.gcmd->process_function["base"]         = detail::bind_function(&calc_position_in_graph, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
-				it.gcmd->process_function["last_parent"] = detail::bind_function(&calc_position_in_graph_for_parrent, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+				it.gcmd->process_function["last_parent"] = detail::bind_function(&calc_position_in_graph_for_parent, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
 
 				it.gcmd->start_process(it.count_signatures, is_render_tree);
 

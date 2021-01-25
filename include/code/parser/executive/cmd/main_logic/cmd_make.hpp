@@ -202,6 +202,11 @@ namespace parser
 
 			if (!cmd->value.empty())
 			{
+				if (cmd->is_not())
+				{
+					show_tree fmt::print(fg(fmt::color::yellow), " not");
+				}
+
 				if (command_graph->is_root)
 				{
 					show_tree fmt::print(fg(fmt::color::coral), " {}", cmd->value);

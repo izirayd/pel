@@ -1,13 +1,9 @@
-#module { tree };
 
 group space   : { " " }  = execute, ignore;
 group symbol  : { ";," } = execute, split;
 group word    : { !space and !symbol } = execute, glue;
 
-type a : { "a" };
-type b : { "b" };
-type c : { "c" };
 
-type main : { {{ a, b } or { not a, c }}, { "1" or "."} } = execute;
+type a1 : { "1" -> "2" }  = execute;
 
-test test1 : { "b c;" };
+test t1 : { "1 2" };

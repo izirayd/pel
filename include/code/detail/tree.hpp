@@ -197,7 +197,6 @@ public:
 		return &tree.back()->get_value();
 	}
 
-
 	tree_t<data_value_t>* parent   = nullptr; // родитель
 	tree_t<data_value_t>* root     = nullptr;
 
@@ -205,6 +204,18 @@ public:
 	tree_t<data_value_t>* next	   = nullptr;
 	tree_t<data_value_t>* first_child = nullptr;
 	tree_t<data_value_t>* real_first_child = nullptr; // for reset state
+
+
+	void* get_user_data() { return user_data; }
+
+	void set_user_data(void* new_data) {
+		user_data = new_data
+			;
+	};
+
+	void* user_data = nullptr;
+
+
 
 	bool    is_root    = true;
 

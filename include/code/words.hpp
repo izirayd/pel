@@ -24,11 +24,11 @@ inline bool it_new_line(const char symbol)				  { return symbol == '\n'; }
 
 struct words_base_t
 {
+	std::string   data;
+	std::flag16_t type;
+
 	words_base_t() { std::clear_flag(type); };
 	words_base_t(std::flag16_t t, const std::string& str) { type = t; data = str; }
-
-	std::flag16_t type;
-	std::string   data;
 
 	std::size_t number_line    = 0;
 	std::size_t start_position = 0;

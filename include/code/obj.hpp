@@ -45,6 +45,9 @@ namespace pel
 		bool is_repeat     = false;
 		bool is_repeat_end = false;
 
+		bool is_condition_true  = false;
+		bool is_condition_false = false;
+
 		words_base_t word;
 
 		std::vector<obj_t> values;
@@ -92,6 +95,10 @@ namespace pel
 			is_breakpoint = false;
 			is_repeat = false;
 			is_repeat_end = false;
+
+			is_condition_true = false;
+			is_condition_false = false;
+
 		}
 	};
 }
