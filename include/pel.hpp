@@ -2,7 +2,7 @@
   PEL - parser engine of library
   at the moment it is a prototype
 
-  Version: 0.1 prototype
+  Version: 0.2 prototype
   https://github.com/izirayd/pel
 */
 
@@ -11,4 +11,4 @@
 #define PEL_LIBRARY
 
 constexpr auto PEL_VERSION_MAJOR = 0;
-constexpr auto PEL_VERSION_MINOR = 1;
+constexpr auto PEL_VERSION_MINOR = 2;
