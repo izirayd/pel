@@ -487,11 +487,17 @@ namespace parser
                             fmt::print(fg(fmt::color::blanched_almond), " {}", cmd->value);
                         }
 
-                        if (cmd->is_value())
+                        if (cmd->is_true() || cmd->is_false())
                         {
-                            fmt::print(fg(fmt::color::thistle), " \"{}\"", cmd->value);
+                            show_tree fmt::print(fg(fmt::color::gold), " {}", cmd->value);
                         }
+                        else {
 
+                            if (cmd->is_value())
+                            {
+                                fmt::print(fg(fmt::color::thistle), " \"{}\"", cmd->value);
+                            }
+                        }
                         if (cmd->is_group())
                         {
                             fmt::print(fg(fmt::color::khaki), " {}", cmd->value);
@@ -695,7 +701,7 @@ namespace parser
        
                     cmd->is_status_allocate_repeat_graph = true;
 
-                    node->get_value().value = "repeat " + node->get_value().value;
+                    node->get_value().value = node->get_value().value;
 
                     // insert after
                     position++;
@@ -838,6 +844,12 @@ namespace parser
             // inversion
             if (cmd->is_not())
                 status = !status;
+
+            if (cmd->is_true())
+                status = 1;
+
+            if (cmd->is_false())
+                status = 0;
 
             if (cmd->is_maybe())
                 status = 1;

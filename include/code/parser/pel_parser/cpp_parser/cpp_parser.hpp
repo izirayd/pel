@@ -1029,8 +1029,6 @@ namespace pel {
 							{
 								if (!it_word->words_base.data.empty())
 								{
-									it_word->obj.is_type = true;
-
 									if (previous_object) {
 
 										if (previous_object->words_base.data == "->") {
@@ -1044,6 +1042,27 @@ namespace pel {
 
 									it_word->obj.name = it_word->words_base.data;
 									it_word->obj.word = it_word->words_base;
+
+									/*
+									  We need cast keyword true and false in value
+									*/
+									if (it_word->obj.name == "true") {
+
+										it_word->obj.is_value         = true;
+										it_word->obj.is_true          = true; // lul
+										it_word->obj.is_autogen_block = true;
+
+									}
+									else if (it_word->obj.name == "false")
+									{
+										it_word->obj.is_value         = true;
+										it_word->obj.is_false         = true;
+										it_word->obj.is_autogen_block = true;
+									}
+									else
+									{
+										it_word->obj.is_type = true;
+									}
 
 									word->obj.values.push_back(it_word->obj);
 								}

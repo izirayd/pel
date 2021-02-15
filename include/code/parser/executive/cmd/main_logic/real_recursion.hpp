@@ -153,7 +153,7 @@ namespace parser
 				}
 				else
 				{
-					if (cmd->is_or() || cmd->is_xor())
+					if (cmd->is_or())
 					{
 						cmd->is_last = true;
 						return;

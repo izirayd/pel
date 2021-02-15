@@ -533,98 +533,103 @@ namespace pel
 		//}
 
 		if (obj->is_type)
-			std::add_flag(cmd->flag, parser::executive::parser_type);
+			std::add_flag(cmd->flag, parser::executive::quantum_type);
 
 		if (obj->is_value)
-			std::add_flag(cmd->flag, parser::executive::parser_value);
+			std::add_flag(cmd->flag, parser::executive::quantum_value);
 
 		if (obj->is_execute)
-			std::add_flag(cmd->flag, parser::executive::parser_execute);
+			std::add_flag(cmd->flag, parser::executive::quantum_execute);
 
 		if (obj->is_group) {
 
 			if (obj->is_type)
-				std::del_flag(cmd->flag, parser::executive::parser_type);
+				std::del_flag(cmd->flag, parser::executive::quantum_type);
 
 			if (obj->is_execute)
-				std::del_flag(cmd->flag, parser::executive::parser_execute);
+				std::del_flag(cmd->flag, parser::executive::quantum_execute);
 
-			std::add_flag(cmd->flag, parser::executive::parser_group);
+			std::add_flag(cmd->flag, parser::executive::quantum_group);
 		}
 
 		if (obj->is_not)
-			std::add_flag(cmd->flag, parser::executive::parser_not);
+			std::add_flag(cmd->flag, parser::executive::quantum_not);
 
 		if (obj->is_breakpoint)
-			std::add_flag(cmd->flag, parser::executive::parser_breakpoint);
+			std::add_flag(cmd->flag, parser::executive::quantum_breakpoint);
+
+		if (obj->is_true)
+			std::add_flag(cmd->flag, parser::executive::quantum_true);
+
+		if (obj->is_false)
+			std::add_flag(cmd->flag, parser::executive::quantum_false);
 
 		if (obj->is_maybe)
-			std::add_flag(cmd->flag, parser::executive::parser_maybe);
+			std::add_flag(cmd->flag, parser::executive::quantum_maybe);
 
 		if (obj->is_exit)
-			std::add_flag(cmd->flag, parser::executive::parser_exit);
+			std::add_flag(cmd->flag, parser::executive::quantum_exit);
 
 		if (obj->is_return)
-			std::add_flag(cmd->flag, parser::executive::parser_return);
+			std::add_flag(cmd->flag, parser::executive::quantum_return);
 
 		if (obj->is_or) {
-			std::add_flag(cmd->flag, parser::executive::parser_or);
-			std::del_flag(cmd->flag, parser::executive::parser_and);
-			std::del_flag(cmd->flag, parser::executive::parser_xor);
+			std::add_flag(cmd->flag, parser::executive::quantum_or);
+			std::del_flag(cmd->flag, parser::executive::quantum_and);
 		}
 
-		if (obj->is_xor) {
-			std::add_flag(cmd->flag, parser::executive::parser_xor);
-			std::del_flag(cmd->flag, parser::executive::parser_and);
-			std::del_flag(cmd->flag, parser::executive::parser_or);
-		}
 
 		if (obj->is_and) {
-			std::add_flag(cmd->flag, parser::executive::parser_and);
-			std::del_flag(cmd->flag, parser::executive::parser_or);
-			std::del_flag(cmd->flag, parser::executive::parser_xor);
+			std::add_flag(cmd->flag, parser::executive::quantum_and);
+			std::del_flag(cmd->flag, parser::executive::quantum_or);
 		}
 
-		if ((!cmd->is_or() && !cmd->is_xor() && !cmd->is_and()))
+		if ((!cmd->is_or()  && !cmd->is_and()))
 			std::add_flag(cmd->flag, parser::executive::empty_operation);
 
 		if (obj->is_recursion)
-			std::add_flag(cmd->flag, parser::executive::parser_recursion);
+			std::add_flag(cmd->flag, parser::executive::quantum_recursion);
 
 		if (obj->is_repeat)
-			std::add_flag(cmd->flag, parser::executive::parser_repeat);
+			std::add_flag(cmd->flag, parser::executive::quantum_repeat);
 
 		if (obj->is_repeat_end)
-			std::add_flag(cmd->flag, parser::executive::parser_repeat_end);
+			std::add_flag(cmd->flag, parser::executive::quantum_repeat_end);
 
 		if (obj->is_autogen_block)
-			std::add_flag(cmd->flag, parser::executive::parser_autogen);
+			std::add_flag(cmd->flag, parser::executive::quantum_autogen);
 
 		if (is_in_chain && original_obj)
 		{
 			if (original_obj->is_not)
-				std::add_flag(cmd->flag, parser::executive::parser_not);
+				std::add_flag(cmd->flag, parser::executive::quantum_not);
 
 			if (original_obj->is_maybe)
-				std::add_flag(cmd->flag, parser::executive::parser_maybe);
+				std::add_flag(cmd->flag, parser::executive::quantum_maybe);
 
 			if (original_obj->is_exit)
-				std::add_flag(cmd->flag, parser::executive::parser_exit);
+				std::add_flag(cmd->flag, parser::executive::quantum_exit);
 
 			if (original_obj->is_return)
-				std::add_flag(cmd->flag, parser::executive::parser_return);
+				std::add_flag(cmd->flag, parser::executive::quantum_return);
 
 			if (original_obj->is_recursion)
-				std::add_flag(cmd->flag, parser::executive::parser_recursion);
+				std::add_flag(cmd->flag, parser::executive::quantum_recursion);
 
 			if (original_obj->is_repeat)
-				std::add_flag(cmd->flag, parser::executive::parser_repeat);
+				std::add_flag(cmd->flag, parser::executive::quantum_repeat);
 
 			if (original_obj->is_repeat_end)
-				std::add_flag(cmd->flag, parser::executive::parser_repeat_end);
+				std::add_flag(cmd->flag, parser::executive::quantum_repeat_end);
 
 			if (original_obj->is_breakpoint)
-				std::add_flag(cmd->flag, parser::executive::parser_breakpoint);
+				std::add_flag(cmd->flag, parser::executive::quantum_breakpoint);
+
+			if (original_obj->is_true)
+				std::add_flag(cmd->flag, parser::executive::quantum_true);
+
+			if (original_obj->is_false)
+				std::add_flag(cmd->flag, parser::executive::quantum_false);
 		}
 
 		gcmd->flush_value();
@@ -908,9 +913,9 @@ namespace pel
 
 		cmd_main->value = names_list->name;
 
-		std::add_flag(cmd_main->flag, parser::executive::parser_or);
-		//std::add_flag(cmd_main->flag, parser::executive::parser_ex); // ????? TODO:
-		std::add_flag(cmd_main->flag, parser::executive::parser_type);
+		std::add_flag(cmd_main->flag, parser::executive::quantum_or);
+		//std::add_flag(cmd_main->flag, parser::executive::quantum_ex); // ????? TODO:
+		std::add_flag(cmd_main->flag, parser::executive::quantum_type);
 
 		for (auto &it : names_list->data)
 		{

@@ -218,10 +218,21 @@ namespace parser
 						show_tree fmt::print(fg(fmt::color::blanched_almond), " {}", cmd->value);
 					}
 
-					if (cmd->is_value())
+
+					if (cmd->is_true() || cmd->is_false())
 					{
-						show_tree fmt::print(fg(fmt::color::thistle), " \"{}\"", cmd->value);
+
+						show_tree fmt::print(fg(fmt::color::gold), " {}", cmd->value);
+
 					}
+					else {
+						if (cmd->is_value())
+						{
+							show_tree fmt::print(fg(fmt::color::thistle), " \"{}\"", cmd->value);
+						}
+					}
+
+			
 
 					if (cmd->is_group())
 					{
@@ -240,12 +251,24 @@ namespace parser
 
 			}
 
-			if (cmd->is_value())
+			if (cmd->is_true() || cmd->is_false())
 			{
+				
 				is_position = true;
 				is_value    = true;
 
-				show_tree fmt::print(fg(fmt::color::deep_sky_blue), " [value]");					
+				show_tree fmt::print(fg(fmt::color::light_pink), " [predicate]");
+			}
+			else {
+
+				if (cmd->is_value())
+				{
+					is_position = true;
+					is_value = true;
+
+					show_tree fmt::print(fg(fmt::color::deep_sky_blue), " [value]");
+				}
+
 			}
 
 			if (cmd->is_or()) {
@@ -278,6 +301,13 @@ namespace parser
 			}
 
 
+			if (cmd->is_repeat()) {
+
+				show_tree  fmt::print(fg(fmt::color::hot_pink), " [repeat]");
+			}
+
+
+
 			if (cmd->is_maybe()) {
 
 				show_tree  fmt::print(fg(fmt::color::bisque), " [maybe]");
@@ -291,14 +321,6 @@ namespace parser
 			if (cmd->is_return()) {
 
 				show_tree  fmt::print(fg(fmt::color::bisque), " [return]");
-			}
-
-			if (cmd->is_xor()) {
-
-				is_xor = true;
-				is_position = true;
-
-				show_tree  fmt::print(" [xor]");
 			}
 
 			if (cmd->is_not()) {

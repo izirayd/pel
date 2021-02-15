@@ -25,7 +25,6 @@ namespace parser
 				property_glue     = 1 << 7,
 				property_split    = 1 << 8,
 				property_ignore   = 1 << 9,
-
 			};
 
 			struct cmd_group_t

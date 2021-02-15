@@ -8,36 +8,32 @@ namespace parser
 {
 	namespace executive
 	{
-		enum parser_flag_t : std::flag32_t
+		enum quantum_flag_t : std::flag32_t
 		{
-			parser_value	  = 1 << 0,
-			parser_any_word   = 1 << 1, // Не актуальна
-			parser_any		  = 1 << 2, // Не актуальна
-			parser_print	  = 1 << 3, // Не актуальна ?
-			parser_open		  = 1 << 4,
-			parser_close	  = 1 << 5, 
-			parser_type		  = 1 << 6,
-			parser_execute    = 1 << 7,
-			parser_block_type = 1 << 8,
-			// Это инструкция сообщает, что дальше по стеку, где-то использоволся or, 
-			// требуется для оптимизиации, учавствует в отмене парсинга
-			// TODO: Не актуальна
-			parser_tree_or    = 1 << 9,  // Не актуальна
-			parser_and		  = 1 << 10,
-			parser_or		  = 1 << 11,
-			parser_xor	      = 1 << 12, // Не актуальна
-			parser_not		  = 1 << 13,
-			parser_tree_xor   = 1 << 14, // Не актуальна
-			empty_operation   = 1 << 15,
-			parser_group	  = 1 << 16,
-			parser_repeat	  = 1 << 17,
-			parser_maybe	  = 1 << 18,
-			parser_return	  = 1 << 19,
-			parser_exit		  = 1 << 20,
-			parser_recursion  = 1 << 21,
-			parser_autogen    = 1 << 22,
-			parser_breakpoint = 1 << 23, // for debug from c++
-			parser_repeat_end = 1 << 24
+			quantum_value	   = 1 << 0,
+			quantum_type	   = 1 << 1,
+			quantum_execute    = 1 << 2,
+			quantum_block_type = 1 << 3,
+			quantum_and		   = 1 << 4,
+			quantum_or		   = 1 << 5,
+			quantum_not		   = 1 << 6,
+			empty_operation    = 1 << 7,
+			quantum_group	   = 1 << 8,
+			quantum_repeat	   = 1 << 9,
+			quantum_maybe	   = 1 << 10,
+			quantum_return	   = 1 << 11,
+			quantum_exit	   = 1 << 12,
+			quantum_recursion  = 1 << 13,
+			quantum_autogen    = 1 << 14,
+			quantum_breakpoint = 1 << 15, // for debug from c++
+			quantum_repeat_end = 1 << 16, 
+			quantum_true       = 1 << 17,
+			quantum_false      = 1 << 18,
+			quantum_global     = 1 << 19,
+			quantum_local      = 1 << 20,
+			quantum_break      = 1 << 21,
+			quantum_break_now  = 1 << 22,
+			quantum_break_all  = 1 << 23,
 		};
 
 		template<typename block_depth_base_t>
@@ -105,8 +101,8 @@ namespace parser
 			{
 				value = v;
 
-				if (!std::check_flag(flag, parser_value))
-					std::add_flag(flag, parser_value);
+				if (!std::check_flag(flag, quantum_value))
+					std::add_flag(flag, quantum_value);
 			}
 
 			cmd_t(const std::string& v, std::flag32_t f) {
@@ -114,8 +110,8 @@ namespace parser
 				value = v;
 				flag  = f;
 
-				if (!std::check_flag(flag, parser_value) && !std::check_flag(flag, parser_type) && !value.empty())
-					std::add_flag(flag, parser_value);
+				if (!std::check_flag(flag, quantum_value) && !std::check_flag(flag, quantum_type) && !value.empty())
+					std::add_flag(flag, quantum_value);
 			}
 
 			cmd_t(std::flag32_t f, const std::string& p) {
@@ -123,53 +119,26 @@ namespace parser
 				print = p;
 				flag  = f;
 
-				if (!std::check_flag(flag, parser_print) && !print.empty())
-					std::add_flag(flag, parser_print);
+			
 			}
 
-			cmd_t(const std::string& v, std::flag32_t f, const std::string& p)
-			{
-				print = p;
-				value = v;
-				flag  = f;
-
-				if (!std::check_flag(flag, parser_value) && !std::check_flag(flag, parser_type) && !value.empty())
-					std::add_flag(flag, parser_value);
-
-				if (!std::check_flag(flag, parser_print) && !print.empty())
-					std::add_flag(flag, parser_print);
-			}
-
-			cmd_t(const std::string& v, const std::string& p)
-			{
-				print = p;
-				value = v;
-
-				if (!std::check_flag(flag, parser_value) && !value.empty() && !std::check_flag(flag, parser_type))
-					std::add_flag(flag, parser_value);
-
-				if (!std::check_flag(flag, parser_print) && !print.empty())
-					std::add_flag(flag, parser_print);
-			}
-
-			inline bool is_or()        { return std::check_flag(flag, parser_or);        }
-			inline bool is_and()       { return std::check_flag(flag, parser_and);       }
-			inline bool is_xor()       { return std::check_flag(flag, parser_xor);       }
-			inline bool is_not()       { return std::check_flag(flag, parser_not);       }
-			inline bool is_value()     { return std::check_flag(flag, parser_value);     }
-			inline bool is_type()      { return std::check_flag(flag, parser_type);      }
-			inline bool is_tree_or()   { return std::check_flag(flag, parser_tree_or);   }
-			inline bool is_tree_xor()  { return std::check_flag(flag, parser_tree_xor);  }
-			inline bool is_execute()   { return std::check_flag(flag, parser_execute);   }
-			inline bool is_group()	   { return std::check_flag(flag, parser_group);     }
-			inline bool is_repeat()	   { return std::check_flag(flag, parser_repeat);    }
-			inline bool is_maybe()	   { return std::check_flag(flag, parser_maybe);     }
-			inline bool is_return()	   { return std::check_flag(flag, parser_return);    }
-			inline bool is_exit()	   { return std::check_flag(flag, parser_exit);      }
-			inline bool is_recursion() { return std::check_flag(flag, parser_recursion); }
-			inline bool is_autogen()   { return std::check_flag(flag, parser_autogen);   }
-			inline bool is_breakpoint(){ return std::check_flag(flag, parser_breakpoint);}
-			inline bool is_repeat_end(){ return std::check_flag(flag, parser_repeat_end);}
+			inline bool is_or()        { return std::check_flag(flag, quantum_or);        }
+			inline bool is_and()       { return std::check_flag(flag, quantum_and);       }
+			inline bool is_not()       { return std::check_flag(flag, quantum_not);       }
+			inline bool is_value()     { return std::check_flag(flag, quantum_value);     }
+			inline bool is_type()      { return std::check_flag(flag, quantum_type);      }
+			inline bool is_execute()   { return std::check_flag(flag, quantum_execute);   }
+			inline bool is_group()	   { return std::check_flag(flag, quantum_group);     }
+			inline bool is_repeat()	   { return std::check_flag(flag, quantum_repeat);    }
+			inline bool is_maybe()	   { return std::check_flag(flag, quantum_maybe);     }
+			inline bool is_return()	   { return std::check_flag(flag, quantum_return);    }
+			inline bool is_exit()	   { return std::check_flag(flag, quantum_exit);      }
+			inline bool is_recursion() { return std::check_flag(flag, quantum_recursion); }
+			inline bool is_autogen()   { return std::check_flag(flag, quantum_autogen);   }
+			inline bool is_breakpoint(){ return std::check_flag(flag, quantum_breakpoint);}
+			inline bool is_repeat_end(){ return std::check_flag(flag, quantum_repeat_end);}
+			inline bool is_true()      { return std::check_flag(flag, quantum_true);      }
+			inline bool is_false()     { return std::check_flag(flag, quantum_false);     }
 
 			inline bool is_empty_operation() { return std::check_flag(flag, empty_operation); }
 
