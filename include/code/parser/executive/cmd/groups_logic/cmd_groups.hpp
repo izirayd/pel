@@ -16,11 +16,11 @@ namespace parser
 			enum class group_flag_t : std::flag32_t
 			{
 				object_value      = 1 << 0,
-				property_execute  = 1 << 1,
-				operation_and     = 1 << 2,
-				operation_or      = 1 << 3,
-				operation_not     = 1 << 4,
-				object_type       = 1 << 5,
+				object_type       = 1 << 1,
+				property_execute  = 1 << 2,
+				operation_and     = 1 << 3,
+				operation_or      = 1 << 4,
+				operation_not     = 1 << 5,
 				operation_empty   = 1 << 6,
 				property_glue     = 1 << 7,
 				property_split    = 1 << 8,
@@ -75,12 +75,12 @@ namespace parser
 				cmd_group_t* cmd = &gcmd->get_value();
 				cmd_group_t* parent_cmd = &gcmd->parent->get_value();
 
-				if (obj->is_type)
+				if (std::check_flag(obj->flag, pel::obj_flag_t::obj_type))
 				{
 					cmd->group.name = obj->name;
 				} 
 
-				if (obj->is_value)
+				if (std::check_flag(obj->flag, pel::obj_flag_t::obj_value))
 				{
 					cmd->group.push_element(obj->name);
 					cmd->group.sort_elements();
@@ -88,28 +88,27 @@ namespace parser
 						
 				bool is_or = false, is_and = false;
 
-				for (auto& it : obj->values)
+				for (const auto& it : obj->values)
 				{
-					if (it.is_or)
+					if (std::check_flag(it.flag, pel::obj_flag_t::obj_or))
 						is_or = true;
 
-					if (it.is_and)
+					if (std::check_flag(it.flag, pel::obj_flag_t::obj_and))
 						is_and = true;
 				}
 
-				if (obj->is_type)
+				if (std::check_flag(obj->flag, pel::obj_flag_t::obj_type))
 					std::add_flag(cmd->flag, group_flag_t::object_type);
 
-				if (obj->is_value)
+				if (std::check_flag(obj->flag, pel::obj_flag_t::obj_value))
 					std::add_flag(cmd->flag, group_flag_t::object_value);
 
-				if (obj->is_execute)
+				if (std::check_flag(obj->flag, pel::obj_flag_t::obj_execute))
 					std::add_flag(cmd->flag, group_flag_t::property_execute);
 
-				if (obj->is_not)
+				if (std::check_flag(obj->flag, pel::obj_flag_t::obj_not))
 					std::add_flag(cmd->flag, group_flag_t::operation_not);
-
-
+		
 				if (is_or)
 				{
 					std::add_flag(cmd->flag, group_flag_t::operation_or);
@@ -119,19 +118,18 @@ namespace parser
 				if (is_and)
 				{
 					std::add_flag(cmd->flag, group_flag_t::operation_and);
-					std::del_flag(cmd->flag, group_flag_t::operation_or);
-			
+					std::del_flag(cmd->flag, group_flag_t::operation_or);			
 				}
 
 				if ((!cmd->is_or() && !cmd->is_and()))
 					std::add_flag(cmd->flag, group_flag_t::operation_empty);
 
-				if (obj->is_or) {
+				if (std::check_flag(obj->flag, pel::obj_flag_t::obj_or)) {
 					std::add_flag(parent_cmd->flag, group_flag_t::operation_or);
 					std::del_flag(parent_cmd->flag, group_flag_t::operation_and);
 				}
 
-				if (obj->is_glue)
+				if (std::check_flag(obj->flag, pel::obj_flag_t::obj_glue))
 				{
 					std::add_flag(parent_cmd->flag, group_flag_t::property_glue);
 					cmd->group.is_glue = true;
@@ -141,7 +139,7 @@ namespace parser
 					cmd->group.is_glue = false;
 				}
 
-				if (obj->is_split)
+				if (std::check_flag(obj->flag, pel::obj_flag_t::obj_split))
 				{
 					std::add_flag(parent_cmd->flag, group_flag_t::property_split);
 					cmd->group.is_split = true;
@@ -151,7 +149,7 @@ namespace parser
 					cmd->group.is_split = false;
 				}
 
-				if (obj->is_ignore)
+				if (std::check_flag(obj->flag, pel::obj_flag_t::obj_ignore))
 				{
 					std::add_flag(parent_cmd->flag, group_flag_t::property_ignore);
 					cmd->group.is_ignore = true;

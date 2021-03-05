@@ -13,27 +13,26 @@ namespace parser
 			quantum_value	   = 1 << 0,
 			quantum_type	   = 1 << 1,
 			quantum_execute    = 1 << 2,
-			quantum_block_type = 1 << 3,
-			quantum_and		   = 1 << 4,
-			quantum_or		   = 1 << 5,
-			quantum_not		   = 1 << 6,
-			empty_operation    = 1 << 7,
-			quantum_group	   = 1 << 8,
-			quantum_repeat	   = 1 << 9,
-			quantum_maybe	   = 1 << 10,
-			quantum_return	   = 1 << 11,
-			quantum_exit	   = 1 << 12,
-			quantum_recursion  = 1 << 13,
-			quantum_autogen    = 1 << 14,
-			quantum_breakpoint = 1 << 15, // for debug from c++
-			quantum_repeat_end = 1 << 16, 
-			quantum_true       = 1 << 17,
-			quantum_false      = 1 << 18,
-			quantum_global     = 1 << 19,
-			quantum_local      = 1 << 20,
-			quantum_break      = 1 << 21,
-			quantum_break_now  = 1 << 22,
-			quantum_break_all  = 1 << 23,
+			quantum_and		   = 1 << 3,
+			quantum_or		   = 1 << 4,
+			quantum_not		   = 1 << 5,
+			empty_operation    = 1 << 6,
+			quantum_group	   = 1 << 7,
+			quantum_repeat	   = 1 << 8,
+			quantum_maybe	   = 1 << 9,
+			quantum_return	   = 1 << 10,
+			quantum_exit	   = 1 << 11,
+			quantum_recursion  = 1 << 12,
+			quantum_autogen    = 1 << 13,
+			quantum_breakpoint = 1 << 14, // for debug from c++
+			quantum_repeat_end = 1 << 15, 
+			quantum_true       = 1 << 16,
+			quantum_false      = 1 << 17,
+			quantum_global     = 1 << 18,
+			quantum_local      = 1 << 19,
+			quantum_break      = 1 << 20,
+			quantum_break_now  = 1 << 21,
+			quantum_break_all  = 1 << 22,
 		};
 
 		template<typename block_depth_base_t>
@@ -119,7 +118,6 @@ namespace parser
 				print = p;
 				flag  = f;
 
-			
 			}
 
 			inline bool is_or()        { return std::check_flag(flag, quantum_or);        }
@@ -139,6 +137,11 @@ namespace parser
 			inline bool is_repeat_end(){ return std::check_flag(flag, quantum_repeat_end);}
 			inline bool is_true()      { return std::check_flag(flag, quantum_true);      }
 			inline bool is_false()     { return std::check_flag(flag, quantum_false);     }
+			inline bool is_global()    { return std::check_flag(flag, quantum_global);    }
+			inline bool is_local()     { return std::check_flag(flag, quantum_local);     }
+			inline bool is_break()     { return std::check_flag(flag, quantum_break);     }
+			inline bool is_break_now() { return std::check_flag(flag, quantum_break_now); }
+			inline bool is_break_all() { return std::check_flag(flag, quantum_break_all); }
 
 			inline bool is_empty_operation() { return std::check_flag(flag, empty_operation); }
 

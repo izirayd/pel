@@ -4,10 +4,7 @@ group space   : { " " }  = execute, ignore;
 group symbol  : { ";," } = execute, split;
 group word    : { !space and !symbol } = execute, glue;
 
+type a : {  "a" };
+type a1 : { a, "c" } = execute;
 
-//"a" -> "b" : {a, b}
-//"a" -> "b" -> "c" : {a, { "b", "c" }}
-
-type a1 : { true, false = maybe } = execute;
-
-test t1 : { "1 2" };
+test t1 : { "a c" };

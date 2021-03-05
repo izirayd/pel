@@ -655,11 +655,11 @@ namespace pel {
 
 				void condition_autogen_vertex(obj_t& obj) {
 
-					obj.is_type = true;
-					obj.is_and = true;
-					obj.is_autogen_block = true;
+					obj.add_flag(obj_flag_t::obj_type);
+					obj.add_flag(obj_flag_t::obj_and);
+					obj.add_flag(obj_flag_t::obj_auto);
 
-					obj.name = fmt::format("__tmpoce{}", counter_autoblock++);
+					obj.name = fmt::format("cond{}", counter_autoblock++);
 				}
 
 				void print_condition(conditional_element_t* condition)
@@ -723,8 +723,8 @@ namespace pel {
 					{
 						condition_autogen_vertex(obj);
 
-						obj.is_and = false;
-						obj.is_or = true;
+						obj.add_flag(obj_flag_t::obj_or);
+						obj.del_flag(obj_flag_t::obj_and);
 
 						obj_t obj_left, obj_right;
 
@@ -779,21 +779,21 @@ namespace pel {
 								}
 
 								// inversion
-								left_parent->is_not = !left_parent->is_not;
+								left_parent->add_inversion_flag(*left_parent, obj_flag_t::obj_not);
 
 								obj_right.values.push_back(*left_parent);
 
 							}
 							else
 								if (current_condition->data.condition.is_used) {
-									current_condition->data.condition.value.is_not = !current_condition->data.condition.value.is_not;
+									current_condition->data.condition.value.add_inversion_flag(current_condition->data.condition.value, obj_flag_t::obj_not);
 									obj_right.values.push_back(current_condition->data.condition.value);
 								}
 						}
 						else
 						{
 							if (current_condition->data.condition.is_used) {
-								current_condition->data.condition.value.is_not = !current_condition->data.condition.value.is_not;
+								current_condition->data.condition.value.add_inversion_flag(current_condition->data.condition.value, obj_flag_t::obj_not);
 								obj_right.values.push_back(current_condition->data.condition.value);
 							}
 						}
@@ -826,8 +826,8 @@ namespace pel {
 					{
 						condition_autogen_vertex(obj);
 
-						obj.is_and = true;
-						obj.is_or = false;
+						obj.add_flag(obj_flag_t::obj_and);
+						obj.del_flag(obj_flag_t::obj_or);
 
 						if (current_condition->data.first.full_value)
 						{
@@ -928,19 +928,21 @@ namespace pel {
 							if (it_word->words_base.data == "{")
 							{
 								// TODO: fmt not support UTF-16 and UTF-32 =/
-								it_word->obj.name = fmt::format("__tmpblock{}", counter_autoblock++);
+								it_word->obj.name = fmt::format("block{}", counter_autoblock++);
 
 								if (current_keyword) {
 
-									if (current_keyword->name == "type")
-										it_word->obj.is_type = true;
+									if (current_keyword->name == "type") {
+										it_word->obj.add_flag(obj_flag_t::obj_type);
+									}
 
-									if (current_keyword->name == "group")
-										it_word->obj.is_group = true;
+									if (current_keyword->name == "group") {
+										it_word->obj.add_flag(obj_flag_t::obj_group);
+									}
 
 								}
 
-								it_word->obj.is_autogen_block = true;
+								it_word->obj.add_flag(obj_flag_t::obj_auto);
 
 								it_word->obj.word.data = it_word->obj.name;
 
@@ -980,7 +982,8 @@ namespace pel {
 										tmp_obj.word.end_position = w_word->words_base.end_position + 1;
 									}
 
-									tmp_obj.is_value = true;
+									tmp_obj.add_flag(obj_flag_t::obj_value);
+
 									tmp_obj.word.start_position = it_word->words_base.start_position;
 
 									tmp_obj.word.number_line = it_word->words_base.number_line;
@@ -1048,20 +1051,20 @@ namespace pel {
 									*/
 									if (it_word->obj.name == "true") {
 
-										it_word->obj.is_value         = true;
-										it_word->obj.is_true          = true; // lul
-										it_word->obj.is_autogen_block = true;
+										it_word->obj.add_flag(obj_flag_t::obj_value);
+										it_word->obj.add_flag(obj_flag_t::obj_true);
+										it_word->obj.add_flag(obj_flag_t::obj_auto);
 
 									}
 									else if (it_word->obj.name == "false")
 									{
-										it_word->obj.is_value         = true;
-										it_word->obj.is_false         = true;
-										it_word->obj.is_autogen_block = true;
+										it_word->obj.add_flag(obj_flag_t::obj_value);
+										it_word->obj.add_flag(obj_flag_t::obj_false);
+										it_word->obj.add_flag(obj_flag_t::obj_auto);
 									}
 									else
 									{
-										it_word->obj.is_type = true;
+										it_word->obj.add_flag(obj_flag_t::obj_type);
 									}
 
 									word->obj.values.push_back(it_word->obj);
@@ -1095,7 +1098,7 @@ namespace pel {
 						{
 							if (parent_word->words_base.data == "\"" || parent_word->words_base.data == "'")
 							{
-								word->obj.is_value = true;
+								word->obj.add_flag(obj_flag_t::obj_value);
 
 								word->obj.name = word->words_base.data;
 								word->obj.word = word->words_base;
@@ -1114,67 +1117,20 @@ namespace pel {
 
 									auto word_object_for_property = object_for_property->get_value();
 
-									if (word->words_base.data == "execute")
+									bool result = word_object_for_property->obj.add_flag_from_string_to_property(word->words_base.data);
+
+									// no keyword
+									if (!result)
 									{
-										word_object_for_property->obj.is_execute = true;
-									}
-									else
-										if (word->words_base.data == "glue")
+										if (word->words_base.data != ",")
 										{
-											word_object_for_property->obj.is_glue = true;
+											parent_word->is_read_property = false;
 										}
-										else
-											if (word->words_base.data == "split")
-											{
-												word_object_for_property->obj.is_split = true;
-											}
-											else
-												if (word->words_base.data == "ignore")
-												{
-													word_object_for_property->obj.is_ignore = true;
-												}
-												else
-													if (word->words_base.data == "maybe")
-													{
-														word_object_for_property->obj.is_maybe = true;
-													}
-													else
-														if (word->words_base.data == "return")
-														{
-															word_object_for_property->obj.is_return = true;
-														}
-														else
-															if (word->words_base.data == "exit")
-															{
-																word_object_for_property->obj.is_exit = true;
-															}
-															else
-																if (word->words_base.data == "recursion")
-																{
-																	word_object_for_property->obj.is_recursion = true;
-																}
-																else
-																	if (word->words_base.data == "repeat")
-																	{
-																		word_object_for_property->obj.is_repeat = true;
-																	}
-																	else
-																		if (word->words_base.data == "repeat_end")
-																		{
-																			word_object_for_property->obj.is_repeat_end = true;
-																		}
-																		else
-																			if (word->words_base.data == "breakpoint")
-																			{
-																				word_object_for_property->obj.is_breakpoint = true;
-																			}
-																			else
-																			{
-																				if (word->words_base.data != ",")
-																				{
-																					parent_word->is_read_property = false;
-																				}
-																			}
+										else if (word->words_base.data != ",")
+										{
+											fmt::print("No property {}\n", word->words_base.data);
+										}
+									}
 								}
 							}
 
@@ -1183,11 +1139,7 @@ namespace pel {
 								parent_word->is_read_property = true;
 							}
 
-							if (word->words_base.data == "and" || word->words_base.data == ",")
-								parent_word->obj.is_and = true;
-
-							if (word->words_base.data == "or")
-								parent_word->obj.is_or = true;
+							parent_word->obj.add_flag_from_string_to_chain(word->words_base.data);
 
 							if (word->words_base.data == "not" || word->words_base.data == "!")
 							{
@@ -1202,7 +1154,7 @@ namespace pel {
 									if (next_word)
 									{
 										// yeah, for double not
-										next_word->obj.is_not = !this_word->obj.is_not;
+										next_word->obj.add_inversion_flag(this_word->obj, obj_flag_t::obj_not);
 									}
 								}
 							}
@@ -1293,13 +1245,16 @@ namespace pel {
 
 								if (current_keyword->name == "type")
 								{
-									obj->is_type = true;
+									obj->add_flag(obj_flag_t::obj_type);
+
 									core_data_manager->all_types->push_back(obj);
 								}
 
 								if (current_keyword->name == "group") {
-									obj->is_type = true;
-									obj->is_group = true;
+
+									obj->add_flag(obj_flag_t::obj_group);
+									obj->add_flag(obj_flag_t::obj_type);
+
 									core_data_manager->all_groups->push_back(obj);
 								}
 

@@ -17,6 +17,7 @@
 
 #include "cpp_parser/cpp_parser.hpp"
 
+#include "../../association_flags.hpp"
 
 #include <stack>
 
@@ -93,9 +94,9 @@ namespace pel
 			std::clear(all_groups);		
 		}
 
-		void process_parse_pel_to_words()
+		void process_parse_word()
 		{
-			parser::words_parser_t::process_parse_pel_to_words(code, words);
+			parser::words_parser_t::process_parse_word(code, words);
 		}
 
 		void clear() {
@@ -491,8 +492,8 @@ namespace pel
 		// cpp prototype version 2
 		bool compile()
 		{
-			// parser in word
-			process_parse_pel_to_words();
+			// just parsing
+			process_parse_word();
 
 			pel::cpp_parser::cpp_parser_pel_t cpp_parser_pel;
 
@@ -519,117 +520,11 @@ namespace pel
 
 		bool is_or = false, is_xor = false, is_and = false;
 
-		// Old specification
-		//for (auto &it: obj->values)
-		//{	
-		//	if (it.is_or)
-		//		is_or = true;
-
-		//	if (it.is_xor)
-		//		is_xor = true;
-
-		//	if (it.is_and)
-		//		is_and = true;
-		//}
-
-		if (obj->is_type)
-			std::add_flag(cmd->flag, parser::executive::quantum_type);
-
-		if (obj->is_value)
-			std::add_flag(cmd->flag, parser::executive::quantum_value);
-
-		if (obj->is_execute)
-			std::add_flag(cmd->flag, parser::executive::quantum_execute);
-
-		if (obj->is_group) {
-
-			if (obj->is_type)
-				std::del_flag(cmd->flag, parser::executive::quantum_type);
-
-			if (obj->is_execute)
-				std::del_flag(cmd->flag, parser::executive::quantum_execute);
-
-			std::add_flag(cmd->flag, parser::executive::quantum_group);
-		}
-
-		if (obj->is_not)
-			std::add_flag(cmd->flag, parser::executive::quantum_not);
-
-		if (obj->is_breakpoint)
-			std::add_flag(cmd->flag, parser::executive::quantum_breakpoint);
-
-		if (obj->is_true)
-			std::add_flag(cmd->flag, parser::executive::quantum_true);
-
-		if (obj->is_false)
-			std::add_flag(cmd->flag, parser::executive::quantum_false);
-
-		if (obj->is_maybe)
-			std::add_flag(cmd->flag, parser::executive::quantum_maybe);
-
-		if (obj->is_exit)
-			std::add_flag(cmd->flag, parser::executive::quantum_exit);
-
-		if (obj->is_return)
-			std::add_flag(cmd->flag, parser::executive::quantum_return);
-
-		if (obj->is_or) {
-			std::add_flag(cmd->flag, parser::executive::quantum_or);
-			std::del_flag(cmd->flag, parser::executive::quantum_and);
-		}
-
-
-		if (obj->is_and) {
-			std::add_flag(cmd->flag, parser::executive::quantum_and);
-			std::del_flag(cmd->flag, parser::executive::quantum_or);
-		}
-
-		if ((!cmd->is_or()  && !cmd->is_and()))
-			std::add_flag(cmd->flag, parser::executive::empty_operation);
-
-		if (obj->is_recursion)
-			std::add_flag(cmd->flag, parser::executive::quantum_recursion);
-
-		if (obj->is_repeat)
-			std::add_flag(cmd->flag, parser::executive::quantum_repeat);
-
-		if (obj->is_repeat_end)
-			std::add_flag(cmd->flag, parser::executive::quantum_repeat_end);
-
-		if (obj->is_autogen_block)
-			std::add_flag(cmd->flag, parser::executive::quantum_autogen);
+		association_flags_for_cmd(*obj, cmd);
 
 		if (is_in_chain && original_obj)
 		{
-			if (original_obj->is_not)
-				std::add_flag(cmd->flag, parser::executive::quantum_not);
-
-			if (original_obj->is_maybe)
-				std::add_flag(cmd->flag, parser::executive::quantum_maybe);
-
-			if (original_obj->is_exit)
-				std::add_flag(cmd->flag, parser::executive::quantum_exit);
-
-			if (original_obj->is_return)
-				std::add_flag(cmd->flag, parser::executive::quantum_return);
-
-			if (original_obj->is_recursion)
-				std::add_flag(cmd->flag, parser::executive::quantum_recursion);
-
-			if (original_obj->is_repeat)
-				std::add_flag(cmd->flag, parser::executive::quantum_repeat);
-
-			if (original_obj->is_repeat_end)
-				std::add_flag(cmd->flag, parser::executive::quantum_repeat_end);
-
-			if (original_obj->is_breakpoint)
-				std::add_flag(cmd->flag, parser::executive::quantum_breakpoint);
-
-			if (original_obj->is_true)
-				std::add_flag(cmd->flag, parser::executive::quantum_true);
-
-			if (original_obj->is_false)
-				std::add_flag(cmd->flag, parser::executive::quantum_false);
+			association_flags_for_cmd(*original_obj, cmd);
 		}
 
 		gcmd->flush_value();
@@ -680,7 +575,7 @@ namespace pel
 
 				if (!is_find)
 				{
-					if (obj->is_execute)
+					if (obj->is_flag(obj_flag_t::obj_execute))
 						nl->is_ex = true;
 
 					nl->data.push_back(obj);
@@ -692,7 +587,7 @@ namespace pel
 				new_nl.name = obj->name;
 				new_nl.data.push_back(obj);
 
-				if (obj->is_execute)
+				if (obj->is_flag(obj_flag_t::obj_execute))
 					new_nl.is_ex = true;
 
 				data.push_back(new_nl);
@@ -726,7 +621,7 @@ namespace pel
 			return;
 		}
 
-		if (original_obj.is_autogen_block)
+		if (std::check_flag(original_obj.flag, obj_flag_t::obj_auto))
 		{
 			is_find = true;
 			get_property(parent, &original_obj);
@@ -735,7 +630,7 @@ namespace pel
 			{
 				parser::executive::gcmd_t* gcmd = parent->push({});
 
-				if (sub_obj.is_type)
+				if (std::check_flag(sub_obj.flag, obj_flag_t::obj_type))
 				{
 					no_ex(pel_lang, gcmd, sub_obj.word, level, is_stop, sub_obj, multinames_list, counter_tmp_or);
 
@@ -771,7 +666,7 @@ namespace pel
 						{
 							parser::executive::gcmd_t* gcmd = parent->push({});
 
-							if (sub_obj.is_type && !sub_obj.is_recursion)
+							if (std::check_flag(sub_obj.flag, obj_flag_t::obj_type) && !std::check_flag(sub_obj.flag, obj_flag_t::obj_recursion))
 							{
 								no_ex(pel_lang, gcmd, sub_obj.word, level, is_stop, sub_obj, multinames_list, counter_tmp_or);
 
@@ -827,7 +722,7 @@ namespace pel
 
 		if (!is_find)
 		{
-			pel_lang.error_context.push(format("type or group {} was not declared!", word.data), "", word.number_line, word.start_position, word.end_position);
+			pel_lang.error_context.push(format("Type or group: \"{}\" is not declared!", word.data), "", word.number_line, word.start_position, word.end_position);
 		}
 	}
 
@@ -849,15 +744,15 @@ namespace pel
 		// Блокирование рекурсии
 		if (level > 128)
 		{
-			pel_lang.error_context.push(format("type {} has no way out of recursion!", word.data), "", word.number_line, word.start_position, word.end_position);
+			pel_lang.error_context.push(format("Type: \"{}\" has no way out of recursion!", word.data), "", word.number_line, word.start_position, word.end_position);
 
 			is_stop = true;
 			return;
 		}
 
-		for (const auto obj : pel_lang.all_groups)
+		for (const auto &obj : pel_lang.all_groups)
 		{
-			if (obj->is_type && obj->name == word.data)
+			if (std::check_flag(obj->flag, obj_flag_t::obj_type) && obj->name == word.data)
 			{
 				is_find = true;
 
@@ -867,7 +762,7 @@ namespace pel
 				   Копирование свойств в цепочке
 				*/
 
-				if (original_obj.is_not)
+				if (std::check_flag(original_obj.flag, obj_flag_t::obj_not))
 				{
 					auto cmd = &parent->get_value();
 
@@ -886,7 +781,7 @@ namespace pel
 				{
 					parser::executive::groups::gcmd_group_t* gcmd = parent->push({});
 
-					if (sub_obj.is_type)
+					if (std::check_flag(sub_obj.flag, obj_flag_t::obj_type))
 					{
 						no_ex_groups(pel_lang, gcmd, sub_obj.word, level, is_stop, sub_obj);
 						level--;
@@ -925,7 +820,7 @@ namespace pel
 
 			get_property(tmp_or, it);
 
-			cmd->value = format("__tmpor{}", counter_tmp_or);
+			cmd->value = format("or{}", counter_tmp_or);
 			counter_tmp_or++;
 
 			for (auto main_cmd : it->values)
@@ -934,8 +829,8 @@ namespace pel
 
 				int  level = 0;
 				bool is_stop = false;
-
-				if (main_cmd.is_type)
+			
+				if (std::check_flag(main_cmd.flag, obj_flag_t::obj_type))
 				{
 					no_ex(pel_lang, sub_main, main_cmd.word, level, is_stop, main_cmd, multinames_list, counter_tmp_or);
 				}
@@ -982,7 +877,7 @@ namespace pel
 		for (const auto obj_ex : pel_lang.all_groups)
 		{
 			if (obj_ex) {
-				if (obj_ex->is_execute)
+				if (std::check_flag(obj_ex->flag, obj_flag_t::obj_execute))
 				{
 					auto main = new parser::executive::groups::gcmd_group_t;
 
@@ -995,7 +890,7 @@ namespace pel
 						int  level = 0;
 						bool is_stop = false;
 
-						if (main_cmd.is_type)
+						if (std::check_flag(main_cmd.flag, obj_flag_t::obj_type))
 						{
 							no_ex_groups(pel_lang, sub_main, main_cmd.word, level, is_stop, main_cmd);
 						}
@@ -1020,7 +915,7 @@ namespace pel
 			if (it.data.size() == 1)
 			{
 				// solo type
-				if (it.data[0]->is_execute)
+				if (std::check_flag(it.data[0]->flag, obj_flag_t::obj_execute))
 				{
 					parser::executive::gcmd_t* main = new parser::executive::gcmd_t;
 
@@ -1033,7 +928,7 @@ namespace pel
 						int  level = 0;
 						bool is_stop = false;
 
-						if (main_cmd.is_type && !main_cmd.is_recursion)
+						if (std::check_flag(main_cmd.flag, obj_flag_t::obj_type) && !std::check_flag(main_cmd.flag, obj_flag_t::obj_recursion))
 						{
 							no_ex(pel_lang, sub_main, main_cmd.word, level, is_stop, main_cmd, &multinames_list, counter_tmp_or);
 						}

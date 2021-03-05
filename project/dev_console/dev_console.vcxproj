@@ -31,6 +31,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>true</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -151,6 +152,7 @@
     <ClCompile Include="dev_console.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\code\association_flags.hpp" />
     <ClInclude Include="..\..\include\code\ast.hpp" />
     <ClInclude Include="..\..\include\code\block_parser.hpp" />
     <ClInclude Include="..\..\include\code\detail\file.hpp" />
@@ -180,6 +182,7 @@
     <ClInclude Include="..\..\include\code\flags_enums.hpp" />
     <ClInclude Include="..\..\include\code\json\json.hpp" />
     <ClInclude Include="..\..\include\code\obj.hpp" />
+    <ClInclude Include="..\..\include\code\obj_flags.hpp" />
     <ClInclude Include="..\..\include\code\parser\executive\cmd\base\cmd_base.hpp" />
     <ClInclude Include="..\..\include\code\parser\executive\cmd\groups_logic\cmd_groups.hpp" />
     <ClInclude Include="..\..\include\code\parser\executive\cmd\groups_logic\cmd_groups_make.hpp" />

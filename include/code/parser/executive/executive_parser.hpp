@@ -627,7 +627,7 @@ namespace parser
 
             void process_parse_pel_to_words()
             {
-                parser::words_parser_t::process_parse_pel_to_words(code, words);
+                parser::words_parser_t::process_parse_word(code, words);
             }
 
             void group_init() {

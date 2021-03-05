@@ -15,7 +15,7 @@ namespace std
 
 	// Проверяет состояние в флаге, если оно существует, возвращает true
 	template<typename type_flag_t, typename flag_t>
-	inline bool check_flag(const type_flag_t& flag, const flag_t& check_flag) {
+	inline bool check_flag(const type_flag_t& flag, const flag_t& check_flag)  {
 		return (flag & (type_flag_t)check_flag);
 	}
 

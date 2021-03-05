@@ -224,5 +224,11 @@
     <ClInclude Include="..\..\include\code\parser\pel_parser\cpp_parser\cpp_parser.hpp">
       <Filter>pel\code\parser\pel_parser\cpp_parser</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\code\association_flags.hpp">
+      <Filter>pel\code</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\code\obj_flags.hpp">
+      <Filter>pel\code</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

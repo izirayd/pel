@@ -101,15 +101,19 @@ namespace parser
 
 							show_tree fmt::print("{}", " {");
 
-							for (size_t i = 0; i < cmd->group.get().size() - 1; i++)
-							{
-								show_tree fmt::print(fg(fmt::color::thistle), "'{}'", (char) cmd->group.get()[i].element);
-								show_tree fmt::print(", ");
+							if (cmd->group.get().size() > 0) {
+
+								for (size_t i = 0; i < cmd->group.get().size() - 1; i++)
+								{
+									show_tree fmt::print(fg(fmt::color::thistle), "'{}'", (char)cmd->group.get()[i].element);
+									show_tree fmt::print(", ");
+								}
+
+								show_tree fmt::print(fg(fmt::color::thistle), "'{}'", (char)cmd->group.get()[cmd->group.get().size() - 1].element);
+
+								show_tree fmt::print("{}", "};");
+
 							}
-
-							show_tree fmt::print(fg(fmt::color::thistle), "'{}'", (char) cmd->group.get()[cmd->group.get().size() - 1].element);
-
-							show_tree fmt::print("{}", "};");
 						}
 					}
 				}
