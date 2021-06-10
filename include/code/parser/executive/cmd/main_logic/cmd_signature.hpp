@@ -414,17 +414,38 @@ namespace parser
 
                     gcmd_t* command_graph_left = nullptr;
 
+                    // recalc position with use path current node
+
+                    gcmd_t* current_graph = command_graph;
+
+                    std::size_t last_position = current_graph->position;
+
+                    for (;;)
+                    {
+                        if (current_graph == command_graph->root) {
+
+                            if (last_position != 0) {
+                                command_graph_left = command_graph->root->tree[last_position - 1];
+                            }
+   
+                            break;
+                        }
+
+                        last_position = current_graph->position;
+                        current_graph = current_graph->parent;
+                    }
+
                     // recalc position
-                    if (position > 0 && command_graph->root->size() > 0)
-                        command_graph_left = command_graph->root->tree[position - 1];
+                    //if (position > 0 && command_graph->root->size() > 0)
+                    //    command_graph_left = command_graph->root->tree[position - 1];
 
                     if (command_graph_left)
                     {
                         auto cmd_left = &command_graph_left->get_value();
 
                         // TODO: need fix bug this +1 and +0
-                        root_cmd->min_counter = cmd_left->min_counter; //+1;
-                        root_cmd->max_counter = cmd_left->max_counter; //+1;
+                        root_cmd->min_counter =  cmd_left->min_counter; //+1;
+                        root_cmd->max_counter =  cmd_left->max_counter; //+1;
                     }
                     else
                     {
@@ -434,7 +455,7 @@ namespace parser
 
                     // TODO: check it in test
                     if (command_graph->root->size() > 0) {
-                        emulate_recursion::recalc_position_in_graph_from_position(command_graph->root, position);
+                        emulate_recursion::recalc_position_in_graph_from_position(command_graph->root, last_position);
                     }
 
                     show_tree  fmt::print("\nRecalc position:\n");

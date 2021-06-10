@@ -117,7 +117,7 @@ namespace parser
                void process_group_signature(groups::gcmd_group_t* command_graph, int& status, const pel::groups::group_element_t& element)
                {
                    auto cmd         = &command_graph->get_value();
-                   auto parent_cmd = &command_graph->parent->get_value();
+                   auto parent_cmd  = &command_graph->parent->get_value();
                    auto root_cmd    = &command_graph->root->get_value();
 
                    if (is_render_tree && is_render_group) {
@@ -288,7 +288,14 @@ namespace parser
 
                                if (current_graph->is_last())
                                {
-                                   last_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, arg, count_signatures, is_use, is_render_tree, is_skip_from_parent);
+                                   last_parent(current_graph->parent, 
+                                       current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, 
+                                       current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr,
+                                       arg, 
+                                       count_signatures, 
+                                       is_use, 
+                                       is_render_tree, 
+                                       is_skip_from_parent);
                                    
                                    if (is_skip_from_parent)
                                        return;
@@ -334,7 +341,68 @@ namespace parser
                    }
                }
 
-               void reset_graph(gcmd_t* command_graph, bool &need_recalc_position)
+               void reset_graph(gcmd_t* command_graph, bool& need_recalc_position)
+               {
+                   if (!command_graph)
+                       return;
+               
+                   gcmd_t* current_graph = command_graph;
+
+                   bool is_exit_recursion = false;
+
+                   for (;;)
+                   {
+                       if (current_graph->is_value)
+                       {
+                           if (current_graph->get_value().is_autogen_repeat)
+                           {
+                               current_graph->delete_tree();
+                               current_graph->parent->delete_element(current_graph->position);
+                               current_graph->real_first_child = nullptr;
+
+                           }
+                           else
+                           {
+                               current_graph->get_value().reset();
+                               current_graph->first_child = current_graph->real_first_child;
+                           }
+                       }
+
+                       if (current_graph->real_first_child) {
+                           current_graph = current_graph->real_first_child;
+                       }
+                       else
+                           if (current_graph->next) {
+                               current_graph = current_graph->next;
+                           }
+                           else
+                           {
+                               current_graph = current_graph->parent;
+
+                               for (;;)
+                               {
+                                   if (current_graph->next)
+                                   {
+                                       current_graph = current_graph->next;
+                                       break;
+                                   }
+                                   else {
+                                       current_graph = current_graph->parent;
+                                   }
+
+                                   if (current_graph->is_root || current_graph == command_graph) {
+                                       is_exit_recursion = true;
+                                       break;
+                                   }
+                               }
+                           }
+
+                       if (is_exit_recursion)
+                           break;
+                   }
+               }
+
+               void reset_graph_old(gcmd_t* command_graph, bool &need_recalc_position)
                {
                    if (command_graph->get_value().is_autogen_repeat)
                    {
@@ -350,6 +418,24 @@ namespace parser
                }
 
                void reset(int level, base_arg_t* arg)
+               {
+                   global_gcmd_t* gcmd = arg->region->gcmd;
+
+                   bool need_recalc_position = false;
+
+                   for (auto& it : *gcmd)
+                   {
+                       reset_graph(it.gcmd, need_recalc_position);
+
+                       data_block_global_gcmd_t* d = it.block_depth.get_block(level);
+                       d->is_use = true;
+                   }
+
+                   arg->region->current_position = 0;
+
+               }
+
+               void reset_old(int level, base_arg_t* arg)
                {
                    global_gcmd_t* gcmd = arg->region->gcmd;
 
