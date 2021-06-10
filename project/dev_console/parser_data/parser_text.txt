@@ -1,21 +1,15 @@
 #module { tree };
+
 group space   : { " " }  = { exists, ignore };
 group symbol  : { ";," } = { exists, split  };
 group word    : { !space and !symbol } = { exists, glue };
 
 
-type type_var : { "int" };
-type name_var : { word };
+type type_a : { "a" or ";" = break };
 
-type var_decl : { type_var, name_var = repeat };
+type main : { type_a = repeat, "b" } = exists;
 
-
-type main : { "a", var_decl } = exists;
-
-test t1 : { "a int a, b, c;" };
-
-
-
+test t1 : { "a;" };
 
 
 // C++ style

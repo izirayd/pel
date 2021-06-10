@@ -327,6 +327,7 @@ namespace parser
 				}	
 			}
 
+	
 			bool sort_function(const gcmd_t *i, const gcmd_t *j) { return (i->tree.size() < j->tree.size()); }
 
 			void sort_graph_in_or(gcmd_t* command_graph)
@@ -436,7 +437,10 @@ namespace parser
 
 				std::size_t level = command_graph->level;
 
-				std::size_t need_remove = 0;
+				if (command_graph->tree.size() > position)
+				    recursion_tree_traversals_positions(command_graph->tree[position], level);
+
+				/*std::size_t need_remove = 0;
 
 				for (size_t i = position; i < command_graph->tree.size(); i++)
 				{
@@ -456,8 +460,7 @@ namespace parser
 
 						level--;
 					}
-				}
-
+				}*/
 			}
 		}
 	}

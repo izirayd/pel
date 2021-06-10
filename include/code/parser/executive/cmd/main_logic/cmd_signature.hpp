@@ -427,6 +427,14 @@ namespace parser
                             if (last_position != 0) {
                                 command_graph_left = command_graph->root->tree[last_position - 1];
                             }
+                            else
+                            {
+                                if (command_graph->root->get_value().is_empty_operation())
+                                {
+                                    std::del_flag(command_graph->root->get_value().flag, empty_operation);
+                                    std::add_flag(command_graph->root->get_value().flag, quantum_and);
+                                }
+                            }
    
                             break;
                         }
