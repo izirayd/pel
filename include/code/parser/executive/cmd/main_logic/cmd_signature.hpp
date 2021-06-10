@@ -384,96 +384,114 @@ namespace parser
 
             if (cmd->is_repeat() && cmd->is_end_find && cmd->status_process.status_find == status_find_t::success)
             {
-                /*
-                  Должна происходить в ноде родителе при выходе
-                  В общем эта штука физически вставляет вершину в текущую итерации работы цикла. Её нужно после физически удалять, при ресете графа. Эта реализация очень медленная.
-                  Основная проблема это пересчет позиций.
-                */
-                if (cmd->repeat_element && !cmd->is_status_allocate_recursion_graph)
+                if (cmd->status_process.is_status_break)
                 {
-                    std::size_t position = command_graph->position;
+                    show_tree fmt::print(" [");
+                    show_tree fmt::print(fg(fmt::color::purple), "status break | stop repeat");
+                    show_tree fmt::print("]");
+                }
+                else {
 
-                    gcmd_t* node = new gcmd_t;
-
-                    emulate_recursion::copy_process_gcmd(cmd->repeat_element, node);
-
-                    cmd->is_status_allocate_repeat_graph = true;
-
-                    node->get_value().value = node->get_value().value;
-
-                    // insert after
-                    position++;
-
-                    command_graph->parent->insert(node, position);
-
-                    node->get_value().is_autogen_repeat = true;
-
-                    show_tree fmt::print(fg(fmt::color::green_yellow), " [allocate repeat graph]");
-
-                    //  emulate_recursion::get_position_from_parent_to_root(command_graph, position);
-
-                    gcmd_t* command_graph_left = nullptr;
-
-                    // recalc position with use path current node
-
-                    gcmd_t* current_graph = command_graph;
-
-                    std::size_t last_position = current_graph->position;
-
-                    for (;;)
+                    /*
+                      Должна происходить в ноде родителе при выходе
+                      В общем эта штука физически вставляет вершину в текущую итерации работы цикла. Её нужно после физически удалять, при ресете графа. Эта реализация очень медленная.
+                      Основная проблема это пересчет позиций.
+                    */
+                    if (cmd->repeat_element && !cmd->is_status_allocate_recursion_graph)
                     {
-                        if (current_graph == command_graph->root) {
+                        std::size_t position = command_graph->position;
 
-                            if (last_position != 0) {
-                                command_graph_left = command_graph->root->tree[last_position - 1];
-                            }
-                            else
-                            {
-                                if (command_graph->root->get_value().is_empty_operation())
-                                {
-                                    std::del_flag(command_graph->root->get_value().flag, empty_operation);
-                                    std::add_flag(command_graph->root->get_value().flag, quantum_and);
+                        gcmd_t* node = new gcmd_t;
+
+                        emulate_recursion::copy_process_gcmd(cmd->repeat_element, node);
+
+                        cmd->is_status_allocate_repeat_graph = true;
+
+                        node->get_value().value = node->get_value().value;
+
+                        // insert after
+                        position++;
+
+                        command_graph->parent->insert(node, position);
+
+                        node->get_value().is_autogen_repeat = true;
+
+                        show_tree fmt::print(fg(fmt::color::green_yellow), " [allocate repeat graph]");
+
+                        //  emulate_recursion::get_position_from_parent_to_root(command_graph, position);
+
+                        gcmd_t* command_graph_left = nullptr;
+
+                        // recalc position with use path current node
+
+                        gcmd_t* current_graph = command_graph;
+
+                        std::size_t last_position = current_graph->position;
+
+                        for (;;)
+                        {
+                            if (current_graph == command_graph->root) {
+
+                                if (last_position != 0) {
+                                    command_graph_left = command_graph->root->tree[last_position - 1];
                                 }
+                                else
+                                {
+                                    if (command_graph->root->get_value().is_empty_operation())
+                                    {
+                                        std::del_flag(command_graph->root->get_value().flag, empty_operation);
+                                        std::add_flag(command_graph->root->get_value().flag, quantum_and);
+                                    }
+                                }
+
+                                break;
                             }
-   
-                            break;
+
+                            last_position = current_graph->position;
+                            current_graph = current_graph->parent;
                         }
 
-                        last_position = current_graph->position;
-                        current_graph = current_graph->parent;
+                        // recalc position
+                        //if (position > 0 && command_graph->root->size() > 0)
+                        //    command_graph_left = command_graph->root->tree[position - 1];
+
+                        if (command_graph_left)
+                        {
+                            auto cmd_left = &command_graph_left->get_value();
+
+                            // TODO: need fix bug this +1 and +0
+                            root_cmd->min_counter = cmd_left->min_counter; //+1;
+                            root_cmd->max_counter = cmd_left->max_counter; //+1;
+                        }
+                        else
+                        {
+                            command_graph->root->get_value().min_counter = 0;
+                            command_graph->root->get_value().max_counter = 0;
+                        }
+
+                        // TODO: check it in test
+                        if (command_graph->root->size() > 0) {
+                            emulate_recursion::recalc_position_in_graph_from_position(command_graph->root, last_position);
+                        }
+
+                        show_tree  fmt::print("\nRecalc position:\n");
+                        show_tree  emulate_recursion::print_graph(command_graph->root);
+
+                        //  is_first_child_optimisution = false;
+
+                          //reset it state for parent
+                        parent_cmd->is_end_find = false;
                     }
 
-                    // recalc position
-                    //if (position > 0 && command_graph->root->size() > 0)
-                    //    command_graph_left = command_graph->root->tree[position - 1];
-
-                    if (command_graph_left)
-                    {
-                        auto cmd_left = &command_graph_left->get_value();
-
-                        // TODO: need fix bug this +1 and +0
-                        root_cmd->min_counter =  cmd_left->min_counter; //+1;
-                        root_cmd->max_counter =  cmd_left->max_counter; //+1;
-                    }
-                    else
-                    {
-                        command_graph->root->get_value().min_counter = 0;
-                        command_graph->root->get_value().max_counter = 0;
-                    }
-
-                    // TODO: check it in test
-                    if (command_graph->root->size() > 0) {
-                        emulate_recursion::recalc_position_in_graph_from_position(command_graph->root, last_position);
-                    }
-
-                    show_tree  fmt::print("\nRecalc position:\n");
-                    show_tree  emulate_recursion::print_graph(command_graph->root);
-
-                  //  is_first_child_optimisution = false;
-
-                    //reset it state for parent
-                    parent_cmd->is_end_find = false;
                 }
+            } else {
+
+              if (!cmd->is_repeat()) {
+       
+                  parent_cmd->status_process.is_status_break = cmd->status_process.is_status_break;
+
+              }
+
             }
 
 #ifdef FIRST_CHILD_OPTIMISITION
@@ -623,7 +641,7 @@ namespace parser
             if (cmd->status_process.is_status_exit || parent_cmd->status_process.is_status_exit)
             {
                 show_tree fmt::print(" [");
-                show_tree fmt::print(fg(fmt::color::alice_blue), "status exit");
+                show_tree fmt::print(fg(fmt::color::purple), "status exit");
                 show_tree fmt::print("]");
 
                 end_return;
@@ -1004,8 +1022,10 @@ namespace parser
                 {
                     show_tree fmt::print(fg(fmt::color::green_yellow), " [true]");
 
-                    if (cmd->is_break())
-                        cmd->status_process.is_status_break = true;
+                    if (cmd->is_break()) {
+                        cmd->status_process.is_status_break        = true;
+                        parent_cmd->status_process.is_status_break = true;
+                    }
 
                     if (!parent_cmd->is_or())
                     {

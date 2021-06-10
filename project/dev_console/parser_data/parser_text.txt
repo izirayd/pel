@@ -1,5 +1,3 @@
-#module { tree };
-
 group space   : { " " }  = { exists, ignore };
 group symbol  : { ";," } = { exists, split  };
 group word    : { !space and !symbol } = { exists, glue };
@@ -7,9 +5,9 @@ group word    : { !space and !symbol } = { exists, glue };
 
 type type_a : { "a" or ";" = break };
 
-type main : { type_a = repeat, "b" } = exists;
+type main : { type_a = repeat  } = exists;
 
-test t1 : { "a;" };
+test t1 : { ";" };
 
 
 // C++ style
