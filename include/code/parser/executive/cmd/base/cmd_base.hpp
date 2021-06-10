@@ -16,5 +16,7 @@ class status_process_t
 {
 public:
 	status_find_t status_find = status_find_t::unknow;
-	bool is_status_exit = false;
+
+	bool is_status_exit  = false;
+	bool is_status_break = false;
 };

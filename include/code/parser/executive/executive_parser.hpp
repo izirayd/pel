@@ -334,20 +334,31 @@ namespace parser
                    }
                }
 
-               void reset_graph(gcmd_t* command_graph)
+               void reset_graph(gcmd_t* command_graph, bool &need_recalc_position)
                {
-                   command_graph->get_value().reset();
-                   command_graph->first_child = command_graph->real_first_child;
+                   if (command_graph->get_value().is_autogen_repeat)
+                   {
+                       command_graph->delete_tree();
+                       command_graph->parent->delete_element(command_graph->position);
+
+                   }
+                   else
+                   {
+                       command_graph->get_value().reset();
+                       command_graph->first_child = command_graph->real_first_child;
+                   }    
                }
 
                void reset(int level, base_arg_t* arg)
                {
                    global_gcmd_t* gcmd = arg->region->gcmd;
 
+                   bool need_recalc_position = false;
+
                    for (auto& it : *gcmd)
                    {
-                       it.gcmd->process_function["reset"] = detail::bind_function(&base_parser_t::reset_graph, this, std::placeholders::_1);
-                       it.gcmd->start_process_for("reset", "empty");
+                       it.gcmd->process_function["reset"] = detail::bind_function(&base_parser_t::reset_graph, this, std::placeholders::_1, std::placeholders::_2);
+                       it.gcmd->start_process_for("reset", "empty", need_recalc_position);
 
                        data_block_global_gcmd_t* d = it.block_depth.get_block(level);
                        d->is_use = true;

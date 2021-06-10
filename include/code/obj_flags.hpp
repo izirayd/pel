@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 namespace pel {
 
@@ -35,24 +36,26 @@ namespace pel {
 		obj_max = 1 << 21,
 	};
 
-	static const std::vector<std::pair<obj_flag_t, std::vector<std::string>>> property_flags = {
-		{ obj_flag_t::obj_execute,   { "execute"    } },
-		{ obj_flag_t::obj_glue,      { "glue"       } },
-		{ obj_flag_t::obj_split,     { "split"      } },
-		{ obj_flag_t::obj_ignore,    { "ignore"     } },
-		{ obj_flag_t::obj_maybe,     { "maybe"      } },
-		{ obj_flag_t::obj_recursion, { "recursion"  } },
-		{ obj_flag_t::obj_repeat,    { "repeat"     } },
-		{ obj_flag_t::obj_breakpoint,{ "breakpoint" } },
-		{ obj_flag_t::obj_return,    { "return"     } },
-		{ obj_flag_t::obj_exit,      { "exit"       } },
-		{ obj_flag_t::obj_break,     { "break"      } },
-		{ obj_flag_t::obj_break_all, { "break_all"  } },
+	static const std::unordered_map<std::string, obj_flag_t> property_flags = {
+		{    "execute",    obj_flag_t::obj_execute,    },
+		{    "glue",       obj_flag_t::obj_glue        },
+		{    "split",      obj_flag_t::obj_split,      },
+		{    "ignore",     obj_flag_t::obj_ignore      },
+		{    "maybe",      obj_flag_t::obj_maybe       },
+		{    "recursion",  obj_flag_t::obj_recursion   },
+		{    "repeat",     obj_flag_t::obj_repeat      },
+		{    "breakpoint", obj_flag_t::obj_breakpoint  },
+		{    "return",     obj_flag_t::obj_return      },
+		{    "exit",       obj_flag_t::obj_exit        },
+		{    "break",      obj_flag_t::obj_break       },
+		{    "break_all",  obj_flag_t::obj_break_all   },
+		{    "true",       obj_flag_t::obj_true        },
+		{    "false",      obj_flag_t::obj_false       },
 	};
 
-	static const std::vector<std::pair<obj_flag_t, std::vector<std::string>>> chain_flags = {
-		{ obj_flag_t::obj_and,  { "and", "," } },
-		{ obj_flag_t::obj_or,   { "or"    } },
+	static const std::unordered_map<std::string, obj_flag_t>  chain_flags = {
+		{ "and", obj_flag_t::obj_and,  },
+		{ ",",   obj_flag_t::obj_and,  },
+		{ "or",  obj_flag_t::obj_or   }
 	};
-
 }

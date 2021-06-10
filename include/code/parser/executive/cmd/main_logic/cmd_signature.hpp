@@ -379,8 +379,76 @@ namespace parser
                 }
             }
 
+            // FIRST_CHILD_OPTIMISITION
+            bool is_first_child_optimisution = true;
+
+            if (cmd->is_repeat() && cmd->is_end_find && cmd->status_process.status_find == status_find_t::success)
+            {
+                /*
+                  Должна происходить в ноде родителе при выходе
+                  В общем эта штука физически вставляет вершину в текущую итерации работы цикла. Её нужно после физически удалять, при ресете графа. Эта реализация очень медленная.
+                  Основная проблема это пересчет позиций.
+                */
+                if (cmd->repeat_element && !cmd->is_status_allocate_recursion_graph)
+                {
+                    std::size_t position = command_graph->position;
+
+                    gcmd_t* node = new gcmd_t;
+
+                    emulate_recursion::copy_process_gcmd(cmd->repeat_element, node);
+
+                    cmd->is_status_allocate_repeat_graph = true;
+
+                    node->get_value().value = node->get_value().value;
+
+                    // insert after
+                    position++;
+
+                    command_graph->parent->insert(node, position);
+
+                    node->get_value().is_autogen_repeat = true;
+
+                    show_tree fmt::print(fg(fmt::color::green_yellow), " [allocate repeat graph]");
+
+                    //  emulate_recursion::get_position_from_parent_to_root(command_graph, position);
+
+                    gcmd_t* command_graph_left = nullptr;
+
+                    // recalc position
+                    if (position > 0 && command_graph->root->size() > 0)
+                        command_graph_left = command_graph->root->tree[position - 1];
+
+                    if (command_graph_left)
+                    {
+                        auto cmd_left = &command_graph_left->get_value();
+
+                        // TODO: need fix bug this +1 and +0
+                        root_cmd->min_counter = cmd_left->min_counter; //+1;
+                        root_cmd->max_counter = cmd_left->max_counter; //+1;
+                    }
+                    else
+                    {
+                        command_graph->root->get_value().min_counter = 0;
+                        command_graph->root->get_value().max_counter = 0;
+                    }
+
+                    // TODO: check it in test
+                    if (command_graph->root->size() > 0) {
+                        emulate_recursion::recalc_position_in_graph_from_position(command_graph->root, position);
+                    }
+
+                    show_tree  fmt::print("\nRecalc position:\n");
+                    show_tree  emulate_recursion::print_graph(command_graph->root);
+
+                  //  is_first_child_optimisution = false;
+
+                    //reset it state for parent
+                    parent_cmd->is_end_find = false;
+                }
+            }
+
 #ifdef FIRST_CHILD_OPTIMISITION
-            if (cmd->is_end_find)
+            if (cmd->is_end_find && is_first_child_optimisution)
             {
                 if (command_graph->next) {
 
@@ -591,7 +659,6 @@ namespace parser
             // TODO: Имеет ли проблемы ситуация с комментированием cmd->is_or() && cmd->is_end_find && ?
             if (/*cmd->is_or() && cmd->is_end_find &&*/ cmd->is_inc_current_index_parent)
             {
-
                 show_tree fmt::print(" [");
                 show_tree fmt::print(fg(fmt::color::blue_violet), "inc index");
                 show_tree fmt::print("]");
@@ -602,13 +669,11 @@ namespace parser
 
                 parent_cmd->current_index++;
                 cmd->is_inc_current_index_parent = false;
-
             }
 
             // TODO: Имеет ли проблемы ситуация с комментированием cmd->is_or() && cmd->is_end_find && ?
             if (/*cmd->is_or() && cmd->is_end_find &&*/ cmd->is_inc_current_index)
             {
-
                 show_tree fmt::print(" [");
                 show_tree fmt::print(fg(fmt::color::blue_violet), "inc index");
                 show_tree fmt::print("]");
@@ -686,61 +751,61 @@ namespace parser
                 }
             }
 
-            if (cmd->is_repeat())
-            {
-                /*
-                  Должна происходить в ноде родителе при выходе
-                */
-                if (cmd->repeat_element && !cmd->is_status_allocate_recursion_graph)
-                {
-                    std::size_t position = command_graph->position;
+            //if (cmd->is_repeat())
+            //{
+            //    /*
+            //      Должна происходить в ноде родителе при выходе
+            //    */
+            //    if (cmd->repeat_element && !cmd->is_status_allocate_recursion_graph)
+            //    {
+            //        std::size_t position = command_graph->position;
 
-                    gcmd_t* node = new gcmd_t;
-                       
-                    emulate_recursion::copy_process_gcmd(cmd->repeat_element, node);
+            //        gcmd_t* node = new gcmd_t;
+            //           
+            //        emulate_recursion::copy_process_gcmd(cmd->repeat_element, node);
        
-                    cmd->is_status_allocate_repeat_graph = true;
+            //        cmd->is_status_allocate_repeat_graph = true;
 
-                    node->get_value().value = node->get_value().value;
+            //        node->get_value().value = node->get_value().value;
 
-                    // insert after
-                    position++;
-                 
-                    command_graph->parent->insert(node, position);
+            //        // insert after
+            //        position++;
+            //     
+            //        command_graph->parent->insert(node, position);
 
-                    show_tree fmt::print(fg(fmt::color::green_yellow), " [allocate repeat graph]");
+            //        show_tree fmt::print(fg(fmt::color::green_yellow), " [allocate repeat graph]");
 
-                  //  emulate_recursion::get_position_from_parent_to_root(command_graph, position);
+            //      //  emulate_recursion::get_position_from_parent_to_root(command_graph, position);
 
-                    gcmd_t* command_graph_left = nullptr;
+            //        gcmd_t* command_graph_left = nullptr;
 
-                    // recalc position
-                    if (position > 0 && command_graph->root->size() > 0)
-                        command_graph_left = command_graph->root->tree[position - 1];
+            //        // recalc position
+            //        if (position > 0 && command_graph->root->size() > 0)
+            //            command_graph_left = command_graph->root->tree[position - 1];
 
-                    if (command_graph_left)
-                    {
-                        auto cmd_left = &command_graph_left->get_value();
-                                
-                        // TODO: need fix bug this +1 and +0
-                        root_cmd->min_counter = cmd_left->min_counter; //+1;
-                        root_cmd->max_counter = cmd_left->max_counter; //+1;
-                    }
-                    else
-                    {
-                        command_graph->root->get_value().min_counter = 0;
-                        command_graph->root->get_value().max_counter = 0;
-                    }
+            //        if (command_graph_left)
+            //        {
+            //            auto cmd_left = &command_graph_left->get_value();
+            //                    
+            //            // TODO: need fix bug this +1 and +0
+            //            root_cmd->min_counter = cmd_left->min_counter; //+1;
+            //            root_cmd->max_counter = cmd_left->max_counter; //+1;
+            //        }
+            //        else
+            //        {
+            //            command_graph->root->get_value().min_counter = 0;
+            //            command_graph->root->get_value().max_counter = 0;
+            //        }
 
-                    // TODO: check it in test
-                    if (command_graph->root->size() > 0) {
-                        emulate_recursion::recalc_position_in_graph_from_position(command_graph->root, position);
-                    }
+            //        // TODO: check it in test
+            //        if (command_graph->root->size() > 0) {
+            //            emulate_recursion::recalc_position_in_graph_from_position(command_graph->root, position);
+            //        }
 
-                    show_tree  fmt::print("\nRecalc position:\n");
-                    show_tree  emulate_recursion::print_graph(command_graph->root);
-                }
-            }
+            //        show_tree  fmt::print("\nRecalc position:\n");
+            //        show_tree  emulate_recursion::print_graph(command_graph->root);
+            //    }
+            //}
 
             // time for epic
             if (cmd->is_recursion())
@@ -851,6 +916,9 @@ namespace parser
             if (cmd->is_false())
                 status = 0;
 
+            if (cmd->is_true() && cmd->is_false())
+                status = 2;
+
             if (cmd->is_maybe())
                 status = 1;
 
@@ -875,9 +943,40 @@ namespace parser
                         command_graph->parent->parent->get_value().is_status_return = true;
                 }
 
-                if (status == 1)
+                // true and false
+                if (status == 2) {
+
+                    show_tree fmt::print(fg(fmt::color::gold), " [true and false]");
+
+                    if (cmd->is_break())
+                        cmd->status_process.is_status_break = true;
+
+                    if (!parent_cmd->is_or())
+                    {
+                        cmd->status_process.status_find = status_find_t::unknow;
+
+                        if (parent_cmd->status_process.status_find != status_find_t::failed)
+                            parent_cmd->status_process = cmd->status_process;
+
+                        //parent_cmd->current_index++;
+                      //  parent_cmd->is_move_current_index_in_next_it = true;
+                        parent_cmd->is_inc_current_index = true;
+                        show_tree fmt::print(fg(fmt::color::dark_orchid), " [start inc next for {}]", parent_cmd->value);
+                    }
+
+                    if (parent_cmd->is_or())
+                    {
+                        cmd->status_process.status_find = status_find_t::unknow;
+                        cmd->is_end_find = true;
+                    }
+
+                } // true
+                else if (status == 1)
                 {
                     show_tree fmt::print(fg(fmt::color::green_yellow), " [true]");
+
+                    if (cmd->is_break())
+                        cmd->status_process.is_status_break = true;
 
                     if (!parent_cmd->is_or())
                     {
@@ -898,7 +997,7 @@ namespace parser
                         cmd->is_end_find = true;
                     }
                 }
-                else
+                else  // false
                 {
                     show_tree fmt::print(fg(fmt::color::pale_violet_red), " [false]");
 

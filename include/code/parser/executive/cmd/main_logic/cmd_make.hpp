@@ -82,13 +82,20 @@ namespace parser
 		/*
 			функция завершающего обхода вершины графа. Когда последний элемент дочерней вершины графа завершается, то
 			её вершина-родитель вызывается, где обрабатывается её позиции. Данный подход является чем-то похожим на вертикальный перебор
-			графа, но к сожалению нам требуется имено рекурсивный перебор, где по последнему вызывается родитель, несмотря на то, что родитель
+			графа, но к сожалению нам требуется именно рекурсивный перебор, где по последнему вызывается родитель, несмотря на то, что родитель
 			уже вызываелся при рекурсивном переборе.
 
 			В данной функции происходит расчет позиций вершины, решающий задачу OR и AND для вершин значения/типов через счетчик. Что насчет лицензии на этот алгоритм? Я его выводил очень долго :D
 		*/
 		void calc_position_in_graph_for_parent(gcmd_t* command_graph, gcmd_t* first_child_graph, gcmd_t* last_child_graph, std::size_t& count_base_signature, bool is_render_tree)
 		{
+			if (first_child_graph == nullptr) {
+				// error
+				// body is empty: type a1 : {  } = execute;
+				fmt::print(fmt::fg(fmt::color::red), "Error, body type is empty\n");
+				return;
+			}
+			
 			cmd_t* cmd		   = &command_graph->get_value();
 			cmd_t* parent_cmd  = &command_graph->parent->get_value();
 			 
@@ -257,8 +264,13 @@ namespace parser
 				is_position = true;
 				is_value    = true;
 
-				show_tree fmt::print(fg(fmt::color::light_pink), " [predicate]");
-			}
+				if (cmd->is_true())
+					show_tree fmt::print(fg(fmt::color::light_pink), " [predicate:true]");
+
+
+				if (cmd->is_false()) 
+					show_tree fmt::print(fg(fmt::color::light_pink), " [predicate:false]");
+			}	
 			else {
 
 				if (cmd->is_value())
@@ -304,8 +316,14 @@ namespace parser
 			if (cmd->is_repeat()) {
 
 				show_tree  fmt::print(fg(fmt::color::hot_pink), " [repeat]");
+
 			}
 
+			if (cmd->is_break()) {
+
+				show_tree  fmt::print(fg(fmt::color::chartreuse), " [break]");
+
+			}
 
 
 			if (cmd->is_maybe()) {

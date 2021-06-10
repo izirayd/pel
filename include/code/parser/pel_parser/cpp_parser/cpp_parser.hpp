@@ -18,8 +18,12 @@ namespace pel {
 		struct obj_base_t
 		{
 			words_base_t  words_base;
+
+			inline const std::string& c_str() { return words_base.data; };
+
 			bool is_read_string_end = false;
-			bool is_read_property = false;
+			bool is_read_property   = false;
+			bool is_multi_property  = false;
 			bool is_conditional_expressions = false;
 
 			obj_t		  obj;
@@ -84,10 +88,11 @@ namespace pel {
 
 		using pel_keywords_t = std::vector<pel_keywords_element_t>;
 
-		pel_keywords_t pel_keywords;
-		bool is_have_keyword = false;
+		pel_keywords_t pel_keywords;	
 		pel_keywords_element_t* current_keyword = nullptr;
-		bool is_read_string = false;
+
+		bool is_have_keyword = false;
+		bool is_read_string  = false;
 
 		void get_next_with_ignore_space_tab_newline(tree_obj_base_t* tree_words, tree_obj_base_t*& next_tree_words) {
 
@@ -112,6 +117,12 @@ namespace pel {
 		}
 
 		void get_left_propery_block(tree_obj_base_t* tree_words, tree_obj_base_t*& result, bool& is_next_read, const std::string& read_symbol) {
+
+			if (tree_words == nullptr) {
+
+				fmt::print(fmt::fg(fmt::color::red), "Error, no left value for property\n");
+				return;
+			}
 
 			auto word = tree_words->get_value();
 
@@ -925,7 +936,7 @@ namespace pel {
 								continue;
 							}
 
-							if (it_word->words_base.data == "{")
+							if (it_word->words_base.data == "{" && (!it_word->is_read_property || !it_word->is_multi_property))
 							{
 								// TODO: fmt not support UTF-16 and UTF-32 =/
 								it_word->obj.name = fmt::format("block{}", counter_autoblock++);
@@ -1006,6 +1017,7 @@ namespace pel {
 								continue;
 							}
 
+							if (!it_word->is_read_property && !it_word->is_multi_property)
 							if (
 								it_word->words_base.data != "not" &&
 								it_word->words_base.data != "!" &&
@@ -1023,6 +1035,7 @@ namespace pel {
 								it_word->words_base.data != "recursion" &&
 								it_word->words_base.data != "repeat" &&
 								it_word->words_base.data != "repeat_end" &&
+								it_word->words_base.data != "break" &&
 								it_word->words_base.data != "breakpoint" &&
 								it_word->words_base.data != "{" &&
 								it_word->words_base.data != "}" &&
@@ -1070,14 +1083,13 @@ namespace pel {
 									word->obj.values.push_back(it_word->obj);
 								}
 							}
-
 						}
 					}
 				}
 
 				void process_parse_tree(tree_obj_base_t* tree_words, core_data_manager_t* &core_data_manager)
 				{
-					auto word = tree_words->get_value();
+					auto word        = tree_words->get_value();
 					auto parent_word = tree_words->parent->get_value();
 
 					if (!word)
@@ -1108,60 +1120,108 @@ namespace pel {
 						{
 							if (parent_word->is_read_property)
 							{
-								tree_obj_base_t* object_for_property = nullptr;
-								bool is_next_read = false;
+								if (word->c_str() == "{") {
 
-								get_left_propery_block(tree_words->previous, object_for_property, is_next_read, "=");
+									word->is_read_property  = true;							
+									word->is_multi_property = true;
+									parent_word->is_multi_property = true;
 
-								if (object_for_property) {
+								} else
+								if (word->c_str() == "}") {
+									parent_word->is_multi_property = false;
+									parent_word->is_read_property  = false;
+								} else								
+								if (parent_word->is_multi_property) {
 
-									auto word_object_for_property = object_for_property->get_value();
+									tree_obj_base_t* object_for_property = nullptr;
+									bool is_next_read = false;
 
-									bool result = word_object_for_property->obj.add_flag_from_string_to_property(word->words_base.data);
+									// tree_words->parent
+									get_left_propery_block(tree_words->parent->previous, object_for_property, is_next_read, "=");
 
-									// no keyword
-									if (!result)
-									{
-										if (word->words_base.data != ",")
+									if (object_for_property) {
+
+										auto word_object_for_property = object_for_property->get_value();
+
+										word->is_read_property = true;
+
+										bool result = word_object_for_property->obj.add_flag_from_string_to_property(word->words_base.data);
+
+										// no keyword
+										if (!result)
 										{
-											parent_word->is_read_property = false;
-										}
-										else if (word->words_base.data != ",")
-										{
-											fmt::print("No property {}\n", word->words_base.data);
+											if (word->words_base.data != ",")
+											{
+												fmt::print("No property: {}\n", word->words_base.data);
+											}
 										}
 									}
+
 								}
+								  else {
+
+								  tree_obj_base_t* object_for_property = nullptr;
+								  bool is_next_read = false;
+
+								  get_left_propery_block(tree_words->previous, object_for_property, is_next_read, "=");
+
+								  if (object_for_property) {
+ 
+								 	 auto word_object_for_property = object_for_property->get_value();
+
+									 word->is_read_property = true;
+
+									 bool result = word_object_for_property->obj.add_flag_from_string_to_property(word->words_base.data);
+
+									// no keyword
+									 if (!result)
+									 { 
+										if (word->words_base.data != ",")
+										{
+											fmt::print("No property: {}\n", word->words_base.data);
+										}
+									 }
+								   }
+
+								  word->is_read_property = true;
+								  parent_word->is_read_property = false;
+							   }
+						
 							}
+							else {
 
-							if (word->words_base.data == "=")
-							{
-								parent_word->is_read_property = true;
-							}
-
-							parent_word->obj.add_flag_from_string_to_chain(word->words_base.data);
-
-							if (word->words_base.data == "not" || word->words_base.data == "!")
-							{
-								tree_obj_base_t* next_tree = nullptr;
-								get_next_with_ignore_space_tab_newline(tree_words->next, next_tree);
-
-								if (next_tree)
+								if (word->words_base.data == "=")
 								{
-									auto next_word = next_tree->get_value();
-									auto this_word = tree_words->get_value();
+									parent_word->is_read_property = true;
+								}
 
-									if (next_word)
+								parent_word->obj.add_flag_from_string_to_chain(word->words_base.data);
+
+								if (word->words_base.data == "not" || word->words_base.data == "!")
+								{
+									tree_obj_base_t* next_tree = nullptr;
+									get_next_with_ignore_space_tab_newline(tree_words->next, next_tree);
+
+									if (next_tree)
 									{
-										// yeah, for double not
-										next_word->obj.add_inversion_flag(this_word->obj, obj_flag_t::obj_not);
+										auto next_word = next_tree->get_value();
+										auto this_word = tree_words->get_value();
+
+										if (next_word)
+										{
+											// yeah, for double not
+											next_word->obj.add_inversion_flag(this_word->obj, obj_flag_t::obj_not);
+										}
 									}
 								}
 							}
 						}
 					}
 
-					if (!is_read_string) {
+					// check pointer parent_word for nullptr status
+					bool is_read_property = parent_word ? parent_word->is_read_property : false;
+
+					if (!is_read_string && !is_read_property) {
 
 						if (is_have_keyword && current_keyword) {
 
@@ -1229,9 +1289,6 @@ namespace pel {
 												erase_list.clear();
 											}
 										}
-
-
-
 									}
 								}
 

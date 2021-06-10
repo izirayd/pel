@@ -42,7 +42,6 @@ uint32_t file_hash(const std::wstring& file_name)
 	else
 	{
 		fmt::print("Can`t open file {}\n", cpp_file.cfilename.c_str());
-
 	}
 
 	return result;
@@ -195,7 +194,7 @@ public:
 	void init() {
 
 #ifdef PLATFORM_WINDOWS
-		// for color FMT
+		// for support color from FMT
 		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 
 		if (hOut == INVALID_HANDLE_VALUE)

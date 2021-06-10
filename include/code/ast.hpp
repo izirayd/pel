@@ -6,7 +6,6 @@
 
 namespace pel
 {
-
 	class ast_element_t
 	{
 		public:

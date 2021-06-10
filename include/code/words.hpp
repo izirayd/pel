@@ -35,7 +35,8 @@ struct words_base_t
 	std::size_t end_position   = 0;
 
 	inline void clear() { 
-		std::clear_flag(type); data.clear(); }
+		std::clear_flag(type); data.clear(); 
+	}
 
 	inline bool is_space_tab()    { return std::check_flag(type, parse_flag_t::space_tab);    }
 	inline bool is_word()         { return std::check_flag(type, parse_flag_t::word);         }

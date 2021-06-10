@@ -16,59 +16,46 @@ namespace pel
 
 		obj_flag_base_t flag = 0;
 		
-		inline bool is_flag(const obj_flag_t& c_flag) {
+		inline bool is_flag(const obj_flag_t& c_flag) const {
 			return std::check_flag(flag, c_flag);
 		}
 
-		void add_inversion_flag(obj_t& obj, const obj_flag_t& c_flag) {
+		inline void add_inversion_flag(obj_t& obj, const obj_flag_t& c_flag) {
 		
 			if (!obj.is_flag(c_flag))
-			{
 				add_flag(c_flag);
-			}
-
 		}
 
-		void del_flag(const obj_flag_t& plus_flag) {
+		inline void del_flag(const obj_flag_t& plus_flag) {
 			std::del_flag(flag, plus_flag);
 		}
 
-		void add_flag(const obj_flag_t& plus_flag)
-		{
+		inline void add_flag(const obj_flag_t& plus_flag)	{
 			std::add_flag(flag, plus_flag);
 		}
 
 		bool add_flag_from_string_to_chain(const std::string& str) {
 
-			for (auto& it : chain_flags)
-			{
-				for (auto& str_it : it.second)
-				{
-					if (str_it == str)
-					{
-						add_flag(it.first);
-						return true;
-					}
-				}
+		    const auto result = chain_flags.find(str);
 
+			if (result != chain_flags.end())
+			{				
+				add_flag(result->second);
+				return true;
 			}
 
 			return false;
 		}
 
+		// O (1)
 		bool add_flag_from_string_to_property(const std::string& str) {
 
-			for (auto& it : property_flags)
-			{
-				for (auto& str_it : it.second)
-				{
-					if (str_it == str)
-					{
-						add_flag(it.first);
-						return true;
-					}
-				}
-				
+			const auto result = property_flags.find(str);
+
+			if (result != property_flags.end())
+			{				
+				add_flag(result->second);
+				return true;
 			}
 
 			return false;

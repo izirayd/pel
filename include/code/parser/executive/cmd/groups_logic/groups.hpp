@@ -25,104 +25,61 @@ namespace pel {
 
 		class group_t
 		{
-		  public:
-			
-			group_t() = default;
-			group_t(const std::string& name_group, const group_elements_t& ge)        { name = name_group; elements = ge; }
-			group_t(const std::string& name_group, const std::string& string_element) { name = name_group; push_element(string_element); }
+
+		private: 
+			void init() {
+				all_elements.resize(256 /* uint8_t */, 0);
+			}
+
+			std::vector<uint32_t> all_elements;
+			group_elements_t elements;
+		public:
+
+			group_t() { init();  };
+			group_t(const std::string& name_group, const group_elements_t& ge) { init();  name = name_group; elements = ge; }
+			group_t(const std::string& name_group, const std::string& string_element) { init();  name = name_group; push_element(string_element); }
 
 			std::string name;
 			std::size_t last_position = 0;
 
-			bool is_glue    = false;
-			bool is_split   = false;
-			bool is_ignore  = false;
+			bool is_glue   = false;
+			bool is_split  = false;
+			bool is_ignore = false;
 
-			bool is_belongs(const group_element_t& element) {
-
-				if (is_sequential)
-					return element.element >= min_sequential && element.element <= max_sequential;
-
-				return std::binary_search(elements.begin(), elements.end(), element, [](const group_element_t& left_element, const group_element_t& right_element) { return (left_element.element < right_element.element); });
+			// O (1)
+			inline bool is_belongs(const group_element_t& element) {
+				return all_elements[(uint32_t) element.element] > 0;
 			}
 
-			void sort_elements() {
+			void sort_elements() {}
 
-				std::sort(elements.begin(), elements.end(), [](const group_element_t& left_element, const group_element_t& right_element) { return (left_element.element < right_element.element); });
-				sequential();
-			}
-
-			bool    is_sequential = false;
-
-			uint8_t min_sequential = UINT8_MAX;
-			uint8_t max_sequential = 0;
-
-			// функция проверяет лежат ли числа последовательно или нет
-			void sequential() {
-
-				if (elements.empty())
-				{
-					is_sequential = false; // or true??
-					return;
-				}
-
-				bool is_first = false;
-				uint8_t last = 0;
-
-				for (auto& element : elements)
-				{
-					if (!is_first)
-					{
-						is_first = true;
-						last = element.element;
-
-						if (last < min_sequential)
-							min_sequential = last;
-
-						if (last > max_sequential)
-							max_sequential = last;
-
-						continue;
-					}
-
-					if ((last + 1) != element.element)
-					{
-						is_sequential = false;
-						return;
-					}
-
-					last = element.element;;
-
-					if (last < min_sequential)
-						min_sequential = last;
-
-					if (last > max_sequential)
-						max_sequential = last;
-				}
-
-				is_sequential = true;
-			}
-
+			// O (1)
 			void push_element(const group_element_t& element) {
 				elements.push_back(element);
+				all_elements[(uint32_t)element.element]++;
 			}
+
 
 			void push_element(const std::string& str) {
 
 				for (size_t i = 0; i < str.length(); i++)
-				{
 					push_element(str[i]);
+				
+			}
+
+			// O (n)
+			void clear() { 
+
+				elements.clear();
+			
+				for (size_t i = 0; i < all_elements.size(); i++)
+				{
+					all_elements[i] = 0;
 				}
 			}
 
-			void clear() { elements.clear(); }
-
 			std::size_t size()     const { return elements.size(); }
 			group_elements_t get() const { return elements; }
-
-		private:
-			group_elements_t elements;
-
 		};
 
 		using groups_list_t = std::vector<group_t>;
@@ -213,8 +170,7 @@ namespace pel {
 				}
 
 				inline void push_group(const position_element_t &group) {
-					data.push_back(group);
-		
+					data.push_back(group);	
 				}
 		};
 	}

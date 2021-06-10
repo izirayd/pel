@@ -191,10 +191,11 @@ public:
 			cat(FlagFile, L",UTF-16LE");
 
 		if ((FileDescriptor = _wfopen(NameFile, FlagFile)) == NULL)
-			  return Result = "No open in OpenFile file.hpp";;
+			  return Result = false;
 
 #endif
 
+		Result = true;
 		Size = GetSizeFile();
 		return Result;
 	}

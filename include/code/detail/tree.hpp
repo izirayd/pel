@@ -462,6 +462,37 @@ public:
 		std::clear(tree);
 	}
 
+	/* Delete element for position */
+	void delete_element(const std::size_t& position)
+	{
+		tree.erase(tree.begin() + position);
+
+		for (size_t i = position; i < tree.size(); i++)
+		{
+			tree[i]->position = i;
+		}
+		
+		if (position > 0) {
+			if (position < tree.size())
+			 tree[position]->previous = tree[position - 1];
+		}
+		else
+		{
+			if (position < tree.size())
+			  tree[position]->previous = nullptr;
+		}
+
+		if (position > 0) {
+
+			if (position < tree.size()) {
+				tree[position - 1]->next = tree[position];
+			}
+			else {
+				tree[position - 1]->next = nullptr;
+			}
+		}
+	}
+
 	inline data_value_t  get_value() const   { return value; }
 	inline data_value_t& get_value()		 { return value; }
 

@@ -26,13 +26,12 @@ namespace pel {
 		 { pel::obj_flag_t::obj_break_all, parser::executive::quantum_flag_t::quantum_break_all },
 	};
 
+	// O(n)
+	// can`t be O(1) sad
 	void association_flags_for_cmd(const obj_t &obj, parser::executive::cmd_t *cmd) {
 
 		for (const auto &it : table_association_obj_quentum_flags)
 		{
-			if (it.first > obj.flag)
-				break;
-
 			if (std::check_flag(obj.flag, it.first))
 				std::add_flag(cmd->flag, it.second);			
 		}

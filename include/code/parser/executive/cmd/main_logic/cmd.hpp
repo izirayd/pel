@@ -176,6 +176,8 @@ namespace parser
 			bool is_status_allocate_recursion_graph = false;
 			bool is_status_allocate_repeat_graph = false;
 
+			bool is_autogen_repeat = false;
+
 			gcmd_t* recursion_element = nullptr;
 			gcmd_t* repeat_element    = nullptr;
 
@@ -186,8 +188,9 @@ namespace parser
 
 			void reset() {
 
-				status_process.status_find    = status_find_t::unknow;
-				status_process.is_status_exit = false;
+				status_process.status_find     = status_find_t::unknow;
+				status_process.is_status_exit  = false;
+				status_process.is_status_break = false;
 
 				is_check   = false;
 		
@@ -204,6 +207,7 @@ namespace parser
 				is_move_current_index_in_next_it_tmp = false;
 
 				is_inc_current_index_parent = false;
+			
 			}
 
 			// cast in std::flag8_t ?
