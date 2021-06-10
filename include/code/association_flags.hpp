@@ -8,7 +8,7 @@ namespace pel {
 	static const std::vector<std::pair<pel::obj_flag_t, parser::executive::quantum_flag_t>> table_association_obj_quentum_flags = {
 		 { pel::obj_flag_t::obj_value, parser::executive::quantum_flag_t::quantum_value },
 		 { pel::obj_flag_t::obj_type, parser::executive::quantum_flag_t::quantum_type },
-		 { pel::obj_flag_t::obj_execute, parser::executive::quantum_flag_t::quantum_execute },
+		 { pel::obj_flag_t::obj_exists, parser::executive::quantum_flag_t::quantum_exists },
 		 { pel::obj_flag_t::obj_and, parser::executive::quantum_flag_t::quantum_and },
 		 { pel::obj_flag_t::obj_or, parser::executive::quantum_flag_t::quantum_or },
 		 { pel::obj_flag_t::obj_not, parser::executive::quantum_flag_t::quantum_not },
@@ -39,8 +39,8 @@ namespace pel {
 		if (std::check_flag(obj.flag, pel::obj_flag_t::obj_group) && std::check_flag(obj.flag, pel::obj_flag_t::obj_type))
 			std::del_flag(cmd->flag, parser::executive::quantum_type);
 
-		if (std::check_flag(obj.flag, pel::obj_flag_t::obj_group) && std::check_flag(obj.flag, pel::obj_flag_t::obj_execute))
-			std::del_flag(cmd->flag, parser::executive::quantum_execute);
+		if (std::check_flag(obj.flag, pel::obj_flag_t::obj_group) && std::check_flag(obj.flag, pel::obj_flag_t::obj_exists))
+			std::del_flag(cmd->flag, parser::executive::quantum_exists);
 
 		if (std::check_flag(obj.flag, pel::obj_flag_t::obj_or))
 			std::del_flag(cmd->flag, parser::executive::quantum_and);

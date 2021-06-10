@@ -1025,7 +1025,7 @@ namespace pel {
 								it_word->words_base.data != "or" &&
 								it_word->words_base.data != "," &&
 								it_word->words_base.data != "=" &&
-								it_word->words_base.data != "execute" &&
+								it_word->words_base.data != "exists" &&
 								it_word->words_base.data != "glue" &&
 								it_word->words_base.data != "split" &&
 								it_word->words_base.data != "ignore" &&

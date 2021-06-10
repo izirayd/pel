@@ -6,11 +6,11 @@ void test_1()
 
     pel_parser.code = R"(
   
-        group space   : { " " }  = execute, ignore;
-        group symbol  : { ";," } = execute, split;
-        group word    : { !space and !symbol } = execute, glue;
+        group space   : { " " }  = exists, ignore;
+        group symbol  : { ";," } = exists, split;
+        group word    : { !space and !symbol } = exists, glue;
 
-        type a : { "a", ";" } = execute;
+        type a : { "a", ";" } = exists;
     )";
 
     pel_parser.compile();

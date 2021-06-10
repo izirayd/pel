@@ -12,7 +12,7 @@ namespace parser
 		{
 			quantum_value	   = 1 << 0,
 			quantum_type	   = 1 << 1,
-			quantum_execute    = 1 << 2,
+			quantum_exists     = 1 << 2,
 			quantum_and		   = 1 << 3,
 			quantum_or		   = 1 << 4,
 			quantum_not		   = 1 << 5,
@@ -125,7 +125,7 @@ namespace parser
 			inline bool is_not()       { return std::check_flag(flag, quantum_not);       }
 			inline bool is_value()     { return std::check_flag(flag, quantum_value);     }
 			inline bool is_type()      { return std::check_flag(flag, quantum_type);      }
-			inline bool is_execute()   { return std::check_flag(flag, quantum_execute);   }
+			inline bool is_exists()    { return std::check_flag(flag, quantum_exists);    }
 			inline bool is_group()	   { return std::check_flag(flag, quantum_group);     }
 			inline bool is_repeat()	   { return std::check_flag(flag, quantum_repeat);    }
 			inline bool is_maybe()	   { return std::check_flag(flag, quantum_maybe);     }

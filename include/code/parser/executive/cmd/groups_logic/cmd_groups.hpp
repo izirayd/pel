@@ -17,7 +17,7 @@ namespace parser
 			{
 				object_value      = 1 << 0,
 				object_type       = 1 << 1,
-				property_execute  = 1 << 2,
+				property_exists   = 1 << 2,
 				operation_and     = 1 << 3,
 				operation_or      = 1 << 4,
 				operation_not     = 1 << 5,
@@ -45,15 +45,15 @@ namespace parser
 
 				status_process_t status_process;
 
-				inline bool is_or()     { return std::check_flag(flag, group_flag_t::operation_or);    }
-				inline bool is_and()    { return std::check_flag(flag, group_flag_t::operation_and);   }
-				inline bool is_execute(){ return std::check_flag(flag, group_flag_t::property_execute);     }
-				inline bool is_not()    { return std::check_flag(flag, group_flag_t::operation_not);   }
-				inline bool is_value()  { return std::check_flag(flag, group_flag_t::object_value);    }
-				inline bool is_type()   { return std::check_flag(flag, group_flag_t::object_type);     }
-				inline bool is_glue()   { return std::check_flag(flag, group_flag_t::property_glue);   }
-				inline bool is_split()  { return std::check_flag(flag, group_flag_t::property_split);  }
-				inline bool is_ignore() { return std::check_flag(flag, group_flag_t::property_ignore); }
+				inline bool is_or()     { return std::check_flag(flag, group_flag_t::operation_or);     }
+				inline bool is_and()    { return std::check_flag(flag, group_flag_t::operation_and);    }
+				inline bool is_exists() { return std::check_flag(flag,  group_flag_t::property_exists); }
+				inline bool is_not()    { return std::check_flag(flag, group_flag_t::operation_not);    }
+				inline bool is_value()  { return std::check_flag(flag, group_flag_t::object_value);     }
+				inline bool is_type()   { return std::check_flag(flag, group_flag_t::object_type);      }
+				inline bool is_glue()   { return std::check_flag(flag, group_flag_t::property_glue);    }
+				inline bool is_split()  { return std::check_flag(flag, group_flag_t::property_split);   }
+				inline bool is_ignore() { return std::check_flag(flag, group_flag_t::property_ignore);  }
 
 				inline bool is_empty_operation() { return std::check_flag(flag, group_flag_t::operation_empty); }
 			};
@@ -103,8 +103,8 @@ namespace parser
 				if (std::check_flag(obj->flag, pel::obj_flag_t::obj_value))
 					std::add_flag(cmd->flag, group_flag_t::object_value);
 
-				if (std::check_flag(obj->flag, pel::obj_flag_t::obj_execute))
-					std::add_flag(cmd->flag, group_flag_t::property_execute);
+				if (std::check_flag(obj->flag, pel::obj_flag_t::obj_exists))
+					std::add_flag(cmd->flag, group_flag_t::property_exists);
 
 				if (std::check_flag(obj->flag, pel::obj_flag_t::obj_not))
 					std::add_flag(cmd->flag, group_flag_t::operation_not);

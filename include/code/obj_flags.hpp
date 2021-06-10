@@ -14,7 +14,7 @@ namespace pel {
 
 		obj_value = 1 << 0,
 		obj_type = 1 << 1,
-		obj_execute = 1 << 2,
+		obj_exists = 1 << 2,
 		obj_group = 1 << 3,
 		obj_and = 1 << 4,
 		obj_or = 1 << 5,
@@ -37,7 +37,7 @@ namespace pel {
 	};
 
 	static const std::unordered_map<std::string, obj_flag_t> property_flags = {
-		{    "execute",    obj_flag_t::obj_execute,    },
+		{    "exists",     obj_flag_t::obj_exists,    },
 		{    "glue",       obj_flag_t::obj_glue        },
 		{    "split",      obj_flag_t::obj_split,      },
 		{    "ignore",     obj_flag_t::obj_ignore      },

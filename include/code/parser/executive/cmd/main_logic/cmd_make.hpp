@@ -91,7 +91,7 @@ namespace parser
 		{
 			if (first_child_graph == nullptr) {
 				// error
-				// body is empty: type a1 : {  } = execute;
+				// body is empty: type a1 : {  } = exists;
 				fmt::print(fmt::fg(fmt::color::red), "Error, body type is empty\n");
 				return;
 			}
@@ -253,20 +253,16 @@ namespace parser
 				is_position = true;
 				is_value = true;
 
-
 				show_tree fmt::print(fg(fmt::color::deep_sky_blue), " [group]");
-
 			}
 
 			if (cmd->is_true() || cmd->is_false())
-			{
-				
+			{		
 				is_position = true;
 				is_value    = true;
 
 				if (cmd->is_true())
 					show_tree fmt::print(fg(fmt::color::light_pink), " [predicate:true]");
-
 
 				if (cmd->is_false()) 
 					show_tree fmt::print(fg(fmt::color::light_pink), " [predicate:false]");
@@ -280,7 +276,6 @@ namespace parser
 
 					show_tree fmt::print(fg(fmt::color::deep_sky_blue), " [value]");
 				}
-
 			}
 
 			if (cmd->is_or()) {
@@ -312,19 +307,15 @@ namespace parser
 				show_tree  fmt::print(fg(fmt::color::hot_pink), " [recursion]");
 			}
 
-
 			if (cmd->is_repeat()) {
 
 				show_tree  fmt::print(fg(fmt::color::hot_pink), " [repeat]");
-
 			}
 
 			if (cmd->is_break()) {
 
 				show_tree  fmt::print(fg(fmt::color::chartreuse), " [break]");
-
 			}
-
 
 			if (cmd->is_maybe()) {
 
@@ -356,8 +347,8 @@ namespace parser
 				show_tree fmt::print(fg(fmt::color::aquamarine), " [type]");
 			}
 
-			if (cmd->is_execute())
-				show_tree fmt::print(fg(fmt::color::red), " [execute]");
+			if (cmd->is_exists())
+				show_tree fmt::print(fg(fmt::color::red), " [exists]");
 
 			show_tree fmt::print(" [");
 			show_tree fmt::print(fg(fmt::color::coral), "{0}", cmd->min_position);

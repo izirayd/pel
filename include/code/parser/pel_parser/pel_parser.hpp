@@ -575,7 +575,7 @@ namespace pel
 
 				if (!is_find)
 				{
-					if (obj->is_flag(obj_flag_t::obj_execute))
+					if (obj->is_flag(obj_flag_t::obj_exists))
 						nl->is_ex = true;
 
 					nl->data.push_back(obj);
@@ -587,7 +587,7 @@ namespace pel
 				new_nl.name = obj->name;
 				new_nl.data.push_back(obj);
 
-				if (obj->is_flag(obj_flag_t::obj_execute))
+				if (obj->is_flag(obj_flag_t::obj_exists))
 					new_nl.is_ex = true;
 
 				data.push_back(new_nl);
@@ -877,7 +877,7 @@ namespace pel
 		for (const auto obj_ex : pel_lang.all_groups)
 		{
 			if (obj_ex) {
-				if (std::check_flag(obj_ex->flag, obj_flag_t::obj_execute))
+				if (std::check_flag(obj_ex->flag, obj_flag_t::obj_exists))
 				{
 					auto main = new parser::executive::groups::gcmd_group_t;
 
@@ -915,7 +915,7 @@ namespace pel
 			if (it.data.size() == 1)
 			{
 				// solo type
-				if (std::check_flag(it.data[0]->flag, obj_flag_t::obj_execute))
+				if (std::check_flag(it.data[0]->flag, obj_flag_t::obj_exists))
 				{
 					parser::executive::gcmd_t* main = new parser::executive::gcmd_t;
 
