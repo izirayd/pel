@@ -231,7 +231,7 @@ int main()
 	output_handle_t output_handle;
 	output_handle.init();
 
-	fmt::print(fmt::fg(fmt::color::coral), "Dev version with render code pel, with tree code. v{0}.{1}\n\n",  PEL_VERSION_MAJOR, PEL_VERSION_MINOR);
+	fmt::print(fmt::fg(fmt::color::coral), "Dev version with render code pel, with tree code v{0}.{1}\n\n",  PEL_VERSION_MAJOR, PEL_VERSION_MINOR);
 
 	start(1);
 

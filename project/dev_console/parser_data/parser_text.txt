@@ -1,3 +1,10 @@
-#module { tree };
+#module { tree }; 
 
-type world : { true } = exists;
+group space   : { " " }  = { exists, ignore };
+group symbol  : { ";," } = { exists, split  };
+group word    : { !space and !symbol } = { exists, glue };
+
+type a  : { "a" or false };
+type a1 : { "a" } = exists;
+
+test t1 : { "a b" };

@@ -1239,17 +1239,25 @@ namespace pel {
 							if (word->words_base.data == ";")
 							{
 								auto obj = new obj_t;
+								auto tmp_obj = new obj_t;
+
+								bool is_first_find = false;
 
 								for (size_t i = last_position; i < tree_words->position; i++)
 								{
 									if (tree_words->parent->tree[i]->get_value()->words_base.data == "{")
 									{
-										*obj = tree_words->parent->tree[i]->get_value()->obj;
+										if (!is_first_find) {
+											is_first_find = true;
+											*obj = tree_words->parent->tree[i]->get_value()->obj;
+										}
+
+										*tmp_obj = tree_words->parent->tree[i]->get_value()->obj;
 
 										// TODO: NO CHECK SIZE!!!
-										for (std::size_t w = 0; w < obj->values.size(); w++)
+										for (std::size_t w = 0; w < tmp_obj->values.size(); w++)
 										{
-											if (obj->values[w].is_condition_true)
+											if (tmp_obj->values[w].is_condition_true)
 											{
 												conditional_element_t* condition_element = new conditional_element_t;
 												conditional_element_t::memory_manager_t memory_manager;
@@ -1261,7 +1269,7 @@ namespace pel {
 
 												bool is_skip = false;
 
-												conditional_element_t::read_condition(obj, w, condition_element, false, false, w, is_skip, memory_manager, erase_list);
+												conditional_element_t::read_condition(tmp_obj, w, condition_element, false, false, w, is_skip, memory_manager, erase_list);
 												//print_condition(condition_element);
 
 												if (!erase_list.data.empty()) {
@@ -1275,14 +1283,14 @@ namespace pel {
 
 													for (size_t k = 0; k < erase_list.data.size(); k++)
 													{
-														obj->values.erase(obj->values.begin() + (erase_list.data[k] - k));
+														tmp_obj->values.erase(tmp_obj->values.begin() + (erase_list.data[k] - k));
 													}
 
 													// here insert
 													obj_t insert_obj;
 													bool  is_write_read_obj = false;
 													morph_condition(condition_element, insert_obj, false, false, nullptr, is_write_read_obj);
-													obj->values.insert(obj->values.begin() + insert_position, insert_obj);
+													tmp_obj->values.insert(tmp_obj->values.begin() + insert_position, insert_obj);
 												}
 
 												memory_manager.delete_alloc();
@@ -1291,6 +1299,8 @@ namespace pel {
 										}
 									}
 								}
+
+								delete tmp_obj;
 
 								last_position = tree_words->position;
 
