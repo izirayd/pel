@@ -478,7 +478,13 @@ namespace pel
 							std::chrono::duration<double, std::micro> result_timer = end - start;
 							std::chrono::duration<double, std::micro> result_timer_parse_tree = end - timer_parse_tree_start;
 
-							print(fg(fmt::color::azure), "Process parse all steps end: ");
+							print(fg(fmt::color::azure), "Process parse all steps end ");
+#ifdef _DEBUG
+							print(fg(fmt::color::green), "[debug]");
+#else
+							print(fg(fmt::color::purple), "[release]");
+#endif
+							print(fg(fmt::color::azure), ": ");
 							print(fg(fmt::color::coral), "{}", result_timer.count());
 							print(fg(fmt::color::azure), "us\n");
 						

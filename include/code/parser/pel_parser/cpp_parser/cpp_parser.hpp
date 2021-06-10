@@ -486,6 +486,7 @@ namespace pel {
 
 					pel_keywords.push_back(type_keyword);
 
+					// TODO: Change
 					tree_words->process_function["base"] = detail::bind_function(&cpp_parser_pel_t::process_parse_tree, this, std::placeholders::_1, std::placeholders::_2);
 					tree_words->process_function["last_parent"] = detail::bind_function(&cpp_parser_pel_t::last_process_parse_tree, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
 
@@ -879,6 +880,51 @@ namespace pel {
 					}
 				}
 
+				void conditional_process(pel::obj_t* tmp_obj, const std::size_t &position) {
+
+					if (!tmp_obj)
+						return;
+
+					conditional_element_t* condition_element = new conditional_element_t;
+					conditional_element_t::memory_manager_t memory_manager;
+
+					conditional_element_t::erase_manager_t erase_list;
+
+					std::size_t insert_position = 0;
+					bool is_can_insert = false;
+
+					bool is_skip = false;
+
+					std::size_t tmp_position = position;
+					conditional_element_t::read_condition(tmp_obj, position, condition_element, false, false, tmp_position, is_skip, memory_manager, erase_list);
+					//print_condition(condition_element);
+
+					if (!erase_list.data.empty()) {
+						insert_position = erase_list.data[0];
+						is_can_insert = true;
+					}
+
+					if (is_can_insert)
+					{
+						tmp_position = insert_position;
+
+						for (size_t k = 0; k < erase_list.data.size(); k++)
+						{
+							tmp_obj->values.erase(tmp_obj->values.begin() + (erase_list.data[k] - k));
+						}
+
+						// here insert
+						obj_t insert_obj;
+						bool  is_write_read_obj = false;
+						morph_condition(condition_element, insert_obj, false, false, nullptr, is_write_read_obj);
+						tmp_obj->values.insert(tmp_obj->values.begin() + insert_position, insert_obj);
+					}
+
+					memory_manager.delete_alloc();
+					erase_list.clear();
+
+				}
+
 				void last_process_parse_tree(tree_obj_base_t* tree_words, tree_obj_base_t* first_child_graph, tree_obj_base_t* last_child_graph, core_data_manager_t* &core_data_manager)
 				{
 					auto word = tree_words->get_value();
@@ -956,6 +1002,18 @@ namespace pel {
 								it_word->obj.add_flag(obj_flag_t::obj_auto);
 
 								it_word->obj.word.data = it_word->obj.name;
+						
+								pel::obj_t* tmp_obj = &it_word->obj;
+
+								// TODO: NO CHECK SIZE!!!
+								for (std::size_t w = 0; w < it_word->obj.values.size(); w++)
+								{
+										if (tmp_obj->values[w].is_condition_true)
+										{
+											conditional_process(tmp_obj, w);
+										}
+								}
+								
 
 								if (previous_object) {
 
@@ -1237,70 +1295,34 @@ namespace pel {
 							}
 
 							if (word->words_base.data == ";")
-							{
-								auto obj = new obj_t;
-								auto tmp_obj = new obj_t;
-
-								bool is_first_find = false;
-
+							{	
 								for (size_t i = last_position; i < tree_words->position; i++)
 								{
 									if (tree_words->parent->tree[i]->get_value()->words_base.data == "{")
 									{
-										if (!is_first_find) {
-											is_first_find = true;
-											*obj = tree_words->parent->tree[i]->get_value()->obj;
-										}
-
-										*tmp_obj = tree_words->parent->tree[i]->get_value()->obj;
+										pel::obj_t* tmp_obj = &tree_words->parent->tree[i]->get_value()->obj;
 
 										// TODO: NO CHECK SIZE!!!
 										for (std::size_t w = 0; w < tmp_obj->values.size(); w++)
 										{
 											if (tmp_obj->values[w].is_condition_true)
 											{
-												conditional_element_t* condition_element = new conditional_element_t;
-												conditional_element_t::memory_manager_t memory_manager;
-
-												conditional_element_t::erase_manager_t erase_list;
-
-												std::size_t insert_position = 0;
-												bool is_can_insert = false;
-
-												bool is_skip = false;
-
-												conditional_element_t::read_condition(tmp_obj, w, condition_element, false, false, w, is_skip, memory_manager, erase_list);
-												//print_condition(condition_element);
-
-												if (!erase_list.data.empty()) {
-													insert_position = erase_list.data[0];
-													is_can_insert = true;
-												}
-
-												if (is_can_insert)
-												{
-													w = insert_position;
-
-													for (size_t k = 0; k < erase_list.data.size(); k++)
-													{
-														tmp_obj->values.erase(tmp_obj->values.begin() + (erase_list.data[k] - k));
-													}
-
-													// here insert
-													obj_t insert_obj;
-													bool  is_write_read_obj = false;
-													morph_condition(condition_element, insert_obj, false, false, nullptr, is_write_read_obj);
-													tmp_obj->values.insert(tmp_obj->values.begin() + insert_position, insert_obj);
-												}
-
-												memory_manager.delete_alloc();
-												erase_list.clear();
+												conditional_process(tmp_obj, w);
 											}
 										}
 									}
 								}
 
-								delete tmp_obj;
+								auto obj = new obj_t;
+
+								for (size_t i = last_position; i < tree_words->position; i++)
+								{
+									if (tree_words->parent->tree[i]->get_value()->words_base.data == "{")
+									{
+									   *obj = tree_words->parent->tree[i]->get_value()->obj;										
+										break;
+									}
+								}
 
 								last_position = tree_words->position;
 

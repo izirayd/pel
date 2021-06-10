@@ -1,10 +1,13 @@
-#module { tree }; 
+type a : { { "b" -> "c" : "d" } } = exists;
+
+
+#module { tree };
 
 group space   : { " " }  = { exists, ignore };
 group symbol  : { ";," } = { exists, split  };
 group word    : { !space and !symbol } = { exists, glue };
 
-type a  : { "a" or false };
-type a1 : { "a" } = exists;
 
-test t1 : { "a b" };
+
+
+test t1 : { "z d" };
