@@ -92,9 +92,29 @@ int process(const std::string& code)
 	pel::pel_parser_t pel_parser;
 
 	if (!code.empty()) {
+
 		pel_parser.code = code;
-		pel_parser.compile();
+	
+		if (!pel_parser.compile()) {
+
+			// TODO: do it!
+			/*	
+			    auto error_compile = pel_parser.error_compile();
+
+				if (error_compile.is()) {
+
+					for (auto& it_error : error_compile.list_errors)
+					{
+						fmt::print("{}", it_error.line(), it_error.position(), it_error.global_position(), it_error.what(), it_error.type(), it_error.index());
+					}
+				}
+			*/
+
+		}
+
 		pel_parser.run();
+
+		pel_parser.get_ast();
 	}
 	else
 	{
@@ -233,7 +253,29 @@ int main()
 
 	fmt::print(fmt::fg(fmt::color::coral), "Dev version with render code pel, with tree code v{0}.{1}\n\n",  PEL_VERSION_MAJOR, PEL_VERSION_MINOR);
 
-	start(1);
+	file_t file;
+	bool result = false;
+
+#ifdef _WIN64
+	result = file.OpenFile(dir_t(L"\\..\\..\\parser_data\\parser_text.txt"));
+#else
+	result = file.OpenFile(dir_t(L"\\..\\parser_data\\parser_text.txt"));
+#endif // _WIN64
+
+	if (result) {
+	
+		file.CloseFile();
+
+		fmt::print("PEL uses a system of instant response to file changes. You can change the file in real time and the PEL will reload it without restarting the pel application-interpreter.\n\n");
+		
+		fmt::print("File: {}\n\n\n", file.cfilename);
+
+		start(1);
+	}
+	else
+	{
+		fmt::print("Fatal error, can`t open file with pel code {} [no file!]\n", file.cfilename);
+	}
 
 	// pause
 	for (;;) { std::this_thread::sleep_for(100ms); }

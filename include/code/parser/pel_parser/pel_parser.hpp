@@ -19,6 +19,8 @@
 
 #include "../../association_flags.hpp"
 
+#include "../../ast.hpp"
+
 #include <stack>
 
 /* PEL from cplusplus */
@@ -185,10 +187,12 @@ namespace pel
 		}
 
 		// TODO:
-		void get_ast()
+		std::shared_ptr<pel::ast_t> get_ast()
 		{
-
+			return ast;
 		}
+
+		std::shared_ptr<pel::ast_t> ast;
 
 		void push_text(const std::string& text) {
 
