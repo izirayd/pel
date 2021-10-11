@@ -63,7 +63,8 @@ namespace pel
 	{
 	  public:
 		std::string                 code;
-		words_t                     words;
+		spec_obj_base_t             words;
+
 		tree_words_t                tree;
 		int32_t                     level = -1;
 		error_context_t				error_context;
@@ -197,7 +198,13 @@ namespace pel
 		void push_text(const std::string& text) {
 
 			auto obj = new obj_t;
+			auto obj_values = new obj_t;
+
 			obj->name = text;
+			obj_values->name = text;
+
+			obj->values.push_back(*obj_values);
+
 			all_tests.push_back(obj);
 		}
 
@@ -212,7 +219,7 @@ namespace pel
 				{
 					if (all_tests[i])
 					{
-						for (auto sub_test : all_tests[i]->values)
+						for (const auto &sub_test : all_tests[i]->values)
 						{
 							parser_core.code = sub_test.name;
 
@@ -256,6 +263,7 @@ namespace pel
 
 				pel::groups::group_result_t group_result;		
 				pel::groups::array_words_t  array_words;
+
 				std::vector<pel::groups::group_t*> result;
 
 				//TODO: can we get information about total count groups?
@@ -274,11 +282,11 @@ namespace pel
 				{
 					if (all_tests[i])
 					{
-						for (auto sub_test : all_tests[i]->values)
+						for (const auto &sub_test : all_tests[i]->values)
 						{
 							parser_core.code = sub_test.name;
 
-							fmt::print("pel <- {}\nList signature: \n", parser_core.code);
+							//fmt::print("pel <- {}\nList signature: \n", parser_core.code);
 
 							std::chrono::high_resolution_clock::time_point start = std::chrono::high_resolution_clock::now();
 
@@ -549,9 +557,53 @@ namespace pel
 
 	struct multinames_list_t
 	{
-		std::vector<names_list_t> data;
+		//std::vector<names_list_t> data;
+		std::unordered_map<std::string, names_list_t> names_list;
 
 		void push(pel::obj_t* obj) {
+			
+			if (!obj)
+				return;
+			
+			if (names_list.find(obj->name) != names_list.end())
+			{
+				auto& element_list = names_list[obj->name];
+
+				bool is_find = false;
+
+				for (const auto& it : element_list.data)
+				{
+					if (it == obj)
+					{
+						is_find = true;
+						break;
+					}
+				}
+
+				if (!is_find)
+				{
+					if (obj->is_flag(obj_flag_t::obj_exists))
+						element_list.is_ex = true;
+
+					element_list.data.push_back(obj);
+				}
+			}
+			else
+			{
+				names_list_t element_list;
+
+				element_list.name = obj->name;
+				element_list.data.push_back(obj);
+
+				if (obj->is_flag(obj_flag_t::obj_exists))
+					element_list.is_ex = true;
+
+				names_list[element_list.name] = element_list;
+			}
+		
+		}
+
+		/*void push1(pel::obj_t* obj) {
 
 			bool is_find = false;
 			std::size_t i = 0;
@@ -602,7 +654,7 @@ namespace pel
 
 				data.push_back(new_nl);
 			}
-		}
+		}*/
 	};
 
 	void multi_name(pel::pel_parser_t& pel_lang, names_list_t* names_list, parser::executive::gcmd_t* main, unsigned& counter_tmp_or, multinames_list_t* multinames_list);
@@ -650,12 +702,52 @@ namespace pel
 				{
 					get_property(gcmd, &sub_obj, &original_obj);
 				}
-
 			}
 		}
 		else
 		{
-			for (auto& list_mutinames : multinames_list->data)
+			if (multinames_list->names_list.find(word.data) != multinames_list->names_list.end())
+			{
+				auto& list_multinames = multinames_list->names_list.find(word.data)->second;
+
+				if (list_multinames.data.size() == 1)
+				{
+					is_find = true;
+
+					if (original_obj.name == word.data)
+					{
+						get_property(parent, list_multinames.data[0], &original_obj, true);
+					}
+					else
+					{
+						get_property(parent, list_multinames.data[0]);
+					}
+
+					for (const auto& sub_obj : list_multinames.data[0]->values)
+					{
+						parser::executive::gcmd_t* gcmd = parent->push({});
+
+						if (std::check_flag(sub_obj.flag, obj_flag_t::obj_type) && !std::check_flag(sub_obj.flag, obj_flag_t::obj_recursion))
+						{
+							no_ex(pel_lang, gcmd, sub_obj.word, level, is_stop, sub_obj, multinames_list, counter_tmp_or);
+
+							level--;
+						}
+						else
+						{
+							get_property(gcmd, &sub_obj, &original_obj);
+						}
+
+					}			
+				}
+				else
+				{
+					is_find = true;
+					multi_name(pel_lang, &list_multinames, parent, counter_tmp_or, multinames_list);
+				}
+			}
+
+			/*for (auto& list_mutinames : multinames_list->names_list)
 			{
 				if (list_mutinames.name == word.data)
 				{
@@ -699,7 +791,7 @@ namespace pel
 					}
 
 				}
-			}
+			}*/
 		}
 
 		// find group
@@ -767,10 +859,6 @@ namespace pel
 				is_find = true;
 
 				parser::executive::groups::get_property(parent, obj);
-
-				/*
-				   Копирование свойств в цепочке
-				*/
 
 				if (std::check_flag(original_obj.flag, obj_flag_t::obj_not))
 				{
@@ -920,18 +1008,18 @@ namespace pel
 
 		unsigned counter_tmp_or = 0;
 
-		for (auto &it : multinames_list.data)
+		for (auto &it : multinames_list.names_list)
 		{
-			if (it.data.size() == 1)
+			if (it.second.data.size() == 1)
 			{
 				// solo type
-				if (std::check_flag(it.data[0]->flag, obj_flag_t::obj_exists))
+				if (std::check_flag(it.second.data[0]->flag, obj_flag_t::obj_exists))
 				{
 					parser::executive::gcmd_t* main = new parser::executive::gcmd_t;
 
-					get_property(main, it.data[0]);
+					get_property(main, it.second.data[0]);
 
-					for (auto main_cmd : it.data[0]->values)
+					for (const auto& main_cmd : it.second.data[0]->values)
 					{
 						parser::executive::gcmd_t* sub_main = main->push({});
 
@@ -954,10 +1042,10 @@ namespace pel
 			}
 			else
 			{
-				if (it.is_ex) 
+				if (it.second.is_ex)
 				{
 					parser::executive::gcmd_t* main = new parser::executive::gcmd_t;
-					multi_name(pel_lang, &it, main, counter_tmp_or, &multinames_list);
+					multi_name(pel_lang, &it.second, main, counter_tmp_or, &multinames_list);
 					global_gcmd->push_back(main);
 				}
 			}

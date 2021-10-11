@@ -47,7 +47,7 @@ namespace parser
 
 				inline bool is_or()     { return std::check_flag(flag, group_flag_t::operation_or);     }
 				inline bool is_and()    { return std::check_flag(flag, group_flag_t::operation_and);    }
-				inline bool is_exists() { return std::check_flag(flag,  group_flag_t::property_exists); }
+				inline bool is_exists() { return std::check_flag(flag, group_flag_t::property_exists);  }
 				inline bool is_not()    { return std::check_flag(flag, group_flag_t::operation_not);    }
 				inline bool is_value()  { return std::check_flag(flag, group_flag_t::object_value);     }
 				inline bool is_type()   { return std::check_flag(flag, group_flag_t::object_type);      }
@@ -163,5 +163,4 @@ namespace parser
 			}
 		}
 	}
-
 }

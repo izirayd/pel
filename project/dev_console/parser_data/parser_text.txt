@@ -1,15 +1,6 @@
-#module { tree };
+//#module { tree, group };
 
-group space : { " " } = { exists, ignore };
-group word  : { !space } = { exists, glue }; 
+group space : { " " }    = { exists, ignore };
+group word  : { !space } = { exists, glue   }; 
 
-// a1 type
-/* 
-   Its multilines 
-                  comments
-
- */
-type a1 : { "read" -> { "book" or "file" } : { "good", "day" } } = exists;
-
-test t1 : { "sleep good day" };
-
+type a1 : { "a", "b" } = exists;

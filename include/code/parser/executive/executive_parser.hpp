@@ -205,7 +205,7 @@ namespace parser
                      end_return;
                }
 
-               void process_signature_for_graph(gcmd_t* command_graph, base_arg_t* arg, int count_signatures, bool& is_use)
+               void process_signature_for_graph(gcmd_t* command_graph, base_arg_t* arg, std::size_t count_signatures, bool& is_use)
                {
                    if (!command_graph->root->is_process)
                        return;
@@ -239,7 +239,7 @@ namespace parser
                }
     
                // TODO: Написать выход из графа
-               void emulate_recursion_for_process_signature(gcmd_t* command_graph, base_arg_t* arg, int count_signatures, bool& is_use)
+               void emulate_recursion_for_process_signature(gcmd_t* command_graph, base_arg_t* arg, std::size_t count_signatures, bool& is_use)
                {                     
                    gcmd_t* current_graph   = command_graph->root;
  
@@ -417,7 +417,7 @@ namespace parser
                    }    
                }
 
-               void reset(int level, base_arg_t* arg)
+               void reset(std::size_t level, base_arg_t* arg)
                {
                    global_gcmd_t* gcmd = arg->region->gcmd;
 
@@ -432,7 +432,6 @@ namespace parser
                    }
 
                    arg->region->current_position = 0;
-
                }
 
                void reset_old(int level, base_arg_t* arg)
@@ -657,7 +656,7 @@ namespace parser
 
                              //   it.gcmd->process_function["base"]         = detail::bind_function(&base_parser_t::process_signature_base, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
                             //    it.gcmd->process_function["last"]         = detail::bind_function(&base_parser_t::last_signature,    this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4);
-                            //    it.gcmd->process_function["last_parent"] = detail::bind_function(&base_parser_t::last_parent,      this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6);
+                            //    it.gcmd->process_function["last_parent"]  = detail::bind_function(&base_parser_t::last_parent,      this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5, std::placeholders::_6);
 
                             //    it.gcmd->start_process(base_arg, it.count_signatures, d->is_use);
 
@@ -729,10 +728,76 @@ namespace parser
 
             void group_init() {
 
-                for (auto& it : global_gcmd_group)
-                {
+           /*    for (auto& it : global_gcmd_group)
+               {
                     it.gcmd->process_function["base"] = detail::bind_function(&base_parser_t::process_group_signature, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3);
                     it.gcmd->process_function["last_parent"] = detail::bind_function(&base_parser_t::last_group_parent, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5);
+               }*/
+            }
+  
+            void start_process(groups::gcmd_group_t *command_graph, int &status, const pel::groups::group_element_t& element)
+            {
+                if (!command_graph)
+                    return;
+
+                groups::gcmd_group_t* current_graph = command_graph;
+
+                bool is_exit_recursion = false;
+
+                for (;;)
+                {
+                    if (current_graph->is_value)
+                    {
+                        process_group_signature(current_graph, status, element);
+                    }
+
+                    if (current_graph->real_first_child) {
+                        current_graph = current_graph->real_first_child;
+                    }
+                    else
+                        if (current_graph->next) {
+                            current_graph = current_graph->next;
+                        }
+                        else
+                        {
+                            if (current_graph->is_value) {
+
+                                if (current_graph->is_last())
+                                {
+                                    last_group_parent(current_graph->parent, current_graph->parent->size() > 0 ? current_graph->parent->tree[0] : nullptr, current_graph->parent->size() > 0 ? current_graph->parent->tree[current_graph->parent->size() - 1] : nullptr, status, element);
+                                }
+                            }
+
+                            current_graph = current_graph->parent;
+
+                            for (;;)
+                            {
+                                if (current_graph->next)
+                                {
+                                    current_graph = current_graph->next;
+                                    break;
+                                }
+                                else {
+
+                                    current_graph = current_graph->parent;
+
+                                    if (!status) {
+                                        if (current_graph->is_value && current_graph->root->is_process) {
+                                            last_group_parent(current_graph, current_graph->size() > 0 ? current_graph->tree[0] : nullptr, current_graph->size() > 0 ? current_graph->tree[current_graph->size() - 1] : nullptr, status, element);
+                                        }
+                                    }
+
+                                }
+
+                                if (current_graph->is_root || current_graph == command_graph) {
+                                    is_exit_recursion = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                    if (is_exit_recursion)
+                        break;
                 }
             }
 
@@ -742,7 +807,13 @@ namespace parser
                 {
                     int status = 0;
 
-                    it.gcmd->start_process(status, element);
+                   // it.gcmd->start_process(status, element);
+
+                    it.gcmd->is_process = true;
+
+                    start_process(it.gcmd, status, element);
+
+                    it.gcmd->is_process = false;
 
                     // То граф принадлежит
                     if (status == 1)

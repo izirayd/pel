@@ -56,13 +56,13 @@ namespace parser
 
         int total_operation = 0;
 
-        void final_signature(gcmd_t* command_graph, base_arg_t* arg, int count_signatures, bool& is_use)
+        void final_signature(gcmd_t* command_graph, base_arg_t* arg, std::size_t count_signatures, bool& is_use)
         {
             cmd_t* cmd        = &command_graph->get_value();
             cmd_t* parent_cmd = &command_graph->parent->get_value();
             cmd_t* root_cmd   = &command_graph->root->get_value();
 
-            bool is_result_final_signature = true;
+            bool is_result_final_signature = false;
 
             //	   if (command_graph->get_value().is_last)
             {
@@ -132,7 +132,7 @@ namespace parser
             cmd_t* root_cmd   = &command_graph->root->get_value();
         }
 
-        void last_parent(gcmd_t* command_graph, gcmd_t* first_child_graph, gcmd_t* last_child_graph, base_arg_t* arg, int count_signatures, bool& is_use, bool is_render_tree, bool &is_skip_from_parent)
+        void last_parent(gcmd_t* command_graph, gcmd_t* first_child_graph, gcmd_t* last_child_graph, base_arg_t* arg, std::size_t count_signatures, bool& is_use, bool is_render_tree, bool &is_skip_from_parent)
         {
             cmd_t* cmd        = &command_graph->get_value();
             cmd_t* parent_cmd = &command_graph->parent->get_value();
@@ -519,7 +519,7 @@ namespace parser
             }
         }
 
-        void process_signature_base(gcmd_t* command_graph, base_arg_t* arg, int count_signatures, bool& is_use, bool is_render_tree, bool &is_skip_all, bool &is_skip_subsets)
+        void process_signature_base(gcmd_t* command_graph, base_arg_t* arg, std::size_t count_signatures, bool& is_use, bool is_render_tree, bool &is_skip_all, bool &is_skip_subsets)
         {
             cmd_t* cmd        = &command_graph->get_value();
             cmd_t* parent_cmd = &command_graph->parent->get_value();
@@ -768,7 +768,6 @@ namespace parser
                 end_return;
             }
 
-
             if (cmd->is_check && cmd->is_type()) {
              
                 end_return;
@@ -854,7 +853,6 @@ namespace parser
             //    }
             //}
 
-            // time for epic
             if (cmd->is_recursion())
             {
                 if (cmd->recursion_element && !cmd->is_status_allocate_recursion_graph)
@@ -1105,7 +1103,6 @@ namespace parser
             {
                 end_return;
             }
-        }
-		
+        }		
 	}
 }

@@ -15,35 +15,6 @@ namespace pel {
 
 	namespace cpp_parser {
 
-		struct obj_base_t
-		{
-			words_base_t  words_base;
-
-			inline const std::string& c_str() { return words_base.data; };
-
-			bool is_read_string_end = false;
-			bool is_read_property   = false;
-			bool is_multi_property  = false;
-			bool is_conditional_expressions = false;
-
-			obj_t		  obj;
-
-			obj_t* conditional_expressions = nullptr;
-
-			tree_t<obj_base_t*>* my_pair = nullptr;
-		};
-
-		using tree_obj_base_t = tree_t<obj_base_t*>;
-
-		class spec_obj_base_t
-		{
-		public:
-			std::vector<obj_base_t> words;
-			inline void push(const obj_base_t& data) { words.push_back(data); }
-			inline void clear() { words.clear(); }
-			inline void delete_alloc() { std::clear(words); }
-		};
-
 		struct pel_keywords_element_t
 		{
 			std::string name;
@@ -412,17 +383,17 @@ namespace pel {
 		class cpp_parser_pel_t
 		{
 		    public:
-				bool process_parse(words_t *words, core_data_manager_t* core_data_manager) {
+				bool process_parse(pel::spec_obj_base_t *words, core_data_manager_t* core_data_manager) {
 
 					tree_obj_base_t* tree_words = new tree_obj_base_t;
-					spec_obj_base_t spec_words;
+					//spec_obj_base_t spec_words;
 
-					for (size_t i = 0; i < words->words.size(); i++)
+				/*	for (size_t i = 0; i < words->words.size(); i++)
 					{
 						obj_base_t base;
 						base.words_base = words->words[i];
 						spec_words.push(base);
-					}
+					}*/
 
 					std::intptr_t new_position = -1;
 					std::vector<std::pair<std::string, std::string>> array_symbols;
@@ -430,7 +401,7 @@ namespace pel {
 					array_symbols.push_back({ "{", "}" });
 					array_symbols.push_back({ "\"", "\"" });
 
-					block_parse_obj(tree_words, 0, spec_words.words.size(), new_position, array_symbols, &spec_words);
+					block_parse_obj(tree_words, 0, words->words.size(), new_position, array_symbols, words);
 
 					pel_keywords_element_t type_keyword;
 
@@ -494,8 +465,7 @@ namespace pel {
 					tree_words->start_process(core_data_manager);
 
 					pel_keywords.clear();
-					spec_words.clear();
-
+			
 					tree_words->delete_tree();
 					delete tree_words;
 					tree_words = nullptr;

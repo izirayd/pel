@@ -8,6 +8,20 @@
 #include <code\detail\file_watcher/FileWatcher.h>
 #include <code\detail\path.hpp>
 
+#define BIG_DATA_FILE_TEST
+
+#ifdef _WIN64
+	#define script_file_name L"\\..\\..\\parser_data\\parser_text.txt"
+#else
+	#define script_file_name L"\\..\\parser_data\\parser_text.txt"
+#endif // _WIN64
+
+#ifdef _WIN64
+	#define script_file_data L"\\..\\..\\parser_data\\data.txt"
+#else
+	#define script_file_data L"\\..\\parser_data\\data.txt"
+#endif // _WIN64
+
 using namespace std::chrono_literals;
 
 unsigned int BinHashH37(const char* Data, int Size)
@@ -49,6 +63,41 @@ uint32_t file_hash(const std::wstring& file_name)
 
 uint32_t last_hash = 0;
 
+void read_data_file(std::string& data, const std::wstring &file_name)
+{
+	file_t file;
+
+	data.clear();
+
+	file.OpenFile(dir_t(file_name.c_str()));
+
+	if (file)
+	{
+		if (file.GetSizeFile() > 0) {
+			data.resize(file.GetSizeFile());
+			file.FullReadFile(data.data(), 1);
+		}
+		else
+		{
+			fmt::print("Emtpy file {}\n", file.cfilename.c_str());
+			return;
+		}
+
+		file.CloseFile();
+	}
+	else
+	{
+		fmt::print("Can`t open file {}\n", file.cfilename.c_str());
+		return;
+	}
+
+	if (data.empty())
+	{
+		fmt::print("File empty {}\n", file.cfilename.c_str());
+		return;
+	}
+}
+
 void read_code(std::string& result_code)
 {
 	file_t cpp_file;
@@ -87,7 +136,7 @@ void read_code(std::string& result_code)
 	}
 }
 
-int process(const std::string& code)
+int process(const std::string& code, const std::string &data)
 {
 	pel::pel_parser_t pel_parser;
 
@@ -95,25 +144,16 @@ int process(const std::string& code)
 
 		pel_parser.code = code;
 	
+#ifdef BIG_DATA_FILE_TEST
+		if (!data.empty())
+			pel_parser.push_text(data);
+#endif
+
 		if (!pel_parser.compile()) {
-
-			// TODO: do it!
-			/*	
-			    auto error_compile = pel_parser.error_compile();
-
-				if (error_compile.is()) {
-
-					for (auto& it_error : error_compile.list_errors)
-					{
-						fmt::print("{}", it_error.line(), it_error.position(), it_error.global_position(), it_error.what(), it_error.type(), it_error.index());
-					}
-				}
-			*/
 
 		}
 
 		pel_parser.run();
-
 		pel_parser.get_ast();
 	}
 	else
@@ -127,15 +167,15 @@ int process(const std::string& code)
 	return 0;
 }
 
-
 void process_code()
 {
-	std::string code;
+	std::string code, data;
 
-	read_code(code);
-	process(code);
+	read_data_file(code, script_file_name);
+	read_data_file(data, script_file_data);
+
+	process(code, data);
 }
-
 
 class code_file : public FW::FileWatchListener
 {

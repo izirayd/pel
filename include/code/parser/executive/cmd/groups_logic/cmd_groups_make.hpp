@@ -14,15 +14,24 @@ namespace parser
 			{
 				if (is_elements && count == 0)
 				{
-					fmt::print(fg(fmt::color::coral), "{}", (char)254);
+					fmt::print(fg(fmt::color::coral), "{}", (char)218);
 					return;
 				}
 
 				std::size_t tmp_count = count;
 
-				for (size_t i = 0; i < tmp_count; i++)
+				if (tmp_count == 1)
 				{
-					fmt::print("{}", (char)221);
+					fmt::print("{}", (char)195);
+				}
+				else
+				{
+					for (size_t i = 0; i < tmp_count - 1; i++)
+					{
+						fmt::print("{}", (char)179);
+					}
+
+					fmt::print("{}", (char)195);
 				}
 
 				if (is_elements)
@@ -38,7 +47,16 @@ namespace parser
 				else
 				{
 					if (cmd->is_type()) {
-						print(fg(fmt::color::aquamarine), "{}", (char)254);
+
+						if (cmd->is_last)
+						{
+							print(fg(fmt::color::aquamarine), "{}", (char)192);
+						}
+						else
+						{
+							print(fg(fmt::color::aquamarine), "{}", (char)191);
+						}
+						
 					}
 					else
 					{
